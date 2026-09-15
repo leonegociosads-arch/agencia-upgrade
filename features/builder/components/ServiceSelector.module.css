@@ -1,0 +1,63 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 1.5rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+  padding: 1.25rem;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: #333;
+}
+
+.badge {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0a7a3a;
+}
+
+.cardLabel {
+  font-weight: 600;
+}
+
+.cardDescription {
+  font-size: 0.875rem;
+  color: #555;
+}
+
+.secondaryLink {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #555;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}

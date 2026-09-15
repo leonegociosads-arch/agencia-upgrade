@@ -1,0 +1,16 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.body {
+  flex: 1;
+  padding-bottom: 2rem;
+}
+
+.upgradePanel {
+  max-width: 480px;
+  margin: 0 auto 2rem;
+  padding: 0 1.5rem;
+}
