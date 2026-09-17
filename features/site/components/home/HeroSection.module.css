@@ -1,0 +1,110 @@
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-space-4);
+  padding-block: var(--ds-space-24) var(--ds-space-16);
+  overflow: hidden;
+}
+
+/* Espaçamento responsivo (Fase 20, Seção 16) — mobile não mantém o respiro generoso do desktop,
+ * mas também não comprime tudo: reduz proporcionalmente, não zera. */
+@media (max-width: 640px) {
+  .hero {
+    padding-block: var(--ds-space-12) var(--ds-space-8);
+  }
+}
+
+/* Entrada ao montar (Etapa 30 — Performance): CSS puro, não GSAP (briefing, Seção 75: "microinte-
+ * rações simples devem preferir CSS quando mais barato que GSAP"). Antes, `useHeroScrollMotion.ts`
+ * escondia este conteúdo via `gsap.set(opacity:0)` dentro de um `useEffect` e revelava com uma
+ * timeline — só que isso atrasa a pintura do H1 (o elemento de LCP real da Home, confirmado via
+ * Lighthouse) até depois de hidratação + bootstrap do GSAP/Three.js/Lenis competirem pelo mesmo
+ * main thread (~2,2s de "element render delay" simulando mobile). Uma animação CSS começa a
+ * rodar assim que o navegador aplica o stylesheet, sem esperar nenhum JavaScript — o mesmo
+ * resultado visual (fade + leve subida, escalonado), sem o custo. Duração/easing/stagger
+ * reaproveitam os MESMOS tokens que `motionConfig.ts` já espelhava para o GSAP (`--ds-duration-
+ * slow` = `DURATION.slow`; `--ds-easing-emphasized` = `EASE.emphasized`; `--ds-stagger-sm/md` =
+ * `STAGGER.sm/md`) — nenhum valor novo inventado, a coreografia é idêntica à anterior.
+ *
+ * `animation-delay` zerado sob `prefers-reduced-motion` pela regra global de `styles/tokens.css`
+ * (Seção "Acessibilidade") — sem isso, o conteúdo ficaria invisível por até 300ms mesmo com a
+ * duração colapsada para 0.01ms.
+ */
+@keyframes heroReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.badge,
+.heroTitle,
+.heroSubtitle,
+.heroActions {
+  animation: heroReveal var(--ds-duration-slow) var(--ds-easing-emphasized) both;
+}
+
+/* `.badge` não tem outras regras próprias — existe só para dar um seletor estável ao motion
+ * (`useHeroScrollMotion.ts`), já que o visual vem inteiro do componente `Badge`. */
+.badge {
+  display: inline-flex;
+}
+
+.heroTitle {
+  max-width: 18ch;
+  animation-delay: var(--ds-stagger-md);
+}
+
+.heroSubtitle {
+  max-width: 52ch;
+  animation-delay: calc(var(--ds-stagger-md) + var(--ds-stagger-sm));
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-4);
+  margin-top: var(--ds-space-4);
+  animation-delay: calc(var(--ds-stagger-md) + var(--ds-stagger-sm) + var(--ds-stagger-sm));
+}
+
+/* Grafismo (Fase 19, Seção 22): um recorte diagonal + um bloco geométrico, verde só como acento
+ * pontual — nunca a página inteira pintada de verde. Puramente decorativo (aria-hidden), então
+ * nunca compete com o texto em telas pequenas (fica atrás dele, `z-index` implícito pela ordem no
+ * DOM, e não recebe nenhum evento de clique). A partir da Fase ScrollTrigger e Storytelling,
+ * também recebe escala/opacidade ligadas ao scroll (`useHeroScrollMotion.ts`, Seção 4 do briefing:
+ * "logo/símbolo muda de escala").
+ *
+ * Fase 3D/WebGL: `.heroGraphic` agora é só o ENVELOPE de posição/tamanho — o recorte diagonal em
+ * si vive em `.heroGraphicFallback` (abaixo), para o monograma 3D (`UpgradeLogo3D`, renderizado
+ * por cima) ter o quadrado inteiro disponível, sem ficar cortado pelo mesmo `clip-path` do
+ * fallback 2D. */
+.heroGraphic {
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 480px;
+  height: 480px;
+  max-width: 60vw;
+  max-height: 60vw;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Fallback (Seção 31 do briefing: "fallback é obrigatório") — o MESMO visual que existia antes
+ * desta fase, sempre presente por baixo; só fica coberto quando `UpgradeLogo3D` monta com sucesso
+ * (canvas com fundo transparente, então as bordas deste gradiente continuam visíveis ao redor da
+ * peça 3D mesmo quando ela está ativa). */
+.heroGraphicFallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--ds-color-surface-elevated) 0%, var(--ds-color-surface-elevated) 55%, var(--ds-color-accent-soft) 55%, var(--ds-color-accent-soft) 100%);
+  clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 60% 100%);
+  opacity: 0.6;
+}
