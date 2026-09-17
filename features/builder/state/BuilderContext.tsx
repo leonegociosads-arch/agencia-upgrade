@@ -1,14 +1,26 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
-import { builderReducer, canFinalizeProject, hasPendingDraft, initialBuilderState, isDraftReadyToAutoSave } from "./builderReducer";
+import {
+  builderReducer,
+  canFinalizeProject,
+  hasPendingDraft,
+  initialBuilderState,
+  isDraftReadyToAutoSave,
+  type RestorableBuilderState,
+} from "./builderReducer";
 import { validateBuilderConfig } from "../logic/validateBuilderConfig";
-import type { AnswerValue, BuilderState, ServiceId } from "../types";
+import type { AnswerValue, BuilderState, BuilderStep, ServiceId } from "../types";
 
 interface BuilderContextValue {
   state: BuilderState;
   startNewService: (serviceId: ServiceId) => void;
-  startEditingService: (serviceId: ServiceId) => void;
+  /**
+   * `returnStep` é o "returnContext" da Etapa 11: quando informado, salvar ou cancelar esta
+   * edição volta para lá (hoje, só `"reviewing"` faz sentido — editar a partir do Resumo do
+   * Projeto). Omitido, o padrão da Etapa 8 continua valendo (`"choosing_service"`).
+   */
+  startEditingService: (serviceId: ServiceId, options?: { returnStep?: BuilderStep }) => void;
   updateDraftAnswer: (questionId: string, value: AnswerValue) => void;
   editDraftField: (questionId: string) => void;
   backDraft: () => void;
@@ -17,7 +29,17 @@ interface BuilderContextValue {
   removeService: (serviceId: ServiceId) => void;
   goToEntry: () => void;
   finalizeProject: () => void;
+  continueToContact: () => void;
+  startSubmitLead: () => void;
+  submitLeadSuccess: () => void;
+  submitLeadFailure: (message: string) => void;
+  backToReview: () => void;
+  retrySubmit: () => void;
   canGoBackDraft: () => boolean;
+  /** Substitui o estado inteiro por uma sessão restaurada e já saneada (Fase 14). */
+  hydrateSession: (builder: RestorableBuilderState) => void;
+  /** "Começar de novo" (Fase 14) — volta ao estado inicial, descartando tudo. */
+  resetBuilder: () => void;
 }
 
 const BuilderContext = createContext<BuilderContextValue | null>(null);
@@ -52,7 +74,8 @@ export function BuilderProvider({ children, initialState = initialBuilderState }
     return {
       state,
       startNewService: (serviceId) => dispatch({ type: "START_NEW_SERVICE", serviceId }),
-      startEditingService: (serviceId) => dispatch({ type: "START_EDITING_SERVICE", serviceId }),
+      startEditingService: (serviceId, options) =>
+        dispatch({ type: "START_EDITING_SERVICE", serviceId, returnStep: options?.returnStep }),
       updateDraftAnswer,
       editDraftField: (questionId) => dispatch({ type: "EDIT_DRAFT_FIELD", questionId }),
       backDraft: () => dispatch({ type: "BACK_DRAFT" }),
@@ -61,7 +84,15 @@ export function BuilderProvider({ children, initialState = initialBuilderState }
       removeService: (serviceId) => dispatch({ type: "REMOVE_SERVICE", serviceId }),
       goToEntry: () => dispatch({ type: "GO_TO_ENTRY" }),
       finalizeProject: () => dispatch({ type: "FINALIZE_PROJECT" }),
+      continueToContact: () => dispatch({ type: "CONTINUE_TO_CONTACT" }),
+      startSubmitLead: () => dispatch({ type: "START_SUBMIT_LEAD" }),
+      submitLeadSuccess: () => dispatch({ type: "SUBMIT_LEAD_SUCCESS" }),
+      submitLeadFailure: (message) => dispatch({ type: "SUBMIT_LEAD_FAILURE", message }),
+      backToReview: () => dispatch({ type: "BACK_TO_REVIEW" }),
+      retrySubmit: () => dispatch({ type: "RETRY_SUBMIT" }),
       canGoBackDraft: () => state.draftHistory.length > 0,
+      hydrateSession: (builder) => dispatch({ type: "HYDRATE_SESSION", builder }),
+      resetBuilder: () => dispatch({ type: "RESET_BUILDER" }),
     };
   }, [state]);
 
