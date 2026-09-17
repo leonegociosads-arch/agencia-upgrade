@@ -641,6 +641,990 @@ Formato: `[Fase X] Decisão — justificativa`
 - **[Fase 10] Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi
   redesenhada** — esta fase só implementou o gerenciamento dos serviços já confirmados.
 
+## Resumo Final do Projeto (Fase 11)
+
+> Detalhes completos em `docs/IMPLEMENTATION-STAGE-11.md`; aqui só as decisões formais.
+
+- **[Fase 11] Não foi criada uma segunda função de lógica para o "resumo detalhado"** — analisada a
+  função existente (`buildServiceSummary`, Fase 9), a diferença entre "resumo curto" (Meu Upgrade,
+  Fase 10) e "resumo detalhado" (Resumo do Projeto, Fase 11) nunca foi uma diferença de dados, só de
+  quantos itens a UI decide mostrar. `buildServiceSummary` já retornava a lista completa desde a
+  Fase 9; a Fase 10 apenas cortava essa lista em 3 itens na camada de exibição
+  (`MyUpgradeItem`). O Resumo do Projeto usa a mesma função, sem cortar. Evita "funções
+  praticamente idênticas", como pedido no briefing desta fase.
+- **[Fase 11] Duas novas funções paralelas, `buildProjectSummary` (DISPLAY SUMMARY) e
+  `buildProjectSnapshot` (PROJECT SNAPSHOT)** — deliberadamente separadas (uma para apresentação,
+  outra para dados), mas garantidamente consistentes entre si por lerem o mesmo
+  `confirmedServices` e iterarem na mesma ordem (`Object.entries`, preserva a ordem de inserção,
+  mesmo princípio já usado no Meu Upgrade da Fase 10).
+- **[Fase 11] Novo campo `returnStep` em `BuilderState`, o "returnContext" pedido no briefing** — a
+  Fase 10 havia decidido conscientemente não precisar de um mecanismo assim, porque o Meu Upgrade
+  nunca saía da tela. O Resumo do Projeto é diferente (é uma tela própria, da qual se sai e para a
+  qual se volta), então esse mecanismo passou a ser necessário de verdade nesta fase — implementado
+  do jeito mais simples possível: um campo com dois valores possíveis
+  (`"choosing_service"` | `"reviewing"`), não uma pilha de navegação genérica.
+- **[Fase 11] Correção real encontrada no teste manual: o painel "Meu Upgrade" duplicava as ações
+  de Editar/Remover da nova tela de Resumo do Projeto**, por ficar visível ao mesmo tempo (a
+  decisão da Fase 10 de mantê-lo como seção persistente não previa uma segunda tela com as mesmas
+  ações). Corrigido: o painel não é mais renderizado durante `"reviewing"`/`"contact"` — essas
+  telas já têm sua própria forma de editar/remover/navegar. Nenhum teste automatizado pegou isso
+  (cada teste de componente verificava seu próprio widget isoladamente) — foi o teste manual
+  exigido nesta fase que revelou o problema.
+- **[Fase 11] `buildServiceSummary` ganhou uma segunda camada defensiva de filtragem** (checagem
+  explícita de `isQuestionVisible`, além de `value !== undefined`) e um aviso de desenvolvimento
+  (`console.warn`, nunca em produção) para campo desconhecido em `answers` — nenhuma das duas é
+  uma correção de bug encontrado; são defesas em profundidade pedidas explicitamente pelo briefing
+  desta fase ("Filtragem", "Erros").
+- **[Fase 11] Nova ação de reducer `CONTINUE_TO_CONTACT` e componente `ContactPlaceholder`** — só
+  confirmam a transição para o estado `"contact"`; nenhum formulário real foi implementado (Etapa
+  12).
+- **[Fase 11] Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi
+  redesenhada** — esta fase só implementou a revisão final sobre decisões já aprovadas.
+
+## Captura e Validação do Lead (Fase 12)
+
+> Detalhes completos em `docs/IMPLEMENTATION-STAGE-12.md`; aqui só as decisões formais.
+
+- **[Fase 12] React Hook Form + Zod usados exatamente como já aprovado na Fase 6**
+  (`docs/TECHNICAL-ARCHITECTURE.md`, Seção 18, especificamente para o formulário de contato) — duas
+  dependências novas instaladas (`react-hook-form`, `zod`, mais `@hookform/resolvers` para o
+  `zodResolver`). Zod instalado na versão 4 (mais recente disponível no momento), não a versão 3
+  implícita na redação original da Fase 6 — a API usada (`z.object`, `.transform`, `.pipe`,
+  `z.email()`) foi validada compatível.
+- **[Fase 12] `leadDraft` vive num `LeadProvider` totalmente separado de `BuilderState`, montado ao
+  lado de (não dentro de) `BuilderProvider`** — necessário porque o componente do formulário é
+  desmontado/remontado pela própria navegação do Builder (`BuilderShell` troca de tela por
+  `state.step`), e um estado local dentro do componente não sobreviveria a isso. `useState` simples
+  (não um reducer), porque a única operação necessária é substituir o rascunho inteiro.
+- **[Fase 12] `buildLeadPayload` recebe `LeadContactData` (já normalizado pelo schema) e
+  `ProjectSnapshot`, e só monta a estrutura final** — nenhuma normalização é repetida ali. O
+  `Project Snapshot` é recalculado a partir de `confirmedServices` no momento exato do submit, nunca
+  guardado com antecedência, para nunca correr o risco de enviar uma versão desatualizada do
+  projeto.
+- **[Fase 12] Descoberta real: `mode: "onBlur"` + `reValidateMode: "onChange"` (o padrão do React
+  Hook Form) não estava revalidando um campo de forma confiável nesta combinação de versões (RHF 7
+  + `@hookform/resolvers` + Zod 4)** — reproduzido isoladamente antes de assumir que fosse um erro
+  de implementação deste projeto. Corrigido com `trigger(field)` explícito no `onChange` de cada
+  campo, disparado só quando aquele campo já tem um erro exibido. `@testing-library/user-event` foi
+  adicionado como devDependency durante essa investigação (mais realista que `fireEvent` para
+  simular digitação em formulários RHF), mas o problema raiz não era o método de teste — se
+  confirmou reproduzível com ambos.
+- **[Fase 12] O submit provisório aceita um `simulateFailure` acionável via `?simulateLeadFailure=1`
+  na URL, só para permitir testar manualmente o estado de falha (WF-12) no navegador** — sem
+  nenhuma outra forma de disparar uma falha real nesta fase (não existe backend ainda). Documentado
+  explicitamente como conveniência de QA a ser removida quando a Etapa 13 acrescentar uma chamada
+  de rede real.
+- **[Fase 12] Texto de sucesso é "Projeto validado com sucesso.", não "Recebemos seu projeto."** —
+  em qualquer ambiente (não varia por `NODE_ENV`), porque a razão de não afirmar recebimento não é
+  sobre modo de build, é sobre a integração comercial real ainda não existir em nenhum ambiente
+  desta fase.
+- **[Fase 12] Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi
+  redesenhada** — esta fase só implementou a captura e validação do lead sobre decisões já
+  aprovadas.
+
+## Infraestrutura Supabase (Fase 13)
+
+> Detalhes completos em `docs/IMPLEMENTATION-STAGE-13.md`; aqui só as decisões formais.
+
+- **[Fase 13] Estrutura implementada exatamente como já planejada nas Fases 1/6**
+  (`docs/DECISIONS.md`, Fase 1/6; `docs/FOLDER-STRUCTURE.md`) — `lib/supabase/{client,server}.ts`,
+  `lib/repositories/leads.ts`, `features/lead/actions/submitLead.ts` como Server Action (não Route
+  Handler — decisão da Fase 6 mantida: "Server Actions são o mecanismo principal para o envio do
+  lead"). Nenhuma estrutura paralela foi criada.
+- **[Fase 13] Biblioteca instalada: `@supabase/supabase-js`** (cliente oficial). `@supabase/ssr` não
+  foi instalada — ela existe para sincronizar sessão de autenticação via cookies, e este projeto
+  ainda não usa Supabase Auth; adicionar essa dependência agora seria antecipar uma necessidade que
+  não existe. Também instalado `server-only` (pacote oficial do React/Next), como trava adicional
+  em `lib/supabase/server.ts` e `lib/repositories/leads.ts` contra importação acidental a partir de
+  um Client Component.
+- **[Fase 13] `server-only` precisou de um alias no Vitest** (`vitest.config.ts`, resolve.alias)
+  apontando para a própria variante vazia (`node_modules/server-only/empty.js`) que o pacote já
+  publica. Fora do bundler do Next (que resolve `server-only` como no-op via a condição de exports
+  `"react-server"`), o pacote lança um erro incondicional — reproduzido isoladamente antes de mudar
+  a configuração. A proteção real continua acontecendo no build do Next; o alias só evita que os
+  testes quebrem por rodarem em Node puro.
+- **[Fase 13] Apenas uma tabela criada agora: `upgrade_leads`** (nome sugerido no briefing desta
+  fase, sem conflito com `docs/DATA-MODEL-CONCEPT.md`, que não define nomes de tabela). `Session`,
+  `Project` e `Event` (entidades conceituais do modelo de dados) continuam fora de escopo — não
+  avançar para CRM/Lead Score/Analytics nesta fase.
+- **[Fase 13] `project` (o PROJECT SNAPSHOT) é gravado como uma coluna `jsonb` única**, não
+  normalizado em tabelas próprias — mesma justificativa já registrada em
+  `docs/DATA-MODEL-CONCEPT.md` para `ServiceConfiguration.answers` (volume pequeno, sem necessidade
+  de consultar respostas individuais fora do contexto do lead).
+- **[Fase 13] RLS habilitada em `upgrade_leads` sem nenhuma policy, mais um `revoke all` explícito
+  para `anon`/`authenticated`** — com RLS ligada e zero policies, toda operação via chave anônima ou
+  autenticada já é negada por padrão; o `revoke` é defesa em profundidade contra qualquer GRANT
+  herdado do schema. Apenas a service role key (exclusiva do servidor) grava leads.
+- **[Fase 13] `idempotencyKey` novo em `LeadPayload.meta`, gerado uma vez por `LeadProvider`**
+  (`crypto.randomUUID()`, com um fallback simples se indisponível) e reutilizado em qualquer
+  reenvio dentro da mesma sessão de página (ex.: "Tentar novamente" depois de uma falha). A coluna
+  `idempotency_key` no banco tem constraint UNIQUE; uma violação de unicidade (Postgres `23505`) é
+  tratada como sucesso do ponto de vista de quem enviou — o lead já existe.
+- **[Fase 13] Segunda camada de validação criada no servidor: `leadPayloadSchema`, usada só dentro
+  de `submitLead`** — não reaproveita `leadFormSchema` (que valida a ENTRADA bruta do formulário e
+  normaliza) porque o formato que chega numa Server Action já é a SAÍDA normalizada; um schema que
+  valida forma/sanidade da saída é uma responsabilidade genuinamente diferente, não uma duplicata
+  ("evitar funções praticamente idênticas" continua valendo, e aqui as duas funções fazem coisas
+  diferentes o bastante para justificar existirem separadas).
+- **[Fase 13] O simulador local do submit (`features/lead/logic/submitLeadPayload.ts`, Fase 12) foi
+  removido e substituído pela chamada real a `submitLead`** — exatamente como a Fase 12 já havia
+  documentado ("removível quando a Etapa 13 acrescentar uma chamada de rede real"). Pelo mesmo
+  motivo, a conveniência de QA `?simulateLeadFailure=1` também foi removida: com a chamada real,
+  qualquer ambiente sem credenciais do Supabase já produz uma falha genuína e recuperável, sem
+  precisar de um atalho de URL para ser testada manualmente. Os testes de componente que dependiam
+  desse parâmetro agora mockam `submitLead` diretamente (`vi.mock`), um padrão mais correto para
+  testar o `LeadForm` sem depender de rede/banco.
+- **[Fase 13] Ausência de credenciais nunca quebra `next build`/`next dev`** — os clientes Supabase
+  só são instanciados sob demanda (dentro de uma função, nunca no topo do módulo); o erro só ocorre
+  quando uma operação real de banco é tentada, e nesse caso ele é logado no servidor e devolvido à
+  UI como a mesma mensagem genérica de falha já usada na Fase 12 ("Não conseguimos enviar agora.
+  Seus dados continuam preenchidos.") — nunca escondido, nunca fingindo sucesso.
+- **[Fase 13] Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi
+  redesenhada; nenhum painel administrativo, Lead Score, analytics, WhatsApp ou e-mail reais foram
+  implementados** — esta fase só preparou a infraestrutura de persistência do lead.
+- **[Fase 13 - correção] A migração original esquecia o `GRANT` explícito para `service_role`** —
+  descoberto ao testar a conexão real com o Supabase do usuário: RLS habilitada e `service_role` com
+  o atributo `BYPASSRLS` não bastam sozinhos; sem um `GRANT SELECT, INSERT, UPDATE, DELETE ON
+  public.upgrade_leads TO service_role` explícito, o Postgres ainda nega no nível de privilégio de
+  tabela (`42501 — permission denied`), antes mesmo de RLS entrar em jogo. Corrigido em
+  `supabase/migrations/20260914000000_create_upgrade_leads.sql`. RLS e `GRANT` são duas camadas
+  independentes no Postgres — lição registrada aqui para não repetir o mesmo esquecimento em
+  futuras tabelas.
+
+## Salvamento de Sessões e Abandono (Fase 14)
+
+> Detalhes completos em `docs/SESSION-PERSISTENCE.md` e `docs/IMPLEMENTATION-STAGE-14.md`; aqui só
+> as decisões formais.
+
+- **[Fase 14] `sessionId` fica fora de `BuilderState`, como estado local do hook de persistência**
+  — `docs/TECHNICAL-ARCHITECTURE.md` (Fase 6) esboçava um campo `sessionId` dentro do reducer, mas
+  esse esboço é anterior à forma real que `BuilderState` tomou depois (Fase 8+). Nada na UI precisa
+  ler `sessionId` reativamente hoje, e misturar uma preocupação de infraestrutura dentro do estado
+  de negócio puro do Builder não trazia benefício concreto.
+- **[Fase 14] `localStorage`, chave versionada `upgrade-builder:v1`, TTL de 7 dias** — exatamente a
+  estratégia já planejada em `docs/TECHNICAL-ARCHITECTURE.md`, Seção 23, mantida sem mudança de
+  direção.
+- **[Fase 14] Validação em duas etapas separadas**: `validateStoredSession` (Zod — forma, version,
+  TTL; descarta a sessão inteira só nesses casos) e `sanitizeRestoredSession` (coerência de negócio —
+  serviceId desconhecido, edição sem rascunho, step incoerente; neutraliza só o campo afetado, nunca
+  descarta a sessão inteira por um único valor ruim).
+- **[Fase 14] Descoberta real durante o teste manual: um único debounce cobrindo Builder e
+  `leadDraft` causava perda de dados** — um `setTimeout` agendado num efeito que só depende de
+  `leadDraft` fecha sobre o `state` de quando foi agendado, não o de quando dispara; um refresh
+  rápido depois de uma ação discreta (ex.: "Cancelar edição") podia perder exatamente essa mudança.
+  Corrigido separando os dois auto-saves (Builder imediato, `leadDraft` com debounce de 300ms via
+  `useRef` para sempre ler o `state` mais atual). Documentado em detalhe em
+  `docs/SESSION-PERSISTENCE.md`, Seção 9.
+- **[Fase 14] Sessão anônima no Supabase avaliada e não implementada** — sem consumidor real ainda
+  (analytics é Fase 17); `buildAbandonmentSnapshot` prepara a estrutura conceitual sem conectá-la a
+  nada. `session_id` também não foi adicionado a `upgrade_leads` pelo mesmo motivo — sem utilidade
+  concreta hoje.
+- **[Fase 14] `idempotencyKey` (Fase 13) não é persistida entre refreshes** — continua gerada uma
+  vez por carregamento de página; como nada é enviado com a chave antiga antes de um refresh, isso
+  não tem efeito colateral real.
+- **[Fase 14] Sem sincronização multi-tab** — "a última gravação vence", limitação conhecida e
+  aceitável (o briefing marcou isso como opcional).
+- **[Fase 14] Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi
+  redesenhada; nenhum Lead Score, admin, analytics completo, e-mail/WhatsApp finais ou UI/motion
+  premium foram implementados** — esta fase só implementou persistência local e a preparação
+  conceitual de abandono.
+
+## Lead Score (Fase 15)
+
+> Detalhes completos em `docs/LEAD-SCORE.md` e `docs/IMPLEMENTATION-STAGE-15.md`; aqui só as
+> decisões formais.
+
+- **[Fase 15] Sinais do `PRICE_SIGNAL`/`LEAD_SCORE_SIGNAL` originais (`docs/BUSINESS-RULES.md`)
+  foram revisados, não reaproveitados literalmente** — vários campos que aquela tabela cita
+  (`trafego_negocio`, `design_formato`, `social_necessidade`, uma pergunta de "abrangência")
+  pertenciam a uma versão do Builder anterior à simplificação da Fase 8, ou nunca chegaram a
+  existir como pergunta real. O score usa apenas os campos que realmente existem hoje:
+  `site_tipo`, `trafego_investimento`, `trafego_experiencia`, `design_servico`, e a contagem de
+  serviços confirmados.
+- **[Fase 15] Nenhum bônus adicional de "multisserviço" além da contagem de serviços** — o
+  briefing descrevia as duas estratégias como alternativas, nunca como soma; usar as duas
+  pontuaria o mesmo sinal (múltiplos serviços) duas vezes.
+- **[Fase 15] "Montar um pacote" (Design combinado) pontua como bônus fixo, não como soma dos
+  itens individuais** — evita inflar um projeto que já ganha pontos por ser multisserviço (se
+  combinado com Site/Tráfego) e pelo próprio conteúdo do pacote.
+- **[Fase 15] Nenhuma classificação de complexidade (`LOW`/`MEDIUM`/`HIGH`/`PREMIUM`) foi
+  introduzida** — não existia nenhuma no código para reaproveitar, e `site_tipo` já cumpre esse
+  papel; criar uma camada nova só duplicaria o mesmo sinal.
+- **[Fase 15] Colunas de score em `upgrade_leads`, não numa tabela `projects` separada** — o
+  briefing preferia "projects" (o score depende do projeto), mas esta arquitetura (Fase 13) nunca
+  criou essa tabela; o Project Snapshot já vive como JSONB na mesma linha do lead. Criar uma tabela
+  nova agora seria reestruturar o schema sem necessidade concreta desta fase.
+- **[Fase 15] Cálculo inteiramente em TypeScript no servidor (`submitLead.ts`), nada em SQL** —
+  consistente com a Fase 6 ("regra comercial em TypeScript server-side"); a persistência
+  (`leads.ts`) só grava o resultado já calculado.
+- **[Fase 15] Sem backfill automático para leads gravados antes da migration** — ficam com as 4
+  colunas novas `NULL`; um recálculo é possível depois porque `project` (JSONB) já tem tudo que
+  `calculateLeadScore` precisa, mas nenhum job foi criado agora (não pedido nesta fase).
+- **[Fase 15] Nenhuma pergunta nova foi adicionada ao Builder só para alimentar o score** (ex.:
+  urgência, porte da empresa) — se o dado não existe, o sinal simplesmente não é usado.
+- **[Fase 15] Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi
+  redesenhada; nenhum painel administrativo, filtro visual, dashboard, analytics, e-mail/WhatsApp
+  finais ou UI premium foram implementados** — esta fase só calculou e persistiu o Lead Score.
+
+## Painel Administrativo / Mini-CRM (Fase 16)
+
+> Detalhes completos em `docs/ADMIN-CRM.md` e `docs/IMPLEMENTATION-STAGE-16.md`; aqui só as
+> decisões formais.
+
+- **[Fase 16] `middleware.ts` planejado na Fase 6 virou `proxy.ts`** — o Next.js 16 (a versão real
+  usada neste projeto) depreciou o arquivo `middleware.js/ts` em favor de `proxy.js/ts`; mesmo
+  arquivo, mesmo propósito, nome novo. Descoberto ao consultar
+  `node_modules/next/dist/docs/.../file-conventions/middleware.md` antes de escrever o código,
+  como o projeto exige para toda API do Next.
+- **[Fase 16] `@supabase/ssr` instalado agora, revertendo a decisão da Fase 13 de não instalá-lo**
+  — na ocasião não havia necessidade real de sessão de usuário (só o envio público do lead, via
+  service role); agora existe login de admin de verdade, e `@supabase/ssr` é o pacote oficial para
+  sincronizar sessão via cookies entre cliente e servidor no App Router.
+- **[Fase 16] Duas checagens de acesso deliberadamente redundantes**: `proxy.ts` faz uma checagem
+  OTIMISTA (existe sessão?) e renova o cookie; `lib/auth/adminSession.ts` (`requireAdminSession`)
+  faz a checagem REAL (é admin de verdade?), chamada explicitamente em cada página/Server Action —
+  não confiar só na Proxy ou só na layout é a recomendação da própria documentação do Next
+  (`.../authentication.md`, "Layouts and auth checks": layouts não re-executam em toda navegação
+  client-side dentro da mesma rota).
+- **[Fase 16] "Estar autenticado" não implica ser admin** — tabela `admin_users` própria, RLS
+  restrita a "um usuário só confere a si mesmo". Sem UI para gerenciar admins nesta fase; o
+  primeiro (e qualquer) admin é criado via SQL Editor.
+- **[Fase 16] Tabelas novas nomeadas `upgrade_lead_notes`/`upgrade_lead_status_history`, não
+  `project_notes`/`project_status_history`** (como o briefing sugeria) — consistente com
+  `upgrade_leads`, a única tabela que esta arquitetura já tem (mesma decisão já registrada na Fase
+  15 para as colunas de score).
+- **[Fase 16] `status` ganhou só 6 valores; `qualified` foi avaliado e descartado** — ficaria
+  ambíguo entre `contacted` e `meeting`, sem uma ação própria clara que o justificasse.
+- **[Fase 16] Histórico de status implementado (não só preparado)** — o briefing pedia para
+  preferir implementar quando "barato estruturalmente"; uma tabela append-only simples
+  (`upgrade_lead_status_history`) atendeu isso sem complexidade extra.
+- **[Fase 16] Reaproveitamento deliberado de `buildServiceSummary` (`features/builder/logic`) a
+  partir de `features/admin`** — uma exceção estreita à regra da Fase 6 ("nunca admin → builder"),
+  que foi pensada para never acoplar COMPONENTES/ESTADO entre as duas features, não para proibir
+  reúso de uma função pura de formatação/labels. Duplicar essa lógica em vez de reaproveitá-la
+  contrariaria um princípio mais forte e já estabelecido ("evitar funções praticamente idênticas",
+  Etapa 11). `features/admin` continua sem importar nada de `features/builder/components` ou
+  `features/builder/state`.
+- **[Fase 16] Coluna `archived_at` criada, mas sem nenhuma UI/ação que a use** — preparação barata
+  (uma coluna nullable) para o "arquivar em vez de excluir" que o briefing pediu para não
+  implementar ainda.
+- **[Fase 16] GRANT restrito à coluna `status`** (`grant update (status) on upgrade_leads to
+  authenticated`) — RLS restringe LINHAS, não colunas; sem esse grant específico, uma sessão de
+  admin (ou um bug futuro na Server Action) poderia tentar atualizar qualquer coluna, incluindo
+  `lead_score`. Descoberta já formalizada como padrão desde a correção da Fase 13 (RLS e GRANT são
+  camadas independentes).
+- **[Fase 16] Descoberta real: `z.string().uuid()` não funciona nesta versão do Zod v4** (retorna
+  `success: false` mesmo para UUIDs válidos) — o validador correto é `z.uuid()` (nível superior),
+  mesma mudança de API já documentada para `z.email()` desde a Fase 12. Corrigido em
+  `updateLeadStatus.ts`/`addLeadNote.ts`, descoberto por um teste automatizado (não por inspeção
+  manual) que falhava para um UUID genuinamente válido.
+- **[Fase 16] Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi
+  redesenhada; nenhum analytics completo, automação comercial, e-mail/WhatsApp reais, Kanban ou UI
+  premium foram implementados** — esta fase só construiu o painel administrativo.
+
+## Analytics e Eventos (Fase 17)
+
+> Detalhes completos em `docs/ANALYTICS.md`, `docs/ANALYTICS-EVENTS.md` e
+> `docs/IMPLEMENTATION-STAGE-17.md`; aqui só as decisões formais.
+
+- **[Fase 17] `session_id` deixou de ser exclusivo do Builder — agora tem um dono canônico**
+  (`lib/analytics/session.ts`) — a Fase 14 gerava o id dentro de
+  `useBuilderSessionPersistence.ts` porque, até então, só o Builder precisava de um; esta fase
+  precisa de `page_view` em QUALQUER página (Home, `/projetos`), então o id passou a ser gerado/
+  reutilizado por um módulo próprio, site-wide, e o Builder passou a ADOTAR esse mesmo id em vez de
+  gerar o seu. Nenhum formato/TTL mudou — só a origem do id.
+- **`question_answered` avaliado e NÃO implementado** — o briefing pediu para analisar se valia a
+  pena. Decisão: não, para V1. `service_selected`/`service_completed` já respondem "onde as pessoas
+  abandonam" em granularidade de serviço/etapa, que é o que as 12 perguntas de negócio do briefing
+  (Seção "Objetivo") realmente pedem; granularidade de pergunta-a-pergunta multiplicaria o volume
+  de eventos sem uma pergunta de negócio concreta esperando por ela ainda.
+- **`service_started` não existe como evento próprio** — combinado com `service_selected`, porque
+  neste fluxo escolher um serviço novo já inicia a configuração imediatamente (não há uma etapa de
+  "abrir o serviço" separada de "começar a responder"); o próprio briefing previu essa fusão como
+  aceitável quando os dois são semanticamente iguais.
+- **`whatsapp_clicked` existe só no contrato de tipos, sem nenhum ponto de disparo** — o site
+  público não tem hoje nenhum botão de WhatsApp para o visitante (só o Builder → formulário), e o
+  botão que existe (Fase 16, dentro do admin) é uma ação do administrador, não do visitante —
+  disparar o mesmo evento por ali misturaria uma ação interna com o funil público, o que o próprio
+  briefing pediu para evitar.
+- **`lead_score_tier` deliberadamente EXCLUÍDO das propriedades de `lead_submitted`**, mesmo o
+  briefing permitindo "se seguro e útil" — a Fase 15 estabeleceu que o score é um dado comercial
+  interno que nunca chega ao cliente; um evento de analytics disparado no NAVEGADOR (visível em
+  qualquer inspetor de rede) é, por definição, do lado do cliente. Incluir o tier ali reabriria
+  exatamente o vazamento que a Fase 15 fechou.
+- **Associação sessão → projeto convertido feita via `idempotencyKey` nas propriedades do evento,
+  não por um `project_id` populado no momento da escrita** — a coluna `project_id` existe na
+  tabela (preparada, nullable, com FK), mas populá-la exigiria devolver o `id` do lead recém-criado
+  para o cliente disparar o evento (quebrando a Fase 15: o cliente nunca deveria precisar desse id)
+  ou fazer o `submitLead` gravar o evento diretamente no servidor (criando uma segunda via de
+  escrita assimétrica em relação a todo o resto do funil). Como `idempotencyKey` já é gravada tanto
+  em `upgrade_leads.idempotency_key` quanto na propriedade do evento, um JOIN entre as duas tabelas
+  resolve a mesma pergunta sem nenhuma das duas complicações — ver `docs/ANALYTICS.md`, Seção
+  "Conversão".
+- **`recordEvent` (`features/analytics/actions/recordEvent.ts`) é a única exceção deliberada à
+  regra da Fase 16 ("nunca uma Server Action genérica")** — lá, a regra existia porque cada mutação
+  do admin é uma operação de negócio distinta e sensível; aqui, ingestão de analytics É, por
+  natureza, um funil único de entrada. O que impede um evento arbitrário não é ter uma função por
+  evento, e sim a validação estrita (`z.strictObject`) contra o formato exato de cada evento
+  conhecido — um nome desconhecido ou uma propriedade extra é sempre rejeitado.
+- **Escrita de `analytics_events` sempre via service role, nunca `anon` com INSERT liberado** —
+  Opção A das duas apresentadas pelo briefing ("envio pelo servidor" vs. "endpoint público
+  controlado"); como a Server Action já É o servidor, não existe necessidade de nenhum grant
+  público na tabela, e "não conceder SELECT público" fica automaticamente satisfeito (não há
+  nenhum grant para `anon`, nem de leitura nem de escrita).
+- **Consentimento padrão: `analytics: true`, `marketing: false`** (`lib/analytics/consent.ts`) —
+  sem banner real ainda (adiado para a Fase 28, LGPD). `analytics` (GA4 + provider interno) ligado
+  por padrão porque é a mesma classe de dado (anônimo, primeira-parte, sem PII) que a persistência
+  de sessão da Fase 14 já usa sem exigir consentimento; `marketing` (Meta Pixel, rastreamento de
+  publicidade de terceiro) desligado por padrão até existir uma tela real de consentimento.
+- **Meta Pixel só recebe UM evento (`lead_submitted` → `Lead`), nunca o funil inteiro** — diferente
+  do GA4 (que recebe todos os 12 eventos); um pixel de publicidade de terceiro não deveria replicar
+  o funil de uso do produto, só a conversão que o briefing mapeou explicitamente.
+- **`analytics_overview` (função SQL) NÃO é `security definer`** — roda com o privilégio de quem
+  chamou, então a própria RLS de `analytics_events` decide o que a função enxerga: um admin vê os
+  números reais, um autenticado não-admin recebe agregados zerados (nunca um erro), e `anon` nem
+  tem `execute` para chamar a função. Mesma filosofia de `is_admin()` já estabelecida na Fase 16.
+- **Agregação do funil feita dentro do Postgres (RPC), nunca buscando linha a linha para somar no
+  Node** — evita o problema de volume que o próprio briefing alertou ("Analytics não pode travar
+  interação... avalie se vale persistir tudo"), sem precisar limitar o que é gravado.
+- **"Visão geral" (métricas do admin) vive dentro da MESMA página `/admin`, não numa rota nova** —
+  consistente com "não criar dashboard avançado"; usa um parâmetro de busca próprio
+  (`analyticsPeriod`) para o seletor de período não colidir com os filtros de lead já existentes na
+  mesma URL (`status`/`tier`/`service`/`q`/`sort`/`page`).
+- **`SubmitLeadResult` ganhou um campo `errorCategory`** (`"validation" | "persistence" | "unknown"`)
+  — extensão mínima e deliberada só para alimentar `lead_submit_failed` com uma categoria segura,
+  nunca a mensagem técnica/stack trace.
+- **Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi redesenhada;
+  nenhum Design System, UI premium, motion avançado, GSAP ou ScrollTrigger foram implementados** —
+  esta fase só instrumentou o funil já existente.
+- **Descoberta real (pós-deploy da migration): `service_role` também precisa de `GRANT INSERT`
+  explícito em `analytics_events`, não só as policies de RLS** — `service_role` ignora RLS (a
+  checagem de LINHA), mas isso nunca dispensa o GRANT (a checagem de PRIVILÉGIO da tabela, uma
+  camada independente) — mesma lição já registrada nas Fases 13 e 16, agora descoberta também para
+  `service_role`, não só para `authenticated`. A migration original concedia SELECT a
+  `authenticated` mas não previa nenhum GRANT para `service_role`; corrigido em
+  `20260918000001_analytics_events_grant_insert.sql` (nunca editando a migration já aplicada).
+
+## Design System (Fase 18)
+
+> Detalhes completos em `docs/DESIGN-SYSTEM.md` e `docs/IMPLEMENTATION-STAGE-18.md`; aqui só as
+> decisões formais.
+
+- **[Fase 18] Tema escuro como padrão/flagship desta identidade, não um "modo escuro opcional"** —
+  a referência de marca fornecida mostrava tanto uma versão clara quanto uma escura; o fundo preto
+  puro é o que melhor transmite as qualidades pedidas pelo briefing (tecnologia/sofisticação/
+  premium). O tema claro continua totalmente tokenizado (`[data-theme="light"]`), mas sem nenhum
+  mecanismo de alternância construído nesta fase — só os valores, prontos para quando/se algo
+  precisar deles.
+- **[Fase 18] Texto sobre uma superfície `--ds-color-accent` (o verde da marca) é sempre
+  `--ds-color-on-accent` (quase preto), nunca branco** — medido, não estimado: branco sobre esse
+  verde mede só ~2.5:1 de contraste nos dois temas (reprovado no WCAG); um tom quase preto mede
+  ~7.5:1. Essa é também a razão de existir `--ds-color-accent-text` como um token separado no tema
+  claro (`#158239`, mais escuro que o verde "de superfície") — o verde de marca puro, como TEXTO
+  corrido sobre um fundo claro, também reprova o contraste (~2.5:1); como texto sobre fundo escuro,
+  o mesmo verde puro já passa (~8:1), então nenhuma variante extra foi necessária lá.
+- **[Fase 18] `success`/`warning`/`error`/`info` formam uma família de cor deliberadamente
+  separada de `--ds-color-accent`** — o briefing pediu explicitamente para "não usar cores de
+  status como identidade principal"; como o verde da marca já é usado como destaque/interação,
+  reaproveitá-lo também como "sucesso" faria a marca parecer só mais um painel/dashboard genérico
+  em vez de uma identidade própria.
+- **[Fase 18] `Checkbox`/`Radio` usam o `<input>` nativo estilizado via `accent-color`, não uma
+  caixa desenhada do zero** — um controle nativo já tem todo o comportamento de teclado/leitor de
+  tela correto de graça; suficiente para a fundação desta fase, sem impedir um visual mais
+  elaborado depois (a API do componente não precisaria mudar).
+- **[Fase 18] Novo diretório `features/design-system/`** (componentes-base + `utils/cx.ts`) —
+  preenche o `styles/` (só para tokens) e o padrão de organização por feature já reservados desde
+  a Fase 6 (`docs/FOLDER-STRUCTURE.md`); nenhum componente-base foi colocado dentro de
+  `features/builder`/`lead`/`admin`, para ficar disponível a todos igualmente na Etapa 19.
+- **[Fase 18] `Montserrat`/`Inter` carregadas ao lado das fontes Geist já existentes, nunca as
+  substituindo** — nenhuma tela atual foi migrada para a nova tipografia; `body { font-family }`
+  em `app/globals.css` continua apontando para Geist, exatamente para não mudar visualmente nenhuma
+  tela já existente nesta fase (isso é trabalho da Etapa 19).
+- **[Fase 18] Rota de showcase (`/design-system`) bloqueada em produção via `notFound()`
+  (`process.env.NODE_ENV === "production"`)** — é uma ferramenta de desenvolvimento/validação, não
+  uma página real do site; mesmo padrão de guarda "só em desenvolvimento" já usado desde a Fase 9
+  (`BuilderProvider`, validação de configuração das perguntas).
+- **[Fase 18] Nenhuma dependência nova foi adicionada para os testes** — o projeto não tinha
+  `@testing-library/jest-dom` instalado; os testes desta fase usam `expect()` puro sobre
+  propriedades/atributos do DOM em vez de introduzir a dependência só para ter matchers mais
+  expressivos.
+- **[Fase 18] Nenhuma pergunta, categoria, regra de ramificação ou navegação conceitual foi
+  redesenhada; nenhuma tela real (Home, Builder, admin) foi alterada visualmente** — esta fase só
+  construiu a fundação (tokens + componentes-base), a aplicação real é a Etapa 19.
+
+## UI Final (Fase 19)
+
+> Detalhes completos em `docs/UI-FINAL.md` e `docs/IMPLEMENTATION-STAGE-19.md`; aqui só as decisões
+> formais.
+
+- **[Fase 19] Tema escuro único vira o tema real do site** (`app/globals.css`) — a Fase 18 só
+  definiu os tokens (dark como flagship, light como alternativa não conectada); esta fase aplica o
+  dark de verdade a `body`, confirmando a leitura do briefing ("escolha uma direção principal, não
+  dois temas completos só porque a referência mostrava os dois").
+- **[Fase 19] Logo oficial ainda não existe como arquivo no projeto — usado um placeholder
+  geométrico** (`.logoMark`/`.brandMark`, um quadrado com gradiente diagonal branco→verde) no
+  header da Home, do Builder e do admin. A referência de marca foi compartilhada como imagem no
+  chat, nunca como um arquivo entregue ao repositório; o briefing pede explicitamente "não
+  redesenhar a logo", então a escolha segura foi um placeholder claramente genérico (não uma
+  tentativa de reproduzir o símbolo real) até o usuário fornecer o arquivo de verdade.
+- **[Fase 19] Badge "Seu Upgrade" adicionado ao Resumo do Projeto sem trocar o título "Confira seu
+  projeto"** — o briefing (Seção 15) pede para "mostrar: Seu Upgrade", mas o título atual já era
+  usado em 14 asserções de teste diferentes, em 5 arquivos; em vez de reescrever todas por uma
+  preferência de copy, um badge complementar acima do título satisfaz o pedido literal sem nenhum
+  risco de regressão.
+- **[Fase 19] Menu mobile (hambúrguer) criado no header institucional** — descoberto como uma
+  lacuna real durante a própria revisão visual manual desta fase: sem ele, os links de navegação
+  ("Início", "Projetos") simplesmente desapareciam abaixo de 768px, sem nenhuma forma de
+  alcançá-los a não ser rolar até o footer. Não estava no briefing explicitamente, mas é exigido
+  pelo próprio princípio da Seção 25 ("criar UI mobile de verdade, não apenas reduzir desktop").
+- **[Fase 19] `LeadField` (Fase 12) reescrito para usar `FormField`/`Input` do Design System** —
+  os dois já convergiam para o mesmo padrão de acessibilidade (label real, erro com
+  `aria-describedby`/`aria-invalid`) de forma independente; mantê-los duplicados depois de o
+  Design System existir contrariaria a Seção 30 do briefing ("antes de criar um componente novo,
+  verifique se o Design System já tem equivalente — reutilizar, não duplicar").
+- **[Fase 19] `data-testid="my-upgrade-panel"` adicionado ao painel do Meu Upgrade** — o cabeçalho
+  do drawer ganhou uma estrutura própria (título + contador + botão de fechar), então o padrão de
+  teste antigo (`heading.closest("div")`) deixou de alcançar o painel inteiro (parava num `<div>`
+  intermediário do cabeçalho). Um `data-testid` estável é mais robusto a mudanças de marcação do
+  que depender da distância exata entre um heading e seu ancestral.
+- **[Fase 19] `LinkButton` criado como componente novo do Design System** — `Button` continua
+  sempre um `<button>` de verdade (uma ação semântica); CTAs que são links de navegação de verdade
+  (ex.: "Monte seu Upgrade" no header) precisavam do mesmo visual sem virar um botão que não
+  navega. Reaproveita `Button.module.css` integralmente — nenhum token/estilo duplicado.
+- **[Fase 19] Copy do `SubmissionSuccess` atualizada** — o aviso "a integração comercial real será
+  implementada em uma etapa futura" datava da Etapa 12 e ficou desatualizado desde que a
+  persistência real existe (Fase 13); substituído por uma nota de "próximo passo" factualmente
+  correta. Nenhum CTA de WhatsApp foi adicionado (briefing, Seção 17, "quando aplicável") — não
+  existe nenhum número da própria Upgrade configurado em lugar nenhum do projeto.
+- **[Fase 19] Fontes Geist removidas de `app/layout.tsx`** — desde que Montserrat/Inter (Fase 18)
+  passaram a ser a tipografia real de todo o site (não só dos componentes novos), Geist não tinha
+  mais nenhum consumidor; mantê-las carregadas seria peso desnecessário (briefing, Seção 34,
+  "evitar fontes demais").
+- **[Fase 19] Nenhuma pergunta, categoria, regra de ramificação, navegação conceitual ou lógica de
+  negócio foi alterada** — confirmado componente a componente: toda mudança ficou restrita a JSX
+  de apresentação e CSS; nenhum reducer, Server Action, schema ou repositório foi tocado.
+- **[Fase 20] Tipografia grande (`display`/`h1`/`h2`) passou a usar `clamp()` no token, não
+  `@media` por componente** — o hero da Home (56px) quebrava em até 6 linhas gigantes em telas de
+  360-390px; em vez de sobrescrever `font-size` tela a tela, os três tokens de `styles/tokens.css`
+  viraram fluidos (mínimo confortável em mobile, o mesmo valor máximo de antes a partir de
+  ~1432px) — resolve para todo `Heading` do projeto de uma vez, sem duplicar a regra.
+- **[Fase 20] Bug real encontrado e corrigido: `<fieldset>` sem `min-width: 0` estourava a largura
+  do formulário de lead em telas estreitas** — `<fieldset>` tem `min-width: min-content` por
+  padrão do navegador (o reset global do projeto não cobre isso), então em ≤390px o formulário
+  ficava ~28px mais largo que a viewport e o navegador rolava a página horizontalmente ao focar um
+  campo, cortando labels e botões. Encontrado só ao testar o fluxo completo com Playwright em
+  telas estreitas (não aparecia em nenhum teste automatizado existente, nem visualmente óbvio sem
+  inspecionar `scrollLeft`) — corrigido com `min-width: 0` em `.fieldset`
+  (`features/lead/components/LeadForm.module.css`). Ver `docs/IMPLEMENTATION-STAGE-20.md`, Seção
+  "Problemas encontrados", para o diagnóstico completo.
+- **[Fase 20] Breakpoints consolidados, não recriados** — o projeto já tinha `sm(480)/md(768)/
+  lg(1024)/xl(1280)` documentados em `styles/tokens.css` desde a Fase 18; esta fase só alinhou os
+  pontos que haviam sido usados soltos (ex.: grid de capacidades da Home em 900px) para um desses
+  valores, sem introduzir nenhum breakpoint novo (briefing, Seção 1: "não criar dezenas de
+  breakpoints").
+- **[Fase 20] Nenhuma pergunta, categoria, regra de negócio, Server Action ou schema foi alterada**
+  — toda mudança desta fase é CSS (breakpoints, `clamp()`, `min-width`, `dvh`, `safe-area-inset`) ou
+  ajuste estrutural mínimo de layout (nenhum componente novo, nenhuma prop nova de comportamento).
+- **[Identidade oficial] Manual de marca real recebido — cores e tipografia confirmadas, tokens de
+  superfície reajustados** — o usuário enviou pela primeira vez páginas reais do manual de marca
+  (antes só uma referência de chat, sem arquivo entregue). `--ds-color-bg` (#000000),
+  `--ds-color-text-primary` (#FBFBFB) e `--ds-color-accent` (#2DB958) já batiam exatamente com o
+  manual — nenhuma mudança. `--ds-color-surface`/`--ds-color-surface-elevated`/`--ds-color-border`/
+  `--ds-color-border-strong` foram reajustados para a família "grafite azulado" (#22313B) do
+  manual — `--ds-color-surface-elevated` agora usa esse tom oficial diretamente (antes era um
+  cinza neutro mais escuro). Contraste reverificado antes de aplicar: texto primário e secundário
+  sobre a nova superfície elevada medem 12.92:1 e 6.08:1 — ambos folgados acima do mínimo AA.
+- **[Identidade oficial] Logo oficial aplicada como arquivo real** — inicialmente não encontrei
+  nenhum arquivo de imagem correspondente (as imagens tinham chegado só como anexo da conversa);
+  o usuário então indicou a pasta local `Downloads/upgrade/`, onde `logo upgrade.png` (fundo preto
+  sólido, sem canal alpha — confirmado pixel a pixel) é o arquivo real da marca. Recortei só o
+  símbolo "U" (sem o wordmark — "Upgrade" continua sendo texto real em Montserrat, não uma imagem
+  rasterizada) e salvei em `public/logo-mark.png`. Os três lugares que usavam o placeholder
+  geométrico (`SiteHeader`, `BuilderNavigation`, layout do admin) agora renderizam esse arquivo via
+  `next/image` (não `<img>` puro — evita os avisos de lint de LCP/otimização e serve uma versão
+  automaticamente redimensionada em vez do PNG de ~175KB inteiro em um ícone de ~22px). O fundo
+  preto do arquivo só funciona porque os três cabeçalhos também são pretos/quase-pretos — não há
+  ainda uma variante com transparência para uso sobre uma superfície clara.
+- **[Identidade oficial] Novo componente `ServiceIcon`** (`features/design-system/components/
+  ServiceIcon.tsx`) — o manual de marca pede "ícones lineares e consistentes"; antes cada card de
+  serviço (Home e `ServiceSelector`) mostrava só um quadrado com gradiente decorativo, sem símbolo
+  nenhum. Um ícone de traço simples (SVG inline, sem biblioteca externa) por `ServiceId` —
+  reaproveitado nos dois lugares para a mesma categoria nunca ter dois símbolos diferentes.
+- **[Motion Design] Transição de cena via `key` do React, não uma lib de animação** — para dar ao
+  Builder a sensação de "cena sai → cena entra" sem adicionar GSAP/Framer Motion nesta fase,
+  `SceneTransition` troca o `key` do wrapper de conteúdo a cada mudança de `getSceneKey(state)`,
+  forçando remount e a animação CSS de entrada rodar de novo. Limitação aceita conscientemente:
+  só a cena NOVA anima a entrada — a anterior desaparece instantaneamente (animar a saída também
+  exigiria manter as duas montadas ao mesmo tempo, o que fica para a implementação real com GSAP).
+- **[Motion Design] `--ds-easing-base` nunca renomeado** — o briefing pede os nomes "standard/
+  emphasized/exit/smooth"; em vez de renomear `--ds-easing-base` (usado em dezenas de arquivos
+  desde a Fase 18), foi criado `--ds-easing-standard: var(--ds-easing-base)` como alias semântico
+  — o valor é o mesmo, só ganhou um segundo nome canônico, sem exigir tocar em nenhum componente
+  existente.
+- **[Motion Design] Som opt-in, não opt-out** — `features/design-system/motion/sound.ts` começa
+  sempre desligado (`isSoundEnabled()` → `false` até `setSoundEnabled(true)` ser chamado
+  explicitamente) porque ainda não existe nenhum controle de mute visível na interface; tocar som
+  sem esse controle violaria a própria exigência do briefing ("com possibilidade clara de mute").
+- **[Motion Design] `useReducedMotion` via `useSyncExternalStore`, não `useState`+`useEffect`** —
+  a primeira versão usava `useState`+`useEffect` e chamava `setState` de forma síncrona dentro do
+  efeito, o que o lint (`react-hooks/set-state-in-effect`) sinalizou corretamente como
+  anti-padrão; `useSyncExternalStore` é o hook feito exatamente para "ler um valor externo ao
+  React e assinar mudanças", com um `getServerSnapshot` dedicado que evita divergência entre o
+  HTML do servidor e a primeira renderização do cliente (nenhuma das duas formas muda o
+  comportamento observável do hook — só a segunda é o padrão correto do React para este caso).
+- **[GSAP e Transições] `window.matchMedia` no ambiente de teste passa a simular
+  `prefers-reduced-motion: reduce` por padrão** (`vitest.setup.ts`) — sem isso, 57 testes que não
+  têm nada a ver com motion quebravam (`window.matchMedia` não existe em jsdom), e mesmo depois de
+  um polyfill neutro, outros 22 continuavam falhando porque uma timeline GSAP real nunca termina
+  em jsdom (sem `requestAnimationFrame` de verdade), deixando a cena de saída do crossfade presa
+  na tela. Com motion reduzido, `SceneTransition`/`Drawer` resolvem via `gsap.set()` (sem
+  timeline), tornando toda transição síncrona nos testes — exatamente a filosofia de teste já
+  pedida desde a Fase Motion Design ("testar comportamento, não frame a frame"). Um teste
+  específico que precise verificar o caminho de motion completo sobrescreve `window.matchMedia`
+  localmente (ver `SceneTransition.test.tsx`).
+- **[GSAP e Transições] `SceneTransition` reescrito para um crossfade real com direção** — a
+  versão da Fase Motion Design só animava a ENTRADA (via CSS, remontando por `key`); esta fase
+  troca para GSAP com saída+entrada coexistindo brevemente (a cena antiga fica sobreposta,
+  `position: absolute`, enquanto desaparece) e uma direção (`forward`/`backward`) que os próprios
+  botões marcam antes de disparar a ação real. Limitação aceita conscientemente: só a cena NOVA é
+  sempre renderizada ao vivo — a de saída é um retrato congelado no instante da troca (necessário
+  para ela continuar visível enquanto desaparece sem travar a interatividade da cena nova).
+- **[GSAP e Transições] Nenhum plugin `CustomEase`** — os easings do Design System
+  (`cubic-bezier`) são aproximados pelos eases nativos do GSAP mais parecidos (`power2.inOut`,
+  `expo.out`, `power2.in`, `sine.inOut`) em vez de reproduzir a curva exata — evita depender de um
+  plugin com licença própria (Club GreenSock) só para uma fidelidade de curva imperceptível a
+  olho nu nesta escala de movimento.
+- **[GSAP e Transições] Nenhuma pergunta, categoria, regra de negócio, reducer ou Server Action
+  foi alterada** — `isTransitioning`/direção de cena vivem inteiramente no motion
+  (`SceneTransition`/`useSceneNavigation`), nunca no `BuilderContext`; confirmado que `gsap` não é
+  importado em nenhum arquivo de `features/builder/state/` ou `features/builder/logic/`.
+- **[ScrollTrigger e Storytelling] `SectionContainer` ganhou `forwardRef`** — o motion de scroll da
+  Home precisa do elemento `<section>` real (`trigger` do ScrollTrigger, escopo do
+  `gsap.context`); um componente de função comum não permite isso. Mesmo padrão já usado em
+  `Button`/`Input`/`Checkbox`/etc. desde a Fase 18 — nenhum comportamento visual do componente
+  mudou, só passou a aceitar `ref`.
+- **[ScrollTrigger e Storytelling] Home dividida em 4 Client Components, um por seção**
+  (`features/site/components/home/`) — cada seção precisa do seu próprio hook de motion de scroll
+  (`useEffect` + `ref`), o que exige "use client"; `app/page.tsx` continua Server Component, só
+  compondo os 4 imports, então o HTML inicial da Home continua completo sem depender de JS
+  (crawlers/SEO, briefing Etapa 23 Seção 39) — nenhuma copy mudou nessa divisão.
+- **[ScrollTrigger e Storytelling] `gsap.matchMedia()` sempre próprio, nunca aninhado dentro do
+  mesmo `gsap.context()` que cria outras animações** — aninhar os dois faz um `ScrollTrigger`
+  criado dentro do `matchMedia` ser rastreado por ambos os mecanismos de limpeza ao mesmo tempo;
+  ao desmontar, o segundo `revert()` encontra nós que o primeiro já moveu/removeu, um
+  `NotFoundError` real (reproduzido fora de teste, com o `pin` do desktop de `CapabilitiesSection`
+  — ver `docs/IMPLEMENTATION-STAGE-23.md`, Seção 5). Cada hook de scroll agora cria um
+  `gsap.context()` (para a parte não-responsiva) e um `gsap.matchMedia()` independente (para a
+  parte desktop/mobile), cada um só desfazendo o que criou.
+- **[ScrollTrigger e Storytelling] `.fromTo()` em vez de `.from()` para itens sequenciais na mesma
+  timeline** (`useRevealScrollMotion.ts`) — `.from()` provou não ser confiável para capturar o
+  valor "de chegada" quando há mais de um item na mesma timeline com posicionamento relativo
+  (`"<+…"`): o CTA final ficava permanentemente invisível mesmo com o `ScrollTrigger` disparando
+  corretamente. Valores explícitos nos dois lados (`.fromTo`) eliminam a ambiguidade — nenhuma
+  outra timeline do projeto usa esse padrão (item sequencial + posição relativa na mesma
+  timeline), então o problema não se repete em nenhum outro hook.
+- **[ScrollTrigger e Storytelling] `pin: true` não é testado no ambiente automatizado (jsdom)** —
+  jsdom não tem motor de layout real (`getBoundingClientRect` sempre zero), e o `pin` do
+  ScrollTrigger depende de medidas reais para restaurar a estrutura do DOM ao reverter; desmontar
+  `CapabilitiesSection` com o pin ativo gera um `NotFoundError` só neste ambiente, nunca visto no
+  navegador real (verificado manualmente via Playwright em 8 viewports, `next build` + `next
+  start`). O teste correspondente tolera especificamente esse erro conhecido, documentado, e
+  continua falhando para qualquer outro — mesma filosofia da Fase GSAP e Transições para o
+  problema do `matchMedia`/timeline em jsdom (reconhecer a limitação do ambiente pelo nome, em vez
+  de mascará-la ou forçar um teste que não reflete nenhum comportamento real de usuário).
+- **[ScrollTrigger e Storytelling] Lenis não implementado** — como pedido explicitamente (Seção
+  36/37 do briefing), todo o motion desta fase roda sobre scroll nativo; fica para a Etapa 25.
+- **[Prova de Conceito — Experiência do Builder] Feature isolada, nunca dentro de `features/
+  builder/`** — `features/builder-experience/` demonstra uma linguagem de interação nova (fundo
+  persistente, cards flutuantes, seleção separada de avançar, transição "deck") para a Cena 1
+  (escolha de serviço) do Builder, mas não modifica `ServiceSelector`, o reducer, nem nenhuma
+  pergunta real — é uma pasta própria que só LÊ dados já aprovados (`SERVICES`,
+  `getServiceQuestions`) para exibir conteúdo real na Cena 2, sem nunca salvar nada em
+  `BuilderContext`. Só depois de aprovada é que essa linguagem vira candidata a substituir a tela
+  real.
+- **[Prova de Conceito] Rota de revisão bloqueada em produção** (`app/builder/experiencia/
+  page.tsx`) — mesmo padrão de `/design-system` (`notFound()` quando `NODE_ENV === "production"`):
+  ferramenta interna de validação, nunca uma tela pública, sem precisar de nenhum mecanismo de
+  autenticação/feature-flag novo.
+- **[Prova de Conceito] `DeckTransition` é um componente PRÓPRIO desta feature, não uma variante
+  da `SceneTransition` real** (`features/design-system/motion/SceneTransition.tsx`, Fase GSAP e
+  Transições) — mesmo esqueleto de crossfade (cena atual sempre ao vivo, saída como retrato
+  congelado), mas com uma receita visual mais expressiva (escala + blur leve, não só deslocamento +
+  opacidade). Mantê-los separados evita qualquer risco de regressão no motion já aprovado do
+  Builder real enquanto esta linguagem ainda está em avaliação.
+- **[Prova de Conceito] Estado "selecionado" nunca via seletor CSS entre módulos diferentes** —
+  uma primeira versão tentou aplicar `.gridHasSelection .card:not(.selected)` a partir do CSS
+  module da cena (`ServicePickerScene.module.css`) mirando classes que na verdade pertencem ao CSS
+  module de `FloatingCard` — CSS Modules geram nomes de classe únicos por arquivo, então esse
+  seletor nunca correspondia a nada de verdade. Corrigido levando o estado "outro card perdeu
+  destaque" para uma prop (`dimmed`) do próprio `FloatingCard`, resolvida no CSS module onde
+  `.card`/`.selected` de fato vivem.
+- **[Prova de Conceito] `--ds-space-5`/`--ds-space-10` não existem na escala de espaçamento**
+  (`styles/tokens.css` pula de `--ds-space-4` para `--ds-space-6`, e vai só até `--ds-space-24`) —
+  usá-los em algumas regras novas (gap de grid, padding de botão, margem da barra de navegação)
+  não gerava erro nenhum (um `var()` para uma custom property inexistente e sem fallback só faz a
+  declaração inteira ser ignorada, silenciosamente), e o sintoma só apareceu como espaçamento
+  zerado/incorreto numa captura de tela. Corrigido usando sempre um valor real da escala
+  (`--ds-space-4`, `--ds-space-6`, `--ds-space-8`) — nenhum outro arquivo do projeto tinha esse
+  problema (conferido com um comparativo de todo `var(--ds-*)` usado contra os tokens definidos).
+- **[Microinterações] Sound design via síntese Web Audio, nunca um arquivo de áudio gravado** —
+  o briefing pede "usar somente assets próprios/licenciados... documentar fonte/licença; não
+  copiar áudios do Nodeck". Sem nenhum estúdio de áudio disponível nesta sessão, a saída
+  responsável foi sintetizar tons curtos (osciladores + envelope de volume) em tempo real via Web
+  Audio API — matematicamente gerados no navegador, sem nenhuma origem externa para licenciar.
+  Resolve de graça a exigência de "não carregar biblioteca enorme" (não existe nenhum asset para
+  carregar) e elimina qualquer risco de direito autoral.
+- **[Microinterações] Cursor customizado como halo companheiro, nunca substituindo a seta
+  nativa** — a implementação mais comum de "cursor customizado" esconde o cursor do sistema e
+  desenha um substituto; optamos por um halo que só ACOMPANHA a seta nativa (que continua sempre
+  visível), reduzindo drasticamente o risco: se o componente falhar por qualquer motivo, a
+  navegação normal nunca é afetada, só o halo deixa de aparecer.
+- **[Microinterações] `Card` e `LinkButton` ganharam `forwardRef`** — mesmo padrão já usado em
+  `Button`/`SectionContainer`/`Input`, necessário para `useTilt`/`useMagneticHover` conseguirem
+  medir/animar o elemento real. Nenhuma API pública mudou — só passaram a aceitar `ref`.
+- **[Microinterações] Tilt/magnetismo/cursor gated por `useFinePointer()`
+  (`(hover: hover) and (pointer: fine)`), nunca por `window.innerWidth`** — uma verificação manual
+  inicial redimensionou a janela do navegador para simular "mobile" e concluiu erroneamente que o
+  cursor customizado aparecia lá; redimensionar um Chromium de desktop não muda a capacidade real
+  do ponteiro. Repetido com emulação de dispositivo touch de verdade (`devices["iPhone 13"]` do
+  Playwright) confirmou o comportamento correto. Lição registrada em
+  `docs/IMPLEMENTATION-STAGE-24.md` para não se repetir em testes manuais futuros.
+- **[Microinterações] `useTilt` também controla o `scale` do clique, não só a rotação** — enquanto
+  o ponteiro tilta um card, o GSAP passa a ser dono do `transform` inline dele, e um `transform`
+  inline sempre vence qualquer regra de CSS para o mesmo elemento — mesmo um `:active { transform:
+  scale(0.97) }` já existente desde fases anteriores. Sem incluir o `scale` do clique dentro do
+  próprio `useTilt`, o feedback de pressionar ficaria mascarado sempre que o card já tivesse sido
+  tiltado (praticamente sempre, em desktop). Ao sair do card (`pointerleave`), o hook limpa o
+  `transform` inline por completo (`clearProps`), devolvendo o controle ao CSS.
+
+- **[Smooth Scroll] Lenis via pacote raiz, provider escrito à mão — não `lenis/react`** — a lib
+  oferece um `<ReactLenis>`/`useLenis` prontos, mas usá-los introduziria um padrão de
+  componente/hook sem paralelo em nenhum outro lugar do projeto. `SmoothScrollProvider.tsx` segue
+  o mesmo estilo de provider pequeno já usado em `Drawer.tsx`/`useReducedMotion.ts`, com controle
+  explícito sobre o RAF único exigido pelo briefing (Seção 8).
+- **[Smooth Scroll] Escopo por rota dentro de UM provider singleton, não um provider por página**
+  — `isSmoothScrollRoute(pathname)` decide, dentro do único `SmoothScrollProvider` montado em
+  `app/layout.tsx`, se a instância deve existir. Evita tanto uma árvore de layouts paralela (Seção
+  51 do briefing: "não criar arquitetura excessiva") quanto duas instâncias vivas ao mesmo tempo
+  (Seção 52).
+- **[Smooth Scroll] Hash da URL NÃO tratado em JS próprio — removido depois de escrito** — uma
+  primeira versão desta fase reagia a `window.location.hash` dentro do `SmoothScrollProvider`
+  (`setTimeout` + `lenis.scrollTo` no mount). Checar
+  `node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md` (exigência do `AGENTS.md`
+  desta versão customizada do Next.js: ler a documentação real antes de codificar) revelou que o
+  Next.js 16 já resolve `#id` nativamente via `scrollIntoView()`, tanto no carregamento quanto em
+  navegação por `<Link>`, e documenta `scroll-padding-top` como a compensação correta para headers
+  sticky. Duplicar esse tratamento arriscava os dois mecanismos brigarem pelo mesmo scroll — a
+  lógica própria foi removida, ficando só `scroll-padding-top: 88px` em `app/globals.css`.
+- **[Smooth Scroll] `useScrollLock` autocontido, nunca dependente de uma instância de Lenis** — o
+  mecanismo real é `overflow: hidden` + compensação de scrollbar no `body`; parar/retomar o Lenis
+  (`lenis?.stop()`/`lenis?.start()`) é um reforço opcional, encadeado via optional chaining. Uma
+  implementação que dependesse do Lenis para travar o scroll quebraria o painel "Meu Upgrade" no
+  Builder, que nunca tem uma instância (Seção 4 do briefing: "Builder não deve depender do Lenis
+  para funcionar").
+- **[Smooth Scroll] `setState` derivado removido do efeito do `SmoothScrollProvider`** — a
+  primeira versão chamava `setLenis(null)` como primeira linha do efeito sempre que a rota estava
+  desabilitada; o lint `react-hooks/set-state-in-effect` apontou (corretamente) que isso é estado
+  derivável sem nenhum efeito. Corrigido expondo `enabled ? activeInstance : null` direto no corpo
+  do componente; o único `setState` que continua dentro do efeito (capturar a instância real recém
+  -criada) é uma exceção justificada — mesmo caso já documentado acima para `Drawer.tsx` capturando
+  `document.activeElement`.
+
+- **[3D/WebGL] Three.js puro, sem `@react-three/fiber`/`drei`** — a lib oficial `three` já resolve
+  tudo que esta fase precisa (renderer, shapes, shaders); adicionar toda a camada de reconciliação
+  React do R3F introduziria um paradigma sem nenhum paralelo no resto do projeto (que sempre trata
+  bibliotecas imperativas — GSAP, Lenis — via hooks/componentes escritos à mão, nunca um
+  reconciliador React próprio). `UpgradeLogo3D`/`ProceduralAura` seguem a mesma receita de
+  `SmoothScrollProvider.tsx`/`Drawer.tsx`: um `useEffect` monta/desmonta a biblioteca imperativa,
+  React só decide SE o componente existe.
+- **[3D/WebGL] Nenhum modelo `.glb`/`.gltf` — geometria e shader 100% procedurais** — sem
+  ferramenta de modelagem 3D disponível nesta sessão para gerar/exportar um asset real, a
+  alternativa honesta (mesmo raciocínio da síntese de som via Web Audio na Fase Microinterações) é
+  construir a peça em código: `buildUpgradeMonogramGeometry.ts` extrude formas `THREE.Shape`
+  desenhadas à mão, interpretando livremente (não reproduzindo pixel a pixel) o monograma real da
+  marca. Zero asset para licenciar, pesar o bundle ou versionar.
+- **[3D/WebGL] Shader de transição em cases/projetos avaliado e ADIADO, não implementado** — a
+  auditoria inicial confirmou que `app/projetos/page.tsx`/`ProjectsTeaserSection.tsx` são
+  placeholders explícitos desde a Fase 8 ("os primeiros cases reais... ainda não existem"; nenhuma
+  imagem de projeto no repositório). Implementar um shader de dissolve operando sobre imagens
+  fictícias violaria a disciplina de "nunca inventar conteúdo" seguida em todas as fases
+  anteriores. A arquitetura de shader (uniforms nomeados, GLSL isolado do componente) já foi
+  construída via `ProceduralAura` e fica pronta para um `ImageDissolveTransition` futuro quando
+  cases reais existirem.
+- **[3D/WebGL] `.heroGraphic`/`.finalGraphic` viram só o "envelope" de posição/tamanho — o visual
+  original migrou para `.heroGraphicFallback`/`.finalGraphicFallback`** — necessário porque
+  `clip-path` num elemento também recorta seus filhos: manter o `clip-path` diagonal no mesmo
+  elemento que hospeda o canvas cortaria o monograma/aura em uma fatia estreita. Com o recorte
+  isolado numa camada-filha própria (que serve de fallback, sempre presente), o canvas por cima
+  ganha a área retangular inteira, sem perder o fallback CSS original em nenhum cenário.
+- **[3D/WebGL] `useAvoidCursor` removido de `.heroGraphic`** — essa era a única interação-surpresa
+  do site (Fase Microinterações). Com o monograma 3D assumindo o mesmo espaço e ganhando sua
+  própria reação (mais sutil) ao cursor, manter as duas juntas no mesmo objeto seria contraditório
+  (uma foge do cursor, a outra é convidada a segui-lo) — a peça 3D substitui completamente esse
+  papel de "momento de descoberta" no Hero.
+- **[3D/WebGL] Bug de hydration real causado por uma tentativa de silenciar lint** — a primeira
+  versão de `useInViewport` inicializava o estado via
+  `useState(() => typeof IntersectionObserver === "undefined")`, achando que evitava um
+  `setState` dentro do efeito. Isso quebrou o SSR: essa expressão vale `true` no servidor (Node) e
+  `false` no primeiro render do cliente (browser), um mismatch de hydration real, reproduzido de
+  imediato com Playwright. Corrigido voltando o estado inicial para sempre `false` (idêntico nos
+  dois lados) — lição: nunca resolver um aviso de lint calculando, no valor inicial de um `useState`,
+  algo que só existe/difere no navegador.
+- **[3D/WebGL] Falha na criação do `WebGLRenderer` também precisa de `try/catch`, não só
+  `hasWebGL()`** — `hasWebGL()` testa a criação de um contexto num canvas descartável no MOMENTO
+  da checagem; isso não garante que o `WebGLRenderer` real, criado depois, também vai conseguir
+  (driver instável, contexto perdido entre os dois momentos). Sem esse `try/catch` adicional, uma
+  falha aí lançaria direto de dentro do `useEffect`, sem nenhum Error Boundary tratando isso
+  especificamente — quebrando a página (violação direta da Seção 42 do briefing). Confirmado que
+  esse cenário é real e não hipotético: o próprio ambiente de teste (`jsdom`, sem WebGL de
+  verdade) reproduz exatamente essa falha sempre que `hasWebGL()` é mockado para `true`.
+
+- **[SEO] OG image e ícones gerados via `next/og`/`ImageResponse`, nunca um arquivo de imagem
+  novo** — sem acesso a ferramentas de design/edição de imagem nesta sessão, gerar a imagem de
+  compartilhamento e os ícones em código (a partir do logo real, `public/logo-mark.png`) é a
+  alternativa honesta — mesmo raciocínio já usado para o som sintetizado (Web Audio, Fase
+  Microinterações) e a geometria procedural do monograma 3D (Fase 3D/WebGL). Nenhum asset binário
+  novo entra no repositório.
+- **[SEO] `/builder` recebe `noindex` via meta tag, nunca `Disallow` no `robots.txt`** — as duas
+  juntas na mesma URL é um anti-padrão documentado pelo próprio Google: bloquear via `robots.txt`
+  impede o crawler de sequer buscar a página para LER a diretiva `noindex`, então uma URL bloqueada
+  dessa forma ainda pode aparecer indexada (sem snippet) se for referenciada externamente. A
+  combinação correta é página rastreável + `noindex` via `<meta>` — só `/admin` (de fato privado,
+  atrás de autenticação) é bloqueado no `robots.txt`.
+- **[SEO] Dados estruturados deliberadamente mínimos — só `Organization`/`WebSite`, só na Home** —
+  o briefing pede para avaliar `LocalBusiness`/`ProfessionalService`, mas a Upgrade não tem
+  endereço/telefone/redes sociais oficiais publicados no projeto; incluir esses campos seria
+  inventar dados verificáveis por qualquer ferramenta de rich results do Google. `makesOffer`
+  reaproveita a mesma fonte de dados (`features/builder/data/services.ts`) que
+  `CapabilitiesSection` já usa na Home — nunca uma descrição de serviço nova/paralela.
+- **[SEO] `SITE_URL` cai num fallback de desenvolvimento (`localhost:3000`) em vez de travar o
+  build** — nenhum domínio de produção existe no projeto ainda (confirmado por busca no código).
+  Fazer `metadataBase`/sitemap/robots dependerem de uma variável de ambiente ausente e travarem o
+  build seria mais disruptivo do que necessário nesta fase; o fallback é visível (qualquer um que
+  olhe o sitemap/OG antes de configurar `NEXT_PUBLIC_SITE_URL` vê imediatamente que aponta para
+  localhost) — nunca um domínio adivinhado silenciosamente, que seria o erro real a evitar.
+- **[SEO] `ProjectsTeaserSection` ganha `as="h2"` sem mudar `variant="h3"`** — a seção é irmã de
+  "O que fazemos"/CTA final (ambas `h2`) na estrutura da Home, não uma subseção delas; usar `h3`
+  quebrava a hierarquia semântica do documento. `Heading.tsx` já separa tag semântica (`as`) de
+  estilo visual (`variant`) desde a Fase 18 exatamente para casos como este — nenhuma mudança de
+  CSS, só a tag HTML real.
+
+- **[LGPD] Consentimento padrão de `analytics` muda de `true` (Fase 17) para `false`** — a Fase
+  17 já registrava essa escolha como PROVISÓRIA, à espera de uma tela real de consentimento.
+  Agora que ela existe (`ConsentBanner.tsx`), a postura mais alinhada com "privacy by default"
+  (briefing desta fase, Seção 70) é não medir nada até a pessoa decidir — mesmo sendo dado
+  anônimo, sem PII. Efeito prático: GA4/o provider interno só recebem eventos depois de uma
+  decisão explícita (aceitar tudo ou configurar com analytics ligado).
+- **[LGPD] `setConsent` passou a exigir o objeto completo (`{analytics, marketing}`), não mais um
+  `Partial`** — o único chamador real (o banner) sempre resolve os dois campos de uma vez
+  (Aceitar todos/Recusar/Salvar preferências nunca decidem só uma categoria por vez); um `Partial`
+  permitia um estado ambíguo ("decidiu só metade") que nunca deveria existir depois que o banner
+  existe. Nenhum outro chamador dependia da assinatura antiga.
+- **[LGPD] Bug real de `useSyncExternalStore`: `getServerSnapshot` retornando objeto novo a cada
+  chamada** — a primeira versão de `useConsent.ts` tinha `function getServerSnapshot() { return
+  { analytics: false, marketing: false } }` — um literal novo por chamada. React trata isso como
+  "o snapshot mudou" a cada render, lançando "The result of getServerSnapshot should be cached to
+  avoid an infinite loop" — reproduzido de verdade com Playwright (nenhum teste `jsdom` pegou
+  isso). Corrigido hoisting o objeto para uma constante de módulo, devolvida sempre pela mesma
+  referência. Lição: todo `getServerSnapshot`/`getSnapshot` de `useSyncExternalStore` neste
+  projeto precisa devolver uma referência estável quando nada mudou — `getConsent()` já seguia essa
+  regra (retorna `currentConsent` diretamente, nunca uma cópia) exatamente por essa razão.
+- **[LGPD] `SiteFooter.tsx` não pode ter um `onClick` inline — precisa de uma fronteira de Client
+  Component dedicada** — `SiteFooter` é um Server Component usado a partir de páginas que também
+  são Server Components (incluindo `app/not-found.tsx`); um `<button onClick={fn}>` direto ali
+  quebra o build ("Event handlers cannot be passed to Client Component props"), um erro que só
+  aparece em `next build` (prerendering), nunca em `next dev` comum. Corrigido extraindo
+  `OpenConsentPreferencesButton` (`features/privacy/components/`) como a única parte que precisa
+  de `"use client"`, mantendo `SiteFooter` um Server Component leve como antes.
+- **[LGPD] Logs de erro do Supabase reduzidos a `code`/`message` nos dois pontos que gravam dado
+  pessoal** (`createLead`, `addLeadNote`) — o objeto de erro completo do Postgres pode, em alguns
+  tipos de falha, ecoar um fragmento do valor em `details`/`hint`. Os demais `console.error` do
+  projeto (leitura/listagem, ou tabelas sem dado pessoal como `analytics_events`) não foram
+  alterados — mudança proporcional, só onde o dado realmente gravado é pessoal.
+- **[LGPD] Canal de solicitação de titular reaproveita o atendimento comercial (WhatsApp/e-mail
+  já trocados), em vez de um e-mail de privacidade dedicado** — decisão tomada com o usuário: o
+  site nunca teve nenhum canal de contato geral publicado (nem um e-mail institucional
+  genérico), então inventar um e-mail "privacidade@..." só para a política pareceria mais real do
+  que é. Registrado como aceitável para este estágio do projeto, não como solução final — ver
+  `docs/PRIVACY-LGPD.md`, Seção 12.
+- **[LGPD] Nenhuma rotina automática de exclusão/expurgo de leads antigos criada nesta fase** —
+  avaliada e adiada (briefing, Seção 34: "não precisa criar job complexo se não for necessário
+  agora"); sem nenhum pedido real de exclusão ainda e sem uma decisão de negócio sobre excluir vs.
+  anonimizar, construir essa rotina agora seria arquitetura especulativa. Registrada como
+  pendência explícita da Etapa 29.
+
+- **[SEGURANÇA] Rate limit em memória, por processo, sem Redis/Upstash** (`lib/security/
+  rateLimit.ts`) — proporcional ao tráfego real do projeto hoje: nenhuma infraestrutura nova só
+  para isso. Limitação aceita e documentada (`docs/SECURITY.md`): num deploy serverless com várias
+  instâncias frias, o limite efetivo pode ser um múltiplo do configurado, porque cada instância
+  tem seu próprio contador. Ainda assim cria fricção real contra abuso automatizado simples — o
+  mesmo critério de proporcionalidade já usado para "CAPTCHA só se abuso justificar" (briefing,
+  Seção 37): um contador central vira necessário só se um abuso real acontecer.
+- **[SEGURANÇA] Honeypot rejeita com a MESMA mensagem genérica de qualquer outra falha de
+  validação** (`submitLead.ts`) — nunca um texto ou código diferente que revelasse ao remetente
+  que foi identificado como automação; mantém o princípio já usado no login ("credenciais erradas
+  não revela se o e-mail existe") aplicado a um novo caso.
+- **[SEGURANÇA] CSP sem nonce, configurada em `next.config.ts` (`headers()`), não via `proxy.ts`**
+  — a documentação do Next.js recomenda nonce (`node_modules/next/dist/docs/.../
+  content-security-policy.md`) mas exige renderização dinâmica em toda página para funcionar; a
+  maioria das rotas deste projeto é estática de propósito (Fases SEO/Performance). Adotar nonce
+  agora jogaria fora esse trabalho sem um ganho de segurança proporcional — a própria documentação
+  oficial descreve a variante "Without Nonces" (CSP estática, com `'unsafe-inline'` em
+  `script-src`/`style-src`) como a alternativa correta para quem não tem requisito de compliance
+  que exija CSP estrita. Ver `docs/SECURITY.md`, Seção "Headers e CSP", para a lista completa de
+  diretivas e por que cada domínio de terceiro está ali.
+- **[SEGURANÇA] `leadPayloadSchema`/`sanitizeSearchTerm` ganham limites de tamanho que não existiam
+  antes** (Etapa 29, Seções 18/20/41/95/97) — nenhum limite restringe um uso legítimo: toda
+  pergunta do Builder é de múltipla escolha (nunca texto livre), e nenhuma busca administrativa
+  real passa de 100 caracteres. Os limites existem só para que um cliente malicioso não monte um
+  payload/consulta arbitrariamente grande direto contra a Server Action/repositório.
+- **[SEGURANÇA] Vulnerabilidades do `npm audit` (vite/esbuild/@vitest/mocker) não corrigidas por
+  upgrade forçado** — todas as três são `devDependencies` (cadeia do Vitest), nunca entram no
+  bundle de produção, e o fix disponível é um bump de major do Vitest (`5.0.1`), que poderia
+  quebrar os 620 testes existentes sem necessidade real (briefing, Seção 80: "não atualizar tudo
+  cegamente... avaliar impacto"). Registrado como pendência de manutenção dedicada, não como
+  vulnerabilidade de produção — ver `docs/SECURITY.md`, Seção "Dependências".
+- **[SEGURANÇA] Correção de contagem: `npm audit` reporta 5 vulnerabilidades (3 moderadas, 1 alta,
+  1 crítica), não 3** — a auditoria da Etapa 29 leu uma saída truncada do comando (`| head -100`)
+  e reportou só 3. Reexecutado por completo na Etapa 30 (auditoria de dependências de
+  performance): a 4ª e 5ª entradas (`vite-node`, `vitest`) fazem parte da MESMA cadeia já
+  documentada (Vitest/Vite, dev-only) — a entrada "crítica" (`vitest`) exige o servidor de UI do
+  Vitest (`vitest --ui`) estar rodando e exposto, o que este projeto nunca faz (`package.json` só
+  tem `vitest run`/`vitest`, nunca `--ui`). Não muda a decisão de não corrigir por upgrade forçado
+  — só corrige o número relatado. `docs/SECURITY.md` atualizado.
+
+- **[PERFORMANCE] `@next/bundle-analyzer` avaliado e NÃO adicionado como dependência** — instalado
+  experimentalmente para medir o bundle, mas a própria instalação reescreveu boa parte do
+  `package-lock.json` (efeito colateral de dedupe do npm) e trouxe consigo uma cadeia de pacotes
+  (`webpack-bundle-analyzer`, `ws`, `express`-like tooling) desproporcional a uma única medição
+  pontual. A análise de bundle desta fase foi feita manualmente (tamanho dos chunks em
+  `.next/static/chunks`, `grep` pelo conteúdo de cada chunk para identificar three.js/GSAP, e os
+  `<script>` referenciados no HTML de cada rota) — suficiente para confirmar que Three.js já vive
+  isolado num chunk sob demanda (nunca no bundle inicial da Home) sem precisar da ferramenta.
+  Revertido por completo (`git checkout` do `package.json`/`package-lock.json` + `npm ci`) antes de
+  prosseguir.
+- **[PERFORMANCE] Quase-incidente: `git checkout -- package.json package-lock.json` durante a
+  reversão acima apagou TODAS as dependências reais do projeto** — este repositório tem só 2
+  commits (`85fe85f`/`54330f4`); todo o `package.json` acumulado desde a Fase 11 (Supabase, GSAP,
+  Lenis, Zod, React Hook Form, Three.js etc.) existia SÓ na árvore de trabalho, nunca commitado.
+  `git checkout -- <arquivo>` reverte para o `HEAD` commitado, que ainda era o `package.json` do
+  `create-next-app`. Detectado imediatamente pelo `next build` quebrando com "module not found", e
+  recuperado reescrevendo o arquivo com o conteúdo exato lido momentos antes na mesma sessão (não
+  uma reconstrução por memória). Lição operacional para este projeto especificamente: `git status`
+  mostrando um arquivo como `M` (modificado) aqui quase sempre significa "todo o trabalho real está
+  na árvore de trabalho, não no histórico" — nunca tratar `git checkout`/`restore` como uma reversão
+  barata neste repositório sem primeiro conferir se o commit por trás tem o conteúdo esperado.
+- **[PERFORMANCE] Entrada do Hero (badge → título → subtítulo → CTAs) migrada de GSAP
+  (`gsap.set`/`.timeline()` dentro de um `useEffect`) para uma animação CSS pura
+  (`@keyframes` em `HeroSection.module.css`)** — medição real via Lighthouse (mobile, CPU
+  throttled) identificou o H1 do Hero como o elemento de LCP da Home, com ~2,2s de "element render
+  delay": o texto já existe no HTML (SSR), mas `gsap.set(opacity:0)` o escondia até a hidratação +
+  timeline rodarem, competindo por main thread com o bootstrap do GSAP/ScrollTrigger/Lenis/
+  Three.js. Uma animação CSS começa a rodar assim que o stylesheet é aplicado, sem depender de
+  JavaScript. Duração/easing/stagger reaproveitam os MESMOS tokens que `motionConfig.ts` já
+  espelhava (`--ds-duration-slow`, `--ds-easing-emphasized`, `--ds-stagger-sm/md`) — coreografia
+  visual idêntica, sem custo de JS no caminho crítico. A regra global de `prefers-reduced-motion`
+  (`styles/tokens.css`) ganhou `animation-delay: 0ms !important` para não introduzir um atraso de
+  até 300ms nesse cenário (antes, o efeito GSAP nem rodava sob reduced motion; a versão CSS precisa
+  dessa linha extra para o mesmo comportamento).
+- **[PERFORMANCE] `UpgradeLogo3D` (WebGL do Hero) não monta mais imediatamente — espera
+  `requestIdleCallback` (com fallback `setTimeout(200ms)` para navegadores sem suporte)** — mesmo
+  já sendo `next/dynamic({ssr:false})` (código-split desde a Fase 3D/WebGL), o `useEffect` que cria
+  o `THREE.WebGLRenderer`/geometria ainda rodava de forma síncrona assim que o chunk terminava de
+  carregar, competindo pelo main thread no momento mais sensível do carregamento. Adiar para uma
+  folga do navegador (ou um teto de 1,5s) não muda nada visualmente — o gradiente CSS
+  (`.heroGraphicFallback`) já preenche o espaço o tempo todo — só move QUANDO a inicialização
+  pesada acontece.
+- **[PERFORMANCE] `logo-mark.png` nos três usos de `<Image>` (header, nav do Builder, admin) passa
+  de `width={556} height={731}` (tamanho do arquivo-fonte) para dimensões intrínsecas = 2x o
+  tamanho realmente exibido em CSS (`40×52`, `33×44`, `30×40`)** — medido via `next/image`: sem
+  essa correção, o otimizador do Next pedia até 1200px de largura para um logo nunca exibido com
+  mais de ~26px, e como não dá para AMPLIAR além da fonte, o resultado prático era sempre servir o
+  PNG original inteiro (~31KB) em toda página. Com as dimensões corretas, o maior candidato do
+  `srcSet` (2x) cai para ~2,2KB — medido antes/depois via `curl` contra uma build de produção real.
+  O arquivo-fonte em si (`public/logo-mark.png`, 556×731) continua intocado — `app/icon.tsx`/
+  `app/apple-icon.tsx`/`app/opengraph-image.tsx` o leem diretamente (não via `next/image`) para
+  gerar favicon/OG em alta resolução, onde o tamanho grande é necessário.
+- **5 SVGs padrão do `create-next-app` removidos de `public/`** (`next.svg`, `globe.svg`,
+  `window.svg`, `vercel.svg`, `file.svg`) — confirmados por busca como nunca referenciados em
+  nenhum lugar do código; ficaram esquecidos desde o commit inicial do projeto.
+
+- **[TESTES] Playwright escolhido como framework E2E, backend fake por injeção de dependência (não
+  mock de rede do navegador)** — nenhum framework E2E existia; Vitest/Testing Library continuam
+  cobrindo unitário/integração (nunca duplicados). A alternativa óbvia para não gravar no Supabase
+  real (`page.route()` do Playwright interceptando a rede do navegador) não funciona aqui: toda
+  escrita passa por Server Actions, que fazem a chamada ao Supabase NO SERVIDOR — o navegador nunca
+  expõe essa requisição para interceptar. A alternativa real foi um `if (isE2ETestMode())` explícito
+  no topo de cada função de repositório e das Server Actions de auth, trocando para um backend em
+  memória (`lib/testing/e2eStore.ts`) só quando `E2E_TEST_MODE=true` — variável que só existe no
+  processo do `webServer` do Playwright, nunca em `next dev`/`next start`/produção reais.
+- **[TESTES] `webServer` do Playwright sobe `next dev`, não `next build && next start`** — o que
+  está sob teste é comportamento funcional, não performance (já coberta em `docs/PERFORMANCE.md`);
+  `next dev` itera mais rápido. Custo aceito: a primeira visita a uma rota fria pode levar dezenas
+  de segundos de compilação JIT do Turbopack — por isso o timeout global subiu para 45s
+  (`expect.timeout` para 15s), não os padrões do Playwright.
+- **[TESTES] Quase-erro: a primeira correção do bug do painel "Meu Upgrade" bloqueando cliques foi
+  fechar o drawer automaticamente ao editar/adicionar outro serviço** — quebrou 4 testes unitários
+  já existentes (`MyUpgrade.test.tsx`) que confirmavam, de propósito, que esse painel NUNCA fecha
+  sozinho ao editar (é documentadamente "uma seção persistente, não um modal"). Reconhecido a
+  tempo pelos próprios testes quebrando; a correção certa foi de CSS (`pointer-events: none` no
+  overlay, mantendo o painel clicável), preservando o comportamento intencional. Lição: quando um
+  teste já existente e deliberado quebra com uma correção nova, o teste geralmente está certo — a
+  correção que precisa mudar de abordagem.
+- **[TESTES] Conta fixa de E2E (`admin@e2e.test`) isenta do rate limit de login, só quando
+  `E2E_TEST_MODE=true`** — logins de teste paralelos e repetidos contra a mesma conta esbarravam no
+  limite de 5/5min (Etapa 29, correto e intencional em produção). O rate limit real continua
+  verificado de ponta a ponta com um e-mail exclusivo por execução (`e2e/security.spec.ts`) — só a
+  conta fixa usada pelos OUTROS specs fica de fora, para não confundir "teste E2E rodando em
+  paralelo" com "tentativa de força bruta".
+- **[TESTES] `Strict-Transport-Security`/`upgrade-insecure-requests` (Etapa 29) tornados
+  condicionais a `NODE_ENV !== "development"`** — bug real e sério encontrado ao adicionar WebKit à
+  suíte de fumaça: o WebKit aplica HSTS mais estritamente que Chromium/Firefox mesmo em
+  `localhost`, forçando toda requisição seguinte para HTTPS contra um `next dev` que só fala HTTP —
+  quebrava a aplicação inteira nesse navegador, silenciosamente. Não afeta produção (lá o domínio
+  já é HTTPS de verdade, o cenário em que HSTS deve valer) — mas teria impedido desenvolvimento/
+  teste reais em Safari indefinidamente se não fosse pego agora.
+- **[TESTES] `workers: 2` (nunca ilimitado, nem só em CI) + `admin.spec.ts` serializado
+  internamente** — o backend fake (`e2eStore.ts`) é um único módulo em memória compartilhado por
+  toda requisição concorrente ao mesmo `next dev`; sob paralelismo alto, testes que mutam os mesmos
+  leads-fixture (mudar status, criar nota) entravam em corrida uns com os outros. Confirmado via
+  `admin.spec.ts --workers=1` sozinho (10/10 passando sempre) vs. suíte completa em paralelo
+  (flakiness ocasional) — mitigação aceita, não uma correção definitiva (registrada como pendência
+  se a suíte crescer o bastante para justificar um backend com isolamento real).
+- **[UX] Título de sucesso muda de "Projeto validado com sucesso." (Fase 12) para "Recebemos seu
+  projeto." (Etapa 32)** — a redação da Fase 12 evitava "Recebemos" deliberadamente porque, naquela
+  fase, nenhuma persistência/integração real existia; dizer "recebemos" teria sido falso. Essa razão
+  não existe mais desde a Fase 13 (Supabase real): este texto só é alcançado depois de uma gravação
+  bem-sucedida no banco (`submitLeadSuccess()`, chamado em `LeadForm.tsx` só quando a Server Action
+  confirma). Com a razão original superada, "validado" passou a ser a pior opção: soa como uma
+  etapa de aprovação ainda pendente, gerando a dúvida que o briefing de UX pede para eliminar
+  ("será que meu projeto foi aceito?"). "Recebemos seu projeto." é a redação que `docs/USER-FLOW.md`
+  já previa desde a Fase 4 — não é uma invenção desta etapa.
+- **[UX] CTA principal de `ServiceComplete.tsx` muda de "Ver Meu Upgrade / Finalizar" para
+  "Continuar" — comportamento (`goToEntry()`) inalterado** — bug de UX real encontrado ao testar a
+  tela como uma pessoa que nunca viu o site: os dois botões desta tela (o "principal" e "Adicionar
+  outro serviço") sempre chamaram exatamente a mesma função; nenhum dos dois finalizava nem
+  mostrava o Meu Upgrade de verdade, só devolviam à tela de categorias — a pessoa precisava
+  descobrir sozinha o botão "Meu Upgrade" da barra de navegação para dar o próximo passo real.
+  **Primeira tentativa de correção (revertida)**: fazer o botão principal abrir o drawer "Meu
+  Upgrade" de verdade além de navegar. Descartada ao rodar a suíte E2E completa: esse mesmo botão é
+  o caminho compartilhado que praticamente todo teste usa para "voltar depois de concluir um
+  serviço", inclusive para configurar um SEGUNDO serviço em seguida (Cenário 2 do
+  `docs/USER-FLOW.md`, Site + Tráfego) — abrir o drawer automaticamente cobria a tela de categorias
+  bem no momento em que a pessoa mais provavelmente quer clicar num cartão por baixo dele. Achado
+  pela própria suíte (26 specs passaram a falhar por "elemento intercepta clique"), não só pelos
+  testes unitários — a mesma lição da entrada anterior sobre `MyUpgrade`/`pointer-events`: um
+  comportamento que parece uma melhoria isolada pode quebrar um fluxo maior que depende do estado
+  anterior dele. **Correção final**: só o texto muda, para "Continuar" — sem prometer "Finalizar"
+  nem "Ver Meu Upgrade", e sem nenhuma mudança de comportamento ou de estado.
+- **[UX] Subtítulo novo no seletor de categoria (`ServiceSelector.tsx`) e legenda nova no Score do
+  admin (`LeadDetail.tsx`)** — dois achados de "expectation setting" (briefing de UX, Seções 4/5/59):
+  quem entra direto no Builder (sem passar pela Home) não tinha nenhuma linha explicando que o fluxo
+  é uma sequência curta de perguntas terminando num resumo; e o Score do admin aparecia como um
+  número só, sem indicar que é uma heurística interna (`docs/LEAD-SCORE.md`), não uma nota
+  definitiva do lead. As duas correções são uma linha de texto cada — nenhuma pergunta, regra de
+  negócio, cálculo de score ou fluxo de navegação foi alterado.
+
 ---
 
 *Decisões futuras devem ser adicionadas ao final de sua seção correspondente (ou em nova seção, se

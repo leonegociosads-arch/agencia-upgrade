@@ -384,3 +384,161 @@ describe("Meu Upgrade — finalização e remoção durante edição (Etapa 10)"
     expect(afterRemovingTrafego.serviceDraft.site_tipo).toBe("ecommerce");
   });
 });
+
+describe("Resumo do Projeto — returnContext e continuar para contato (Etapa 11)", () => {
+  it("editar a partir do Resumo do Projeto e SALVAR retorna para 'reviewing', não para o seletor", () => {
+    const confirmed = confirmedEcommerceSite();
+    const reviewing = run(confirmed, { type: "FINALIZE_PROJECT" });
+    expect(reviewing.step).toBe("reviewing");
+
+    const saved = run(
+      reviewing,
+      { type: "START_EDITING_SERVICE", serviceId: "site", returnStep: "reviewing" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "site_tipo", value: "site_institucional" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "site_recursos", value: ["formularios_leads"] },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "site_situacao", value: "criar_do_zero" },
+      { type: "SAVE_SERVICE_DRAFT" },
+    );
+    expect(saved.step).toBe("reviewing");
+    expect(saved.confirmedServices.site?.answers.site_tipo).toBe("site_institucional");
+  });
+
+  it("editar a partir do Resumo do Projeto e CANCELAR também retorna para 'reviewing'", () => {
+    const confirmed = confirmedEcommerceSite();
+    const reviewing = run(confirmed, { type: "FINALIZE_PROJECT" });
+
+    const cancelled = run(
+      reviewing,
+      { type: "START_EDITING_SERVICE", serviceId: "site", returnStep: "reviewing" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "site_tipo", value: "site_institucional" },
+      { type: "CANCEL_SERVICE_DRAFT" },
+    );
+    expect(cancelled.step).toBe("reviewing");
+    expect(cancelled.confirmedServices.site?.answers.site_tipo).toBe("ecommerce");
+  });
+
+  it("editar a partir do seletor/painel (sem returnStep) continua voltando para 'choosing_service', como na Etapa 8", () => {
+    const confirmed = confirmedEcommerceSite();
+    const saved = run(
+      confirmed,
+      { type: "START_EDITING_SERVICE", serviceId: "site" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "site_tipo", value: "site_institucional" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "site_recursos", value: ["formularios_leads"] },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "site_situacao", value: "criar_do_zero" },
+      { type: "SAVE_SERVICE_DRAFT" },
+    );
+    expect(saved.step).toBe("choosing_service");
+  });
+
+  it("remover o último serviço enquanto está no Resumo do Projeto sai de 'reviewing' para o Meu Upgrade vazio", () => {
+    const confirmed = confirmedEcommerceSite();
+    const reviewing = run(confirmed, { type: "FINALIZE_PROJECT" });
+    const afterRemoval = run(reviewing, { type: "REMOVE_SERVICE", serviceId: "site" });
+    expect(afterRemoval.step).toBe("choosing_service");
+    expect(afterRemoval.confirmedServices).toEqual({});
+  });
+
+  it("remover um serviço (não o último) enquanto está no Resumo do Projeto permanece em 'reviewing'", () => {
+    const withSite = confirmedEcommerceSite();
+    const withBoth = run(
+      withSite,
+      { type: "GO_TO_ENTRY" },
+      { type: "START_NEW_SERVICE", serviceId: "trafego" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "trafego_negocio", value: "servicos" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "trafego_destino", value: "whatsapp" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "trafego_experiencia", value: "nunca_anunciei" },
+      { type: "UPDATE_DRAFT_ANSWER", questionId: "trafego_investimento", value: "ate_1000" },
+      { type: "SAVE_SERVICE_DRAFT" },
+    );
+    const reviewing = run(withBoth, { type: "FINALIZE_PROJECT" });
+    const afterRemoval = run(reviewing, { type: "REMOVE_SERVICE", serviceId: "trafego" });
+    expect(afterRemoval.step).toBe("reviewing");
+    expect(afterRemoval.confirmedServices.site).toBeDefined();
+  });
+
+  it("TESTE 11 (Etapa 11) — projeto vazio: CONTINUE_TO_CONTACT não avança", () => {
+    const attempt = run(initialBuilderState, { type: "CONTINUE_TO_CONTACT" });
+    expect(attempt.step).not.toBe("contact");
+  });
+
+  it("TESTE 12 (Etapa 11) — a partir do Resumo com 1+ serviço, CONTINUE_TO_CONTACT avança para 'contact'", () => {
+    const confirmed = confirmedEcommerceSite();
+    const reviewing = run(confirmed, { type: "FINALIZE_PROJECT" });
+    const contact = run(reviewing, { type: "CONTINUE_TO_CONTACT" });
+    expect(contact.step).toBe("contact");
+  });
+
+  it("CONTINUE_TO_CONTACT fora de 'reviewing' não faz nada, mesmo com serviços confirmados", () => {
+    const confirmed = confirmedEcommerceSite();
+    const attempt = run(confirmed, { type: "CONTINUE_TO_CONTACT" });
+    expect(attempt.step).not.toBe("contact");
+  });
+});
+
+describe("Captura e submissão do lead (Etapa 12)", () => {
+  function inContact(): BuilderState {
+    const confirmed = confirmedEcommerceSite();
+    return run(confirmed, { type: "FINALIZE_PROJECT" }, { type: "CONTINUE_TO_CONTACT" });
+  }
+
+  it("TESTE 18 — fluxo feliz: CONTACT -> SUBMITTING -> SUCCESS", () => {
+    const contact = inContact();
+    expect(contact.step).toBe("contact");
+    const submitting = run(contact, { type: "START_SUBMIT_LEAD" });
+    expect(submitting.step).toBe("submitting");
+    const success = run(submitting, { type: "SUBMIT_LEAD_SUCCESS" });
+    expect(success.step).toBe("success");
+  });
+
+  it("TESTE 19 — duplo clique durante SUBMITTING: apenas um submit lógico acontece", () => {
+    const contact = inContact();
+    const afterFirstClick = run(contact, { type: "START_SUBMIT_LEAD" });
+    expect(afterFirstClick.step).toBe("submitting");
+    // Um segundo despacho, simulando um clique duplo, não faz nada — o guard exige step "contact".
+    const afterSecondClick = run(afterFirstClick, { type: "START_SUBMIT_LEAD" });
+    expect(afterSecondClick).toEqual(afterFirstClick);
+  });
+
+  it("TESTE 20 — erro simulado: o projeto confirmado permanece intacto e o motivo fica registrado", () => {
+    const contact = inContact();
+    const submitting = run(contact, { type: "START_SUBMIT_LEAD" });
+    const failed = run(submitting, { type: "SUBMIT_LEAD_FAILURE", message: "Não conseguimos enviar agora. Seus dados continuam preenchidos." });
+    expect(failed.step).toBe("error");
+    expect(failed.error?.message).toBe("Não conseguimos enviar agora. Seus dados continuam preenchidos.");
+    expect(failed.confirmedServices.site?.answers.site_tipo).toBe("ecommerce");
+  });
+
+  it("SUBMIT_LEAD_SUCCESS/FAILURE só têm efeito a partir de 'submitting'", () => {
+    const contact = inContact();
+    expect(run(contact, { type: "SUBMIT_LEAD_SUCCESS" }).step).toBe("contact");
+    expect(run(contact, { type: "SUBMIT_LEAD_FAILURE", message: "x" }).step).toBe("contact");
+  });
+
+  it("'Voltar ao projeto' (BACK_TO_REVIEW) a partir de CONTACT retorna ao Resumo sem perder o projeto", () => {
+    const contact = inContact();
+    const backToReview = run(contact, { type: "BACK_TO_REVIEW" });
+    expect(backToReview.step).toBe("reviewing");
+    expect(backToReview.confirmedServices.site).toBeDefined();
+  });
+
+  it("'Voltar' a partir do estado de erro também retorna ao Resumo", () => {
+    const contact = inContact();
+    const failed = run(contact, { type: "START_SUBMIT_LEAD" }, { type: "SUBMIT_LEAD_FAILURE", message: "x" });
+    const backToReview = run(failed, { type: "BACK_TO_REVIEW" });
+    expect(backToReview.step).toBe("reviewing");
+  });
+
+  it("'Tentar novamente' (RETRY_SUBMIT) a partir do erro reabre o formulário de contato", () => {
+    const contact = inContact();
+    const failed = run(contact, { type: "START_SUBMIT_LEAD" }, { type: "SUBMIT_LEAD_FAILURE", message: "x" });
+    const retried = run(failed, { type: "RETRY_SUBMIT" });
+    expect(retried.step).toBe("contact");
+    expect(retried.error).toBeNull();
+  });
+
+  it("BACK_TO_REVIEW e RETRY_SUBMIT não fazem nada fora dos estados esperados", () => {
+    const reviewing = run(confirmedEcommerceSite(), { type: "FINALIZE_PROJECT" });
+    expect(run(reviewing, { type: "BACK_TO_REVIEW" }).step).toBe("reviewing");
+    expect(run(reviewing, { type: "RETRY_SUBMIT" }).step).toBe("reviewing");
+  });
+});

@@ -46,4 +46,31 @@ describe("buildServiceSummary", () => {
     const summary = buildServiceSummary("site", { site_tipo: "nao_sei" });
     expect(summary).toEqual([{ question: "Que tipo de site você precisa?", answer: "Ainda não sei" }]);
   });
+
+  it("TESTE 4 (Etapa 11) — nunca mostra o valor interno bruto, sempre a label humana", () => {
+    const summary = buildServiceSummary("site", { site_tipo: "site_institucional" });
+    expect(summary[0].answer).toBe("Site Institucional");
+    expect(summary[0].answer).not.toBe("site_institucional");
+  });
+
+  it("TESTE 5 (Etapa 11) — uma resposta de pergunta atualmente invisível não aparece, mesmo presente em 'answers'", () => {
+    // Cenário defensivo: `site_recursos` não deveria existir quando `site_tipo = nao_sei` (a
+    // invalidação em cascata da Etapa 8 já impede isso em uso normal) — o resumo não confia
+    // apenas nessa garantia (docs/IMPLEMENTATION-STAGE-11.md, Seção "Filtragem").
+    const summary = buildServiceSummary("site", {
+      site_tipo: "nao_sei",
+      site_recursos: ["catalogo_pedidos"],
+    });
+    expect(summary.map((item) => item.question)).not.toContain("O que esse projeto precisa ter?");
+  });
+
+  it("ignora um campo desconhecido em 'answers' sem quebrar (configuração antiga/obsoleta)", () => {
+    const summary = buildServiceSummary("site", {
+      site_tipo: "ecommerce",
+      site_recursos: ["pagamento_online"],
+      site_situacao: "criar_do_zero",
+      campo_de_uma_versao_antiga: "qualquer_valor",
+    });
+    expect(summary).toHaveLength(3);
+  });
 });

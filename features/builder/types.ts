@@ -78,10 +78,45 @@ export interface BuilderState {
   draftHistory: string[];
   /** Serviços já salvos ("Meu Upgrade"). */
   confirmedServices: MyUpgrade;
+  /**
+   * Para onde voltar quando a edição atual for salva ou cancelada — o "returnContext" pedido na
+   * Etapa 11. Só existem dois destinos possíveis hoje: `"choosing_service"` (o padrão — editar a
+   * partir do seletor ou do painel "Meu Upgrade", que nunca sai da tela) e `"reviewing"` (editar a
+   * partir do Resumo do Projeto, que É uma tela própria da qual se sai e para a qual se volta).
+   */
+  returnStep: BuilderStep;
   error: { step: BuilderStep; message: string } | null;
 }
 
 export interface SummaryItem {
   question: string;
   answer: string;
+}
+
+/**
+ * DISPLAY SUMMARY de um serviço, para o Resumo do Projeto (Etapa 11) — dados humanos prontos para
+ * renderizar, nunca a fonte de verdade (essa é `confirmedServices`). `title` é o rótulo do
+ * serviço (`SERVICES[serviceId].label`); `items` reaproveita `buildServiceSummary` (Etapa 9), sem
+ * truncar (o corte para "resumo curto" é decisão de UI do Meu Upgrade, não desta estrutura).
+ */
+export interface ServiceReviewSummary {
+  serviceId: ServiceId;
+  title: string;
+  items: SummaryItem[];
+}
+
+/** Um serviço dentro do PROJECT SNAPSHOT (Seção "Project Snapshot" do IMPLEMENTATION-STAGE-11). */
+export interface ProjectSnapshotService {
+  serviceId: ServiceId;
+  answers: BuilderAnswers;
+}
+
+/**
+ * PROJECT SNAPSHOT — objeto de dados puro do projeto confirmado, serializável
+ * (`JSON.stringify`), sem funções, sem estado de componente, sem rascunho. Fonte de verdade
+ * estrutural para uso futuro (Supabase, WhatsApp, e-mail, admin, analytics — Etapas 12+); ainda
+ * sem dados pessoais do lead nesta fase.
+ */
+export interface ProjectSnapshot {
+  services: ProjectSnapshotService[];
 }
