@@ -1,0 +1,62 @@
+.section {
+  padding-block: var(--ds-space-16);
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding-block: var(--ds-space-8);
+  }
+}
+
+/* Alvo da "primeira transição" (Seção 5 do briefing) — clip-path/escala de entrada
+ * (`useCapabilitiesScrollMotion.ts`). Sem `overflow: hidden`: o `clip-path` já faz o próprio
+ * recorte, e esconder overflow aqui cortaria a sombra elevada dos cards durante o pin. Sem regra
+ * própria fora disso — existe só para dar um seletor estável ao motion. */
+.frame {
+  display: block;
+}
+
+.sectionLead {
+  margin-top: var(--ds-space-2);
+  max-width: 60ch;
+}
+
+.capabilities {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ds-space-6);
+  margin-top: var(--ds-space-8);
+}
+
+/* 3 → 2 → 1 colunas (Fase 20, Seção 19: "não manter 3 colunas minúsculas em tablet") — breakpoints
+ * `md`/`sm` do Design System (`styles/tokens.css`, seção Grid/Container). */
+@media (max-width: 1024px) {
+  .capabilities {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .capabilities {
+    grid-template-columns: 1fr;
+  }
+}
+
+.capabilityCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+
+.capabilityMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-accent-soft);
+  border: var(--ds-border-width) solid var(--ds-color-accent);
+  color: var(--ds-color-accent);
+  margin-bottom: var(--ds-space-2);
+}

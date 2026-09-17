@@ -1,0 +1,54 @@
+.finalCta {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--ds-space-6);
+  padding-block: var(--ds-space-16) var(--ds-space-24);
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .finalCta {
+    padding-block: var(--ds-space-8) var(--ds-space-12);
+  }
+}
+
+/* Retoma a linguagem do grafismo do Hero (mesmo gradiente/recorte diagonal, espelhado e do lado
+ * oposto) — um "fecho" decorativo puramente visual, sem competir com o texto/CTA (Seção 18 do
+ * briefing).
+ *
+ * Fase 3D/WebGL: `.finalGraphic` é só o envelope de posição/tamanho — o "momento especial"
+ * (`ProceduralAura`) precisa da área inteira, não só a fatia diagonal; o recorte 2D original
+ * agora vive em `.finalGraphicFallback` (mesmo raciocínio de `HeroSection.module.css`). */
+.finalGraphic {
+  position: absolute;
+  bottom: -15%;
+  left: -10%;
+  width: 420px;
+  height: 420px;
+  max-width: 55vw;
+  max-height: 55vw;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.finalGraphicFallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(315deg, var(--ds-color-surface-elevated) 0%, var(--ds-color-surface-elevated) 55%, var(--ds-color-accent-soft) 55%, var(--ds-color-accent-soft) 100%);
+  clip-path: polygon(0% 0%, 70% 0%, 40% 100%, 0% 100%);
+  opacity: 0.5;
+}
+
+/* `.heading`/`.cta` não têm regras visuais próprias — existem só para dar seletores estáveis ao
+ * motion (`useRevealScrollMotion`), com o `display` já herdado dos componentes-base repetido aqui
+ * de propósito (nunca depender de um seletor "vazio" resolver para o elemento certo). */
+.heading {
+  display: block;
+}
+
+.cta {
+  display: inline-flex;
+}
