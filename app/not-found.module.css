@@ -1,0 +1,19 @@
+.main {
+  padding-block: var(--ds-space-24);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+}
+
+.lead {
+  margin-top: var(--ds-space-2);
+  max-width: 60ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-4);
+  margin-top: var(--ds-space-6);
+}
