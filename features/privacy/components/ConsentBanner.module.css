@@ -1,0 +1,78 @@
+.wrapper {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: var(--ds-space-4);
+  pointer-events: none;
+}
+
+.panel {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 880px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-6);
+  border-radius: var(--ds-radius-lg);
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  background: var(--ds-color-bg-secondary);
+  box-shadow: var(--ds-shadow-lg);
+  animation: consentBannerIn var(--ds-duration-normal) var(--ds-easing-emphasized);
+}
+
+@keyframes consentBannerIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text a {
+  color: var(--ds-color-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  border: 0;
+  border-top: var(--ds-border-width) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+}
+
+.optionsLegend {
+  padding: 0;
+  font-size: var(--ds-font-size-label);
+  color: var(--ds-color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+}
+
+.actions > * {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 640px) {
+  .actions {
+    justify-content: flex-end;
+  }
+
+  .actions > * {
+    flex: 0 0 auto;
+  }
+}
