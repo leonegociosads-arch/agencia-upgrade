@@ -1,0 +1,16 @@
+.viewport {
+  position: relative;
+  overflow: visible;
+}
+
+.currentLayer {
+  position: relative;
+  will-change: transform, opacity, filter;
+}
+
+.outgoingLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform, opacity, filter;
+}

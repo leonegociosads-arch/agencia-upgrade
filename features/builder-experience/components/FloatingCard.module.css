@@ -1,0 +1,122 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-space-3);
+  min-height: 260px;
+  padding: var(--ds-space-8) var(--ds-space-6);
+  border-radius: var(--ds-radius-lg);
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  background: var(--ds-color-surface-elevated);
+  color: var(--ds-color-text-primary);
+  text-align: left;
+  font-family: var(--ds-font-body);
+  cursor: pointer;
+  transform: translate3d(0, 0, 0);
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    background-color var(--ds-duration-fast) var(--ds-easing-base),
+    opacity var(--ds-duration-fast) var(--ds-easing-base),
+    box-shadow var(--ds-duration-slow) var(--ds-easing-emphasized),
+    transform var(--ds-duration-slow) var(--ds-easing-emphasized);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.card:not(:disabled):hover {
+  border-color: var(--ds-color-border-strong);
+}
+
+.card:active:not(:disabled) {
+  transform: translate3d(0, 0, 0) scale(0.98);
+  transition-duration: var(--ds-duration-instant);
+}
+
+.card:disabled {
+  cursor: default;
+}
+
+/* Floating orgânico (briefing "Movimento dos cards"): amplitude pequena (10px), duração lenta,
+ * fase dessincronizada por card via `--float-index` (delay negativo — cada card já "nasce" em um
+ * ponto diferente do ciclo, nunca todos subindo/descendo juntos). Zerado globalmente sob
+ * `prefers-reduced-motion` pela regra em `styles/tokens.css` — nenhum tratamento extra aqui. */
+.floating {
+  animation: floatY 7s ease-in-out infinite;
+  animation-delay: calc(var(--float-index) * -1.7s);
+}
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+/* Seleção nunca só por cor (briefing "Acessibilidade"): borda + fundo + sombra + leve escala +
+ * selo de check (`.selectedMark`, abaixo) — mesmo princípio de `Card.tsx` (Design System). */
+.selected {
+  border-color: var(--ds-color-accent);
+  background: var(--ds-color-accent-soft);
+  box-shadow: 0 0 0 1px var(--ds-color-accent), var(--ds-shadow-lg);
+  transform: translate3d(0, -4px, 0) scale(1.02);
+}
+
+.dimmed {
+  opacity: 0.55;
+}
+
+.selectedMark {
+  position: absolute;
+  top: var(--ds-space-3);
+  right: var(--ds-space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-color-accent);
+  color: var(--ds-color-on-accent);
+  font-size: 0.75rem;
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 1;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-accent-soft);
+  border: var(--ds-border-width) solid var(--ds-color-accent);
+  color: var(--ds-color-accent);
+}
+
+.label {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-h3);
+  font-weight: var(--ds-font-weight-bold);
+  line-height: var(--ds-line-height-tight);
+}
+
+.description {
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+  line-height: var(--ds-line-height-normal);
+}
+
+@media (max-width: 640px) {
+  .card {
+    min-height: 0;
+    padding: var(--ds-space-6) var(--ds-space-4);
+  }
+}

@@ -1,0 +1,29 @@
+.stage {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  color: var(--ds-color-text-primary);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-block: var(--ds-space-16);
+}
+
+@media (max-width: 640px) {
+  .content {
+    align-items: flex-start;
+    padding-block: var(--ds-space-8);
+    /* Espaço para a barra de navegação, que vira fixa no rodapé neste breakpoint
+     * (`SceneNavigation.module.css`) — evita o último card ficar coberto por ela. */
+    padding-bottom: calc(var(--ds-space-16) + 64px);
+  }
+}
