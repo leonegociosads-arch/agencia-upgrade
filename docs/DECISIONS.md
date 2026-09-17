@@ -1646,6 +1646,14 @@ Formato: `[Fase X] Decisão — justificativa`
   seria infraestrutura duplicada sem necessidade real ainda. Risco aceito e documentado
   (`docs/DEPLOYMENT.md`, Seção 16): um envio de teste feito através de uma Preview URL cria uma
   linha real no banco de produção — mitigado por cuidado manual, não por uma barreira técnica.
+- **[AWARD] Quatro refinamentos de acabamento (Etapa 36), todos CSS/tokens — nenhuma feature nova**:
+  `letter-spacing` negativo em `display`/`h1` (nunca em corpo de texto); sombra sutil
+  (`--ds-shadow-sm`/`md`, tokens já existentes) nos cartões do Builder; parâmetro opcional
+  `scaleFrom` em `useRevealScrollMotion` para diferenciar a entrada de `ProjectsTeaserSection` da de
+  `FinalCtaSection` (que continuam com o mesmo hook, só variando um valor); traço decorativo na cor
+  de destaque no topo do `SiteFooter`. Nenhum dos quatro foi encontrado como problema crítico — a
+  auditoria completa (`docs/AWARD-AUDIT.md`) concluiu que o sistema de motion/sound/WebGL já estava
+  maduro o suficiente para não precisar de mudança estrutural nesta etapa.
 
 ---
 

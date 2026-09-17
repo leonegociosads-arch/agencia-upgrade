@@ -12,6 +12,14 @@ export interface RevealScrollMotionOptions {
   itemSelectors: string[];
   /** `y` inicial em px — `DISTANCE.reveal` por padrão (deslocamento pequeno, Seção 34). */
   distance?: number;
+  /** Escala inicial (1 = sem escala, padrão) — Etapa 36 (Award-Level, Seção 15 do briefing: "não
+   * animar tudo igual"). As duas seções "leves" da Home que usam este hook (Projetos/Prova e CTA
+   * final) tinham a MESMA assinatura de motion (opacity+y) até esta etapa; um leve escalonamento
+   * aqui (só na seção de Projetos, chamado com um valor menor que 1) é o suficiente para as duas
+   * deixarem de parecer literalmente o mesmo código com texto diferente, sem inventar uma técnica
+   * nova nem sair da simplicidade que essas duas seções pedem (Seção acima: "a interação certa é a
+   * mais simples possível"). */
+  scaleFrom?: number;
 }
 
 /**
@@ -20,7 +28,10 @@ export interface RevealScrollMotionOptions {
  * ScrollTrigger precisa da complexidade das Seções 6/8/28 do briefing (Seção 45: "melhor 4
  * interações excelentes do que 20 medianas" — aqui a interação certa é a mais simples possível).
  */
-export function useRevealScrollMotion(sectionRef: RefObject<HTMLElement | null>, { itemSelectors, distance = DISTANCE.reveal }: RevealScrollMotionOptions) {
+export function useRevealScrollMotion(
+  sectionRef: RefObject<HTMLElement | null>,
+  { itemSelectors, distance = DISTANCE.reveal, scaleFrom = 1 }: RevealScrollMotionOptions,
+) {
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -41,7 +52,12 @@ export function useRevealScrollMotion(sectionRef: RefObject<HTMLElement | null>,
         // relativo (`"<+…"`), `from()` precisa capturar o valor "de chegada" a partir do estilo
         // computado no momento em que a timeline monta — arriscado quando o item anterior já foi
         // para opacidade 0 nesse instante. Valores explícitos nos dois lados eliminam a ambiguidade.
-        timeline.fromTo(item, { opacity: 0, y: distance }, { opacity: 1, y: 0 }, index === 0 ? 0 : `<+${STAGGER.md}`);
+        timeline.fromTo(
+          item,
+          { opacity: 0, y: distance, scale: scaleFrom },
+          { opacity: 1, y: 0, scale: 1 },
+          index === 0 ? 0 : `<+${STAGGER.md}`,
+        );
       });
     }, section);
 
@@ -50,5 +66,5 @@ export function useRevealScrollMotion(sectionRef: RefObject<HTMLElement | null>,
       ScrollTrigger.refresh();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `itemSelectors` é um array literal recriado a cada render nos componentes que chamam este hook; comparar por referência recriaria o efeito sem necessidade. O conteúdo (classes de CSS module) nunca muda em tempo de execução.
-  }, [sectionRef, reducedMotion, distance]);
+  }, [sectionRef, reducedMotion, distance, scaleFrom]);
 }

@@ -1,10 +1,28 @@
 .footer {
+  position: relative;
   margin-top: auto;
   padding: var(--ds-space-8) var(--ds-space-4) var(--ds-space-6);
   border-top: var(--ds-border-width) solid var(--ds-color-border);
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-4);
+}
+
+/* Etapa 36 (Award-Level, Seção 66/67/30 do briefing: "final da Home deve parecer intencional",
+ * "continuidade visual" reaproveitando o verde da marca). Um traço de 2px na cor de destaque,
+ * centralizado e curto — não uma borda colorida inteira (isso pareceria um erro de CSS, não uma
+ * escolha), só o suficiente para a última coisa que a página mostra carregar a marca, não só uma
+ * linha cinza genérica de "fim da página". `aria-hidden`: puramente decorativo. */
+.footer::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 2px;
+  background: var(--ds-color-accent);
+  border-radius: var(--ds-radius-full);
 }
 
 @media (min-width: 768px) {

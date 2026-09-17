@@ -17,7 +17,10 @@ import styles from "./ProjectsTeaserSection.module.css";
  */
 export default function ProjectsTeaserSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  useRevealScrollMotion(sectionRef, { itemSelectors: [`.${styles.projectsTeaser}`] });
+  // `scaleFrom` (Etapa 36 — Award-Level): diferencia esta entrada da de `FinalCtaSection`, que usa
+  // o mesmo hook sem escala — as duas seções "leves" da Home deixam de ter a assinatura de motion
+  // idêntica (briefing, Seção 15).
+  useRevealScrollMotion(sectionRef, { itemSelectors: [`.${styles.projectsTeaser}`], scaleFrom: 0.96 });
 
   return (
     <SectionContainer as="section" ref={sectionRef} className={styles.section}>

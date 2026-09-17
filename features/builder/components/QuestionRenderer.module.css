@@ -103,6 +103,10 @@
 .option:hover,
 .option:focus-visible {
   border-color: var(--ds-color-accent);
+  /* Etapa 36 (Award-Level, Seção 19/84) — mesma sombra sutil que os cartões de categoria do
+   * Builder ganharam, para as opções de pergunta pertencerem à mesma linguagem visual (nunca uma
+   * peça nova inventada só para esta tela). */
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .option:focus-visible {
@@ -135,6 +139,7 @@
 .optionSelected {
   border-color: var(--ds-color-accent);
   background: var(--ds-color-accent-soft);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .optionCheck {

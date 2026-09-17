@@ -1,11 +1,17 @@
 /* Compartilhado por Heading.tsx e Text.tsx — uma única fonte para a escala tipográfica
  * (Fase 18, Seção "Tipografia"). Nenhum tamanho/peso é escrito fora daqui. */
 
+/* `letter-spacing` levemente negativo só nos dois tamanhos maiores (Etapa 36 — Award-Level, Seção
+ * 12 do briefing: "revisar... letter-spacing"). Em corpo de texto isso prejudicaria a leitura, mas
+ * em títulos grandes o tracking ligeiramente mais fechado é o que faz tipografia display parecer
+ * desenhada, não só "a fonte no tamanho grande" — um ajuste comum em direção de arte editorial,
+ * nunca perceptível como "efeito", só como acabamento. */
 .display {
   font-family: var(--ds-font-display);
   font-size: var(--ds-font-size-display);
   line-height: var(--ds-line-height-tight);
   font-weight: var(--ds-font-weight-bold);
+  letter-spacing: -0.02em;
 }
 
 .h1 {
@@ -13,6 +19,7 @@
   font-size: var(--ds-font-size-h1);
   line-height: var(--ds-line-height-tight);
   font-weight: var(--ds-font-weight-bold);
+  letter-spacing: -0.015em;
 }
 
 .h2 {

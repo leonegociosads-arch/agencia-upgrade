@@ -45,6 +45,10 @@
 .card:focus-visible {
   border-color: var(--ds-color-accent);
   transform: translateY(-2px);
+  /* Etapa 36 (Award-Level, Seção 19/84): sombra suave no hover — a diferença entre "uma caixa com
+   * borda" e um cartão com peso físico real. Sutil de propósito (mesmo `--ds-shadow-md` já usado
+   * em `Card` elevado no Design System, nunca um valor novo inventado só para este componente). */
+  box-shadow: var(--ds-shadow-md);
 }
 
 .card:focus-visible {
@@ -74,6 +78,7 @@
 .cardConfigured {
   border-color: var(--ds-color-border-strong);
   background: var(--ds-color-surface-elevated);
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .cardMark {
