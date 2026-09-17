@@ -1,0 +1,21 @@
+.viewport {
+  position: relative;
+  /* `visible`, não `hidden` — a cena de saída fica sobreposta durante a transição (Seção 6:
+   * layout deve continuar estável, ver comentário abaixo) e pode momentaneamente ultrapassar a
+   * altura da cena nova sem ser cortada. */
+  overflow: visible;
+}
+
+.currentLayer {
+  position: relative;
+}
+
+/* A cena de SAÍDA é a única com `position: absolute` — a cena ATUAL fica em fluxo normal
+ * (`.currentLayer`, `position: relative`), então a altura do container sempre reflete o
+ * conteúdo novo (perguntas com números de opções diferentes, por exemplo) em vez de ficar presa
+ * à altura da cena anterior. */
+.outgoingLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
