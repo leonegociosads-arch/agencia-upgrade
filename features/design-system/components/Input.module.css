@@ -1,0 +1,53 @@
+.control {
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--ds-space-4);
+  background: var(--ds-color-surface);
+  border: var(--ds-border-width) solid var(--ds-color-border-strong);
+  border-radius: var(--ds-radius-md);
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body);
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    box-shadow var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.control:hover:not(:disabled):not(:focus-visible):not(.invalid) {
+  border-color: var(--ds-color-text-secondary);
+}
+
+.control::placeholder {
+  color: var(--ds-color-text-disabled);
+}
+
+/* Reação suave ao focar (briefing Microinterações, Seção 20: "borda... highlight podem reagir
+ * suavemente") — um glow sutil além da borda/outline que já existiam, nunca um brilho forte. */
+.control:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 1px;
+  border-color: var(--ds-color-accent);
+  box-shadow: 0 0 0 4px var(--ds-color-accent-soft);
+}
+
+/* "filled" (Seção "Inputs") — um valor real já digitado, distinto do placeholder vazio. Aplicado
+ * via `:not(:placeholder-shown)` (sem precisar de estado controlado em React para isto). */
+.control:not(:placeholder-shown) {
+  border-color: var(--ds-color-border-strong);
+}
+
+.control:disabled {
+  background: var(--ds-color-bg-secondary);
+  color: var(--ds-color-text-disabled);
+  cursor: not-allowed;
+}
+
+.invalid {
+  border-color: var(--ds-color-error);
+}
+
+.invalid:focus-visible {
+  outline-color: var(--ds-color-error);
+  border-color: var(--ds-color-error);
+  box-shadow: 0 0 0 4px var(--ds-color-error-soft);
+}

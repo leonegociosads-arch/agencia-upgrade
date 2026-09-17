@@ -1,0 +1,38 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: var(--ds-border-width) solid var(--ds-color-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: transparent;
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+  transition:
+    color var(--ds-duration-fast) var(--ds-easing-base),
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    background-color var(--ds-duration-fast) var(--ds-easing-base),
+    transform var(--ds-duration-instant) var(--ds-easing-base);
+}
+
+.toggle:hover {
+  color: var(--ds-color-text-primary);
+  border-color: var(--ds-color-border-strong);
+  background: var(--ds-color-surface);
+}
+
+.toggle:active {
+  transform: scale(0.94);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.toggle[aria-pressed="true"] {
+  color: var(--ds-color-accent);
+  border-color: var(--ds-color-accent);
+}

@@ -2,54 +2,119 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.875rem 0;
-  border-bottom: 1px solid #eee;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4) 0;
+  border-bottom: var(--ds-border-width) solid var(--ds-color-border);
 }
 
 .info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--ds-space-1);
   min-width: 0;
 }
 
 .title {
-  font-weight: 600;
+  color: var(--ds-color-text-primary);
 }
 
 .summaryList {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--ds-space-1);
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
 .summaryLine {
-  font-size: 0.8125rem;
-  color: #555;
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
 }
 
-.moreLabel {
-  font-size: 0.75rem;
-  color: #999;
+.moreButton {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-caption);
+  color: var(--ds-color-text-secondary);
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.moreButton:hover,
+.moreButton:focus-visible {
+  color: var(--ds-color-text-primary);
+}
+
+.moreButton:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  align-items: flex-end;
+  gap: var(--ds-space-2);
   flex-shrink: 0;
 }
 
-.linkButton {
+.editButton,
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.8125rem;
-  color: #333;
-  text-decoration: underline;
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
   white-space: nowrap;
+  transition: color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.editButton:focus-visible,
+.removeButton:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.editButton {
+  color: var(--ds-color-accent-text);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.removeButton {
+  color: var(--ds-color-text-secondary);
+}
+
+/* Comunica intenção sem brincadeira (briefing Microinterações, Seção 18): o ícone só aparece ao
+ * ficar claro que a intenção é remover (hover/focus) — contraste sobe, o rótulo já estava sempre
+ * visível (nunca só um ícone sozinho, Seção 54: sem depender só de um símbolo). */
+.removeIcon {
+  display: inline-flex;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    width var(--ds-duration-fast) var(--ds-easing-base),
+    opacity var(--ds-duration-fast) var(--ds-easing-base),
+    transform var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.removeButton:hover,
+.removeButton:focus-visible {
+  color: var(--ds-color-error);
+}
+
+.removeButton:hover .removeIcon,
+.removeButton:focus-visible .removeIcon {
+  width: 14px;
+  opacity: 1;
+  transform: translateX(0);
 }

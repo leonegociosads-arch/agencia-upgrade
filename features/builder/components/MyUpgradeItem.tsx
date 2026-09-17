@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { buildServiceSummary } from "../logic/buildServiceSummary";
 import { SERVICES } from "../data/services";
+import Text from "@/features/design-system/components/Text";
+import TrashIcon from "@/features/design-system/components/TrashIcon";
+import { playSound } from "@/features/design-system/motion/sound";
 import type { ServiceId, UpgradeItem } from "../types";
 import styles from "./MyUpgradeItem.module.css";
 
@@ -12,7 +16,9 @@ interface MyUpgradeItemProps {
   onRemove: () => void;
 }
 
-/** Resumo curto: no máximo isto, o detalhamento completo pertence ao Resumo final (Etapa 11). */
+/** Resumo curto por padrão: no máximo isto visível de cara, o resto some atrás de "+ N mais"
+ * (expansível — briefing Microinterações, Seção 17). O detalhamento completo continua pertencendo
+ * ao Resumo final (Etapa 11). */
 const MAX_VISIBLE_SUMMARY_ITEMS = 3;
 
 /**
@@ -22,17 +28,20 @@ const MAX_VISIBLE_SUMMARY_ITEMS = 3;
  * textos já traduzidos que a função retorna.
  */
 export default function MyUpgradeItem({ serviceId, item, onEdit, onRemove }: MyUpgradeItemProps) {
+  const [expanded, setExpanded] = useState(false);
   const service = SERVICES[serviceId];
   if (!service) return null; // guard de desenvolvimento: serviceId desconhecido nunca deveria chegar aqui.
 
   const summary = buildServiceSummary(serviceId, item.answers);
-  const visible = summary.slice(0, MAX_VISIBLE_SUMMARY_ITEMS);
+  const visible = expanded ? summary : summary.slice(0, MAX_VISIBLE_SUMMARY_ITEMS);
   const hiddenCount = summary.length - visible.length;
 
   return (
     <div className={styles.item}>
       <div className={styles.info}>
-        <span className={styles.title}>{service.label}</span>
+        <Text as="span" weight="semibold" className={styles.title}>
+          {service.label}
+        </Text>
 
         {visible.length === 0 ? (
           <span className={styles.summaryLine}>Configuração salva.</span>
@@ -45,14 +54,34 @@ export default function MyUpgradeItem({ serviceId, item, onEdit, onRemove }: MyU
             ))}
           </ul>
         )}
-        {hiddenCount > 0 && <span className={styles.moreLabel}>+ {hiddenCount} mais</span>}
+        {hiddenCount > 0 && (
+          <button type="button" className={styles.moreButton} onClick={() => setExpanded(true)}>
+            + {hiddenCount} mais
+          </button>
+        )}
+        {expanded && summary.length > MAX_VISIBLE_SUMMARY_ITEMS && (
+          <button type="button" className={styles.moreButton} onClick={() => setExpanded(false)}>
+            Mostrar menos
+          </button>
+        )}
       </div>
 
       <div className={styles.actions}>
-        <button type="button" className={styles.linkButton} onClick={onEdit} aria-label={`Editar ${service.label}`}>
+        <button type="button" className={styles.editButton} onClick={onEdit} aria-label={`Editar ${service.label}`}>
           Editar
         </button>
-        <button type="button" className={styles.linkButton} onClick={onRemove} aria-label={`Remover ${service.label}`}>
+        <button
+          type="button"
+          className={styles.removeButton}
+          onClick={() => {
+            playSound("ui_press");
+            onRemove();
+          }}
+          aria-label={`Remover ${service.label}`}
+        >
+          <span className={styles.removeIcon}>
+            <TrashIcon />
+          </span>
           Remover
         </button>
       </div>

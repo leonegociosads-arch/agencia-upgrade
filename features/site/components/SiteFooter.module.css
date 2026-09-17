@@ -1,0 +1,69 @@
+.footer {
+  margin-top: auto;
+  padding: var(--ds-space-8) var(--ds-space-4) var(--ds-space-6);
+  border-top: var(--ds-border-width) solid var(--ds-color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+}
+
+@media (min-width: 768px) {
+  .footer {
+    padding: var(--ds-space-8) var(--ds-space-8) var(--ds-space-6);
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+}
+
+.brand {
+  font-family: var(--ds-font-display);
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--ds-color-text-primary);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-6);
+}
+
+/* Sublinhado animado (briefing Microinterações, Seção 27/28) — mesma técnica de
+ * `SiteHeader.module.css` (`.navLink`), reaproveitada aqui em vez de inventar uma segunda
+ * variação (Seção 59: "não inventar uma linguagem nova por seção"). */
+.link {
+  position: relative;
+  /* Reset de `<button>` (o link "Preferências de privacidade" é um botão — Fase LGPD, Seção 49
+   * do briefing: não navega, então nunca é um `<a>`/`Link`) — inofensivo para os `<a>` reais desta
+   * mesma classe, que já não têm nenhuma dessas propriedades por padrão. */
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+  background-image: linear-gradient(var(--ds-color-text-primary), var(--ds-color-text-primary));
+  background-repeat: no-repeat;
+  background-position: left bottom -2px;
+  background-size: 0% 1px;
+  padding-bottom: 2px;
+  transition:
+    color var(--ds-duration-fast) var(--ds-easing-base),
+    background-size var(--ds-duration-normal) var(--ds-easing-emphasized);
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--ds-color-text-primary);
+  background-size: 100% 1px;
+}
+
+.copy {
+  font-size: var(--ds-font-size-caption);
+  color: var(--ds-color-text-disabled);
+}

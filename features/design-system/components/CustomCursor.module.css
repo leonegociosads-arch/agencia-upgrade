@@ -1,0 +1,29 @@
+.halo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -14px;
+  border-radius: var(--ds-radius-full);
+  border: 1.5px solid var(--ds-color-accent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition:
+    width var(--ds-duration-fast) var(--ds-easing-base),
+    height var(--ds-duration-fast) var(--ds-easing-base),
+    margin var(--ds-duration-fast) var(--ds-easing-base),
+    background-color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+/* Sobre um elemento interativo (`CustomCursor.tsx`, detecção delegada) — cresce e ganha um
+ * preenchimento suave, reforçando "isto pode ser clicado" sem depender só do cursor nativo. */
+.pointerState {
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  background: var(--ds-color-accent-soft);
+}

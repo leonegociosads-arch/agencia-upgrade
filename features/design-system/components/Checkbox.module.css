@@ -1,0 +1,54 @@
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  cursor: pointer;
+}
+
+.input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ds-color-accent);
+  cursor: pointer;
+}
+
+/* Curta animação de seleção (briefing Microinterações, Seção 24: "check desenhando; inner circle
+ * crescendo") — o controle nativo (`Checkbox.tsx`, decisão da Fase 18) não permite desenhar o
+ * check à mão sem abrir mão de todo o comportamento de acessibilidade que ele já traz de graça;
+ * um "pop" de escala no próprio elemento nativo ao marcar é o reforço tátil possível sem
+ * substituí-lo por um box customizado. */
+.input:checked {
+  animation: checkPop 180ms var(--ds-easing-emphasized);
+}
+
+@keyframes checkPop {
+  0% {
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.input:disabled + .label,
+.input:disabled ~ .label {
+  color: var(--ds-color-text-disabled);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.label {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-primary);
+}
