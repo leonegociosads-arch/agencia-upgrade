@@ -1624,6 +1624,28 @@ Formato: `[Fase X] Decisão — justificativa`
   número só, sem indicar que é uma heurística interna (`docs/LEAD-SCORE.md`), não uma nota
   definitiva do lead. As duas correções são uma linha de texto cada — nenhuma pergunta, regra de
   negócio, cálculo de score ou fluxo de navegação foi alterado.
+- **[DEPLOY] Histórico do Git reconstruído em 24 commits (um por Etapa 11-32, mais protótipo e
+  infra) a partir do estado final do repositório** — achado crítico da Etapa 33: o repositório só
+  tinha 2 commits reais (`Initial commit from Create Next App` e `Implementa Etapas 8-10`); todo o
+  trabalho desde a Etapa 11 existia só na árvore de trabalho local, nunca commitado nem enviado ao
+  GitHub. Como o projeto Vercel já está conectado a este repositório, ele não tinha nada real para
+  buildar. Decisão tomada com o usuário: reconstruir em commits granulares por etapa (em vez de um
+  commit único ou poucos commits agrupados) para preservar rollback/blame por etapa no futuro, na
+  medida do possível a partir de um único snapshot final — arquivos cumulativos que várias etapas
+  tocaram (`docs/DECISIONS.md`, `package.json`) ficaram inteiros em um commit só, não fatiados,
+  limitação reconhecida e sem solução melhor possível sem as fotografias intermediárias reais (que
+  nunca existiram). Push para `master` fica pendente da confirmação do usuário sobre o
+  comportamento de auto-deploy da Vercel (`docs/DEPLOYMENT.md`, Seção 3).
+- **[DEPLOY] `engines.node` fixado em `package.json` (`">=20.9.0"`)** — não existia nenhum pino de
+  versão de Node (nem `engines`, nem `.nvmrc`); o valor usado é o mínimo que o próprio Next.js
+  16.3.5 declara em seu `package.json` (`node_modules/next/package.json`), evitando divergência
+  entre o que o framework exige e o que o projeto documenta.
+- **[DEPLOY] Estratégia de banco para Preview: opção B do briefing (Preview usa o mesmo Supabase de
+  Production, sem restrição especial)** — decisão explícita pela leitura de que este é um projeto
+  V1 ainda pequeno (o próprio briefing recomenda isso nesse cenário); criar um Supabase de staging
+  seria infraestrutura duplicada sem necessidade real ainda. Risco aceito e documentado
+  (`docs/DEPLOYMENT.md`, Seção 16): um envio de teste feito através de uma Preview URL cria uma
+  linha real no banco de produção — mitigado por cuidado manual, não por uma barreira técnica.
 
 ---
 

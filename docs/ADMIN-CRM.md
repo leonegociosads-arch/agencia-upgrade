@@ -41,7 +41,9 @@ client-side dentro da mesma rota.
 Estar autenticado no Supabase Auth **não** concede acesso — só quem também está na tabela
 `admin_users` (`user_id`, `role` fixo em `'admin'`, `created_at`) é considerado admin. Sem UI para
 gerenciar admins nesta fase (V1): o primeiro admin (e qualquer outro) é criado via SQL Editor,
-nunca pelo próprio app — ver `docs/IMPLEMENTATION-STAGE-16.md`, Seção "Como criar o primeiro admin".
+nunca pelo próprio app — ver `docs/DEPLOYMENT.md`, Seção 8 ("Primeiro admin"), para o processo
+exato passo a passo. *(Corrigido na Etapa 33 — esta referência apontava para uma seção que nunca
+existiu de fato em `docs/IMPLEMENTATION-STAGE-16.md`.)*
 
 ## 4. Permissões
 
