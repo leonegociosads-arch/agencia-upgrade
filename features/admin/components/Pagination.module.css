@@ -1,0 +1,26 @@
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--ds-space-4);
+  font-size: var(--ds-font-size-body-sm);
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+.info {
+  color: var(--ds-color-text-secondary);
+}
+
+.links {
+  display: flex;
+  gap: var(--ds-space-4);
+}
+
+.links a {
+  color: var(--ds-color-accent-text);
+}
+
+.disabled {
+  color: var(--ds-color-text-disabled);
+}

@@ -1,0 +1,98 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-primary);
+}
+
+.table th {
+  text-align: left;
+  padding: var(--ds-space-3) var(--ds-space-2);
+  border-bottom: var(--ds-border-width) solid var(--ds-color-border-strong);
+  color: var(--ds-color-text-secondary);
+  font-weight: var(--ds-font-weight-semibold);
+  font-size: var(--ds-font-size-caption);
+  text-transform: uppercase;
+}
+
+.table td {
+  text-align: left;
+  padding: var(--ds-space-3) var(--ds-space-2);
+  border-bottom: var(--ds-border-width) solid var(--ds-color-border);
+}
+
+.openLink {
+  color: var(--ds-color-accent-text);
+  text-decoration: underline;
+}
+
+.tierBadge,
+.priorityBadge {
+  display: inline-block;
+  margin-left: var(--ds-space-2);
+  padding: 0.0625rem var(--ds-space-2);
+  border-radius: var(--ds-radius-full);
+  font-size: var(--ds-font-size-caption);
+  border: var(--ds-border-width) solid var(--ds-color-border-strong);
+  color: var(--ds-color-text-secondary);
+}
+
+.priorityBadge {
+  border-color: var(--ds-color-accent);
+  color: var(--ds-color-accent-text);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.cards {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-4);
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+  color: inherit;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardCompany {
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-body-sm);
+}
+
+.cardServices {
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-primary);
+}
+
+.cardBottom {
+  display: flex;
+  gap: var(--ds-space-3);
+  font-size: var(--ds-font-size-caption);
+  color: var(--ds-color-text-secondary);
+  margin-top: var(--ds-space-1);
+}
+
+@media (max-width: 640px) {
+  .table {
+    display: none;
+  }
+  .cards {
+    display: flex;
+  }
+}

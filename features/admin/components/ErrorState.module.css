@@ -1,0 +1,7 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-6) 0;
+}

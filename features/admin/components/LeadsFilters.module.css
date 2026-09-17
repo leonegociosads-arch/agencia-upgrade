@@ -1,0 +1,16 @@
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-6);
+}
+
+.search {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.select {
+  width: auto;
+}
