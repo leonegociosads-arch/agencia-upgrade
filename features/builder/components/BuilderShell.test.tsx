@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { BuilderProvider } from "../state/BuilderContext";
+import { LeadProvider } from "@/features/lead/state/LeadContext";
 import BuilderShell from "./BuilderShell";
 
 afterEach(cleanup);
@@ -9,7 +10,9 @@ afterEach(cleanup);
 function renderBuilder() {
   return render(
     <BuilderProvider>
-      <BuilderShell />
+      <LeadProvider>
+        <BuilderShell />
+      </LeadProvider>
     </BuilderProvider>,
   );
 }
@@ -41,7 +44,7 @@ describe("Builder — integração básica de componentes", () => {
 
     await screen.findByText(/adicionado ao seu Upgrade/);
 
-    fireEvent.click(screen.getByText("Ver Meu Upgrade / Finalizar"));
+    fireEvent.click(screen.getByText("Continuar"));
     expect(await screen.findByText("Configurado")).toBeTruthy();
   });
 });
