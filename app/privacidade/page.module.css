@@ -1,0 +1,32 @@
+.main {
+  padding-block: var(--ds-space-16) var(--ds-space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+
+.lead {
+  margin-top: var(--ds-space-3);
+  max-width: 60ch;
+}
+
+.section {
+  max-width: 72ch;
+  margin-top: var(--ds-space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding-left: var(--ds-space-6);
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-body);
+}
+
+.list li {
+  list-style: disc;
+}

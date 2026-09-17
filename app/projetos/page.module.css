@@ -1,0 +1,8 @@
+.main {
+  padding-block: var(--ds-space-24);
+}
+
+.lead {
+  margin-top: var(--ds-space-3);
+  max-width: 60ch;
+}

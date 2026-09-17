@@ -1,0 +1,169 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  overflow: hidden;
+  border: var(--ds-border-width) solid transparent;
+  border-radius: var(--ds-radius-md);
+  font-family: var(--ds-font-body);
+  font-weight: var(--ds-font-weight-semibold);
+  line-height: var(--ds-line-height-normal);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color var(--ds-duration-fast) var(--ds-easing-base),
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    color var(--ds-duration-fast) var(--ds-easing-base),
+    opacity var(--ds-duration-fast) var(--ds-easing-base),
+    transform var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+/* "Sheen" (briefing Microinterações, Seção 4: "highlight") — uma faixa de luz diagonal que
+ * atravessa o botão primário no hover. Só `transform`/`opacity` (Seção 33), e só no `primary`
+ * (o botão mais importante da hierarquia, Seção 61: "não exagerar"). */
+.primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.22) 50%, transparent 60%);
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.primary:hover:not(:disabled)::after {
+  transform: translateX(120%);
+  opacity: 1;
+  transition:
+    transform var(--ds-duration-slow) var(--ds-easing-emphasized),
+    opacity var(--ds-duration-slow) var(--ds-easing-emphasized);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Reforça "avanço" (Motion Design, Seção 10 — "Próximo" e todo botão principal do fluxo): um
+ * leve levantamento no hover, uma compressão imediata no clique. `--ds-duration-instant` no
+ * `:active` porque isto é resposta física, não decoração — precisa ser sentido antes que o dedo
+ * saia da tela. */
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.96);
+  transition-duration: var(--ds-duration-instant);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ---------- Tamanhos ---------- */
+.sm {
+  height: 36px;
+  padding: 0 var(--ds-space-4);
+  font-size: var(--ds-font-size-body-sm);
+}
+
+.md {
+  height: 44px;
+  padding: 0 var(--ds-space-6);
+  font-size: var(--ds-font-size-body);
+}
+
+.lg {
+  height: 52px;
+  padding: 0 var(--ds-space-8);
+  font-size: var(--ds-font-size-body-lg);
+}
+
+/* Em telas de toque estreitas, `sm` (36px) fica abaixo da área confortável pedida para o Builder
+ * (Fase 20, Seção 8/25) — sobe para 44px só onde realmente falta espaço para o dedo, sem duplicar
+ * o componente numa variante "mobile" à parte (Seção 36 do briefing). */
+@media (max-width: 640px) {
+  .sm {
+    height: 44px;
+  }
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* ---------- Variantes ---------- */
+.primary {
+  background: var(--ds-color-accent);
+  color: var(--ds-color-on-accent);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--ds-color-accent-hover);
+}
+
+.primary:active:not(:disabled) {
+  background: var(--ds-color-accent-active);
+}
+
+.secondary {
+  background: transparent;
+  border-color: var(--ds-color-border-strong);
+  color: var(--ds-color-text-primary);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--ds-color-surface-elevated);
+}
+
+.secondary:active:not(:disabled) {
+  background: var(--ds-color-surface);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--ds-color-text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--ds-color-surface);
+  color: var(--ds-color-text-primary);
+}
+
+.danger {
+  background: var(--ds-color-error);
+  color: var(--ds-color-on-accent);
+}
+
+.danger:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.danger:active:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+/* ---------- Loading ---------- */
+.loading {
+  cursor: progress;
+}
+
+.spinner {
+  position: absolute;
+}
+
+.hiddenLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

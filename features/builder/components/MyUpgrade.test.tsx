@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { BuilderProvider } from "../state/BuilderContext";
 import { builderReducer, initialBuilderState, type BuilderAction } from "../state/builderReducer";
+import { LeadProvider } from "../../lead/state/LeadContext";
 import BuilderShell from "./BuilderShell";
 import type { BuilderState } from "../types";
 
@@ -43,7 +44,9 @@ function confirmedSiteAndTrafego(): BuilderState {
 function renderWithState(state: BuilderState) {
   return render(
     <BuilderProvider initialState={state}>
-      <BuilderShell />
+      <LeadProvider>
+        <BuilderShell />
+      </LeadProvider>
     </BuilderProvider>,
   );
 }
@@ -58,9 +61,13 @@ function toggleMyUpgrade() {
  * `ServiceSelector` fica visível ao mesmo tempo que o painel (é uma seção persistente, não um
  * modal), e os dois podem repetir o mesmo texto (o nome do serviço). Busca pelo título como
  * `heading` (não por texto solto) porque o botão de alternar o painel, quando a contagem é 0,
- * normaliza para o mesmo texto "Meu Upgrade" do `<h2>` — só o `role` os distingue. */
+ * normaliza para o mesmo texto "Meu Upgrade" do `<h2>` — só o `role` os distingue.
+ *
+ * Escopa pelo `data-testid="my-upgrade-panel"` (Fase 19) — o cabeçalho do painel ganhou uma
+ * estrutura própria (título + contador + botão de fechar do drawer), então `heading.closest("div")`
+ * deixou de alcançar o painel inteiro (passou a parar num `<div>` intermediário do cabeçalho). */
 function panel() {
-  return screen.getByRole("heading", { name: "Meu Upgrade" }).closest("div")!;
+  return screen.getByTestId("my-upgrade-panel");
 }
 
 /** site_tipo é sempre a primeira pergunta de Site — o primeiro "Alterar" da revisão sempre a reabre. */
@@ -203,7 +210,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     renderWithState(confirmedEcommerceSite());
     toggleMyUpgrade();
     fireEvent.click(within(panel()).getByRole("button", { name: "Finalizar projeto" }));
-    expect(screen.getByText("Seu projeto está pronto para revisão")).toBeTruthy();
+    expect(screen.getByText("Confira seu projeto")).toBeTruthy();
   });
 
   it("TESTE 13 — com uma edição em andamento, finalizar não ignora a alteração pendente", () => {
@@ -214,7 +221,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     // "Finalizar projeto" dele está visível ao mesmo tempo que a tela de edição.
     fireEvent.click(within(panel()).getByRole("button", { name: "Finalizar projeto" }));
 
-    expect(screen.queryByText("Seu projeto está pronto para revisão")).toBeNull();
+    expect(screen.queryByText("Confira seu projeto")).toBeNull();
     expect(within(panel()).getByText(/Termine antes de finalizar o projeto/)).toBeTruthy();
 
     fireEvent.click(within(panel()).getByText("Descartar alterações"));

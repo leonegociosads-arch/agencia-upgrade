@@ -1,6 +1,7 @@
 "use client";
 
-import styles from "./EmptyUpgradeState.module.css";
+import DesignSystemEmptyState from "@/features/design-system/components/EmptyState";
+import Button from "@/features/design-system/components/Button";
 
 interface EmptyUpgradeStateProps {
   onAddService: () => void;
@@ -9,14 +10,17 @@ interface EmptyUpgradeStateProps {
 /**
  * WF-13 (docs/WIREFRAME-SCREENS.md) — estado vazio do "Meu Upgrade". O botão leva ao seletor
  * principal (nunca inicia um serviço específico sozinho — quem escolhe qual é o usuário).
+ * Reaproveita o `EmptyState` do Design System (Fase 18/19) em vez de duplicar o padrão.
  */
 export default function EmptyUpgradeState({ onAddService }: EmptyUpgradeStateProps) {
   return (
-    <div className={styles.wrapper}>
-      <p className={styles.message}>Seu Upgrade ainda está vazio.</p>
-      <button type="button" className={styles.primaryButton} onClick={onAddService}>
-        Adicionar um serviço
-      </button>
-    </div>
+    <DesignSystemEmptyState
+      title="Seu Upgrade ainda está vazio."
+      action={
+        <Button onClick={onAddService} size="sm">
+          Adicionar um serviço
+        </Button>
+      }
+    />
   );
 }

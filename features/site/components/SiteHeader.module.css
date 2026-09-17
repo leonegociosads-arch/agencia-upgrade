@@ -1,0 +1,234 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-6);
+  padding: var(--ds-space-4) var(--ds-space-4);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(10px);
+  border-bottom: var(--ds-border-width) solid transparent;
+  transition:
+    background-color var(--ds-duration-slow) var(--ds-easing-base),
+    border-color var(--ds-duration-slow) var(--ds-easing-base),
+    box-shadow var(--ds-duration-slow) var(--ds-easing-base);
+}
+
+/* Reforça hierarquia ao rolar (briefing Microinterações, Seção 30) — nunca um "show" separado, só
+ * um pouco mais de contraste/definição para o header se destacar do conteúdo que passa por baixo. */
+.headerScrolled {
+  background: rgba(0, 0, 0, 0.88);
+  border-bottom-color: var(--ds-color-border);
+  box-shadow: var(--ds-shadow-md);
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: var(--ds-space-4) var(--ds-space-8);
+  }
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-body-lg);
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--ds-color-text-primary);
+  letter-spacing: 0.01em;
+  transition: opacity var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+/* Microinteração mínima (briefing Seção 32: "hover discreto... não distorcer identidade") — só
+ * opacidade, nunca escala/rotação na marca. */
+.logo:hover {
+  opacity: 0.8;
+}
+
+/* Logo oficial (`public/logo-mark.png`, recortada do arquivo enviado pelo usuário — só o símbolo
+ * "U", sem o wordmark, que já é escrito em texto real logo ao lado). Fundo preto sólido no arquivo
+ * (sem transparência) — funciona porque este header é sobre um fundo igualmente preto/quase-preto. */
+.logoMark {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+}
+
+.nav {
+  display: none;
+  align-items: center;
+  gap: var(--ds-space-6);
+}
+
+@media (min-width: 768px) {
+  .nav {
+    display: flex;
+  }
+}
+
+/* Sublinhado animado (briefing Seção 27/28: "não usar apenas underline básico... entrada e saída
+ * consistentes") — `background-size` em vez de `width` (nunca gera layout thrashing, Seção 33). */
+.navLink {
+  position: relative;
+  font-size: var(--ds-font-size-body-sm);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-secondary);
+  background-image: linear-gradient(var(--ds-color-text-primary), var(--ds-color-text-primary));
+  background-repeat: no-repeat;
+  background-position: left bottom -2px;
+  background-size: 0% 1px;
+  padding-bottom: 2px;
+  transition:
+    color var(--ds-duration-fast) var(--ds-easing-base),
+    background-size var(--ds-duration-normal) var(--ds-easing-emphasized);
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: var(--ds-color-text-primary);
+  background-size: 100% 1px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.cta {
+  flex-shrink: 0;
+}
+
+/* Some da barra superior em telas estreitas (junto com o CTA + o botão de menu, o espaço não
+ * sobra) — reaparece dentro do menu mobile (`.mobileSoundRow`, abaixo). */
+.soundToggle {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .soundToggle {
+    display: inline-flex;
+  }
+}
+
+.menuToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: var(--ds-border-width) solid var(--ds-color-border-strong);
+  border-radius: var(--ds-radius-md);
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .menuToggle {
+    display: none;
+  }
+}
+
+.menuIcon,
+.menuIcon::before,
+.menuIcon::after {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--ds-color-text-primary);
+  transition: transform var(--ds-duration-fast) var(--ds-easing-base), opacity var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.menuIcon {
+  position: relative;
+}
+
+.menuIcon::before,
+.menuIcon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.menuIcon::before {
+  top: -6px;
+}
+
+.menuIcon::after {
+  top: 6px;
+}
+
+.menuIconOpen {
+  background: transparent;
+}
+
+.menuIconOpen::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.menuIconOpen::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+.mobileMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--ds-space-2) var(--ds-space-4) var(--ds-space-4);
+  background: var(--ds-color-bg);
+  border-bottom: var(--ds-border-width) solid var(--ds-color-border);
+  animation: mobileMenuIn var(--ds-duration-normal) var(--ds-easing-emphasized);
+  transform-origin: top center;
+}
+
+@keyframes mobileMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .mobileMenu {
+    display: none;
+  }
+}
+
+.mobileLink {
+  padding: var(--ds-space-3) 0;
+  font-size: var(--ds-font-size-body);
+  color: var(--ds-color-text-primary);
+  border-bottom: var(--ds-border-width) solid var(--ds-color-border);
+  transition: opacity var(--ds-duration-instant) var(--ds-easing-base);
+}
+
+.mobileLink:last-child {
+  border-bottom: none;
+}
+
+/* Feedback de toque (briefing Seção 51: "cards e botões devem reagir rapidamente ao touch") — só
+ * opacidade, nunca `transform`, para não deslocar os itens vizinhos numa lista vertical. */
+.mobileLink:active {
+  opacity: 0.6;
+}
+
+.mobileSoundRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--ds-space-3);
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+}
