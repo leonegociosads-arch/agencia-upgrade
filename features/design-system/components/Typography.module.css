@@ -1,0 +1,116 @@
+/* Compartilhado por Heading.tsx e Text.tsx — uma única fonte para a escala tipográfica
+ * (Fase 18, Seção "Tipografia"). Nenhum tamanho/peso é escrito fora daqui. */
+
+.display {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-display);
+  line-height: var(--ds-line-height-tight);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.h1 {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-h1);
+  line-height: var(--ds-line-height-tight);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.h2 {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-h2);
+  line-height: var(--ds-line-height-snug);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.h3 {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-h3);
+  line-height: var(--ds-line-height-snug);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.bodyLg {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-lg);
+  line-height: var(--ds-line-height-relaxed);
+  font-weight: var(--ds-font-weight-regular);
+}
+
+.body {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body);
+  line-height: var(--ds-line-height-relaxed);
+  font-weight: var(--ds-font-weight-regular);
+}
+
+.bodySm {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
+  line-height: var(--ds-line-height-normal);
+  font-weight: var(--ds-font-weight-regular);
+}
+
+.label {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-label);
+  line-height: var(--ds-line-height-normal);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+.caption {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-caption);
+  line-height: var(--ds-line-height-normal);
+  font-weight: var(--ds-font-weight-regular);
+}
+
+/* ---------- Cor (aplicável a qualquer variante acima) ---------- */
+.primary {
+  color: var(--ds-color-text-primary);
+}
+
+.secondary {
+  color: var(--ds-color-text-secondary);
+}
+
+.disabled {
+  color: var(--ds-color-text-disabled);
+}
+
+.accent {
+  color: var(--ds-color-accent-text);
+}
+
+.success {
+  color: var(--ds-color-success);
+}
+
+.warning {
+  color: var(--ds-color-warning);
+}
+
+.error {
+  color: var(--ds-color-error);
+}
+
+.info {
+  color: var(--ds-color-info);
+}
+
+/* ---------- Peso (sobrescreve o peso padrão da variante, quando informado) ---------- */
+.weightRegular {
+  font-weight: var(--ds-font-weight-regular);
+}
+
+.weightMedium {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.weightSemibold {
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.weightBold {
+  font-weight: var(--ds-font-weight-bold);
+}

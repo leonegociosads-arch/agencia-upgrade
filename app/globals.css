@@ -1,35 +1,24 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import "../styles/tokens.css";
 
-  --builder-surface: #ffffff;
-  --builder-surface-hover: #fafafa;
-  --builder-border: #e3e3e3;
-  --builder-muted: #6b6b6b;
-  --builder-accent: #4338ca;
-  --builder-accent-contrast: #ffffff;
-  --builder-accent-soft: rgba(67, 56, 202, 0.1);
-  --builder-selected-bg: rgba(67, 56, 202, 0.06);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-
-    --builder-surface: #141414;
-    --builder-surface-hover: #1b1b1b;
-    --builder-border: #2a2a2a;
-    --builder-muted: #9a9a9a;
-    --builder-accent: #818cf8;
-    --builder-accent-contrast: #0a0a0a;
-    --builder-accent-soft: rgba(129, 140, 248, 0.16);
-    --builder-selected-bg: rgba(129, 140, 248, 0.1);
-  }
-}
-
+/**
+ * Fase 19 — a identidade escura da Fase 18 vira o tema real do site inteiro (não mais um `[data-
+ * theme]` opcional): `body` agora usa `--ds-color-bg`/`--ds-color-text-primary` diretamente. Ver
+ * `docs/UI-FINAL.md`, Seção "Direção visual", para a decisão de um tema único (Seção 21 do
+ * briefing: "escolha uma direção principal", em vez de dois temas completos só porque a referência
+ * de marca mostrava os dois).
+ */
 html {
   height: 100%;
+  color-scheme: dark;
+  /* Compensa o header sticky (`SiteHeader.module.css`) para navegação por `#id` (Fase Smooth
+   * Scroll, Seção 19 do briefing: "evitar parar com título escondido atrás do header"). O
+   * Next.js 16 usa `scrollIntoView()` nativo para hash da URL — este é o mecanismo que ele
+   * documenta para compensar cabeçalhos fixos/sticky, sem precisar de nenhum JS próprio (ver
+   * `docs/SMOOTH-SCROLL.md`, Seção "Anchors"). Valor aproximado à altura real do header (padding
+   * vertical igual nos dois breakpoints) — revisar visualmente quando o primeiro link de âncora
+   * de verdade existir.
+   */
+  scroll-padding-top: 88px;
 }
 
 html,
@@ -42,9 +31,9 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  color: var(--ds-color-text-primary);
+  background: var(--ds-color-bg);
+  font-family: var(--ds-font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -60,8 +49,8 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+img,
+svg {
+  display: block;
+  max-width: 100%;
 }

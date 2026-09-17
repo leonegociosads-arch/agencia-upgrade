@@ -1,0 +1,22 @@
+.wrapper {
+  position: relative;
+  display: block;
+}
+
+.select {
+  appearance: none;
+  padding-right: var(--ds-space-8);
+  cursor: pointer;
+}
+
+.chevron {
+  position: absolute;
+  top: 50%;
+  right: var(--ds-space-4);
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--ds-color-text-secondary);
+  border-bottom: 2px solid var(--ds-color-text-secondary);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}

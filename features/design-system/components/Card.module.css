@@ -1,0 +1,49 @@
+.card {
+  position: relative;
+  background: var(--ds-color-surface);
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-lg);
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    background-color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.elevated {
+  background: var(--ds-color-surface-elevated);
+  box-shadow: var(--ds-shadow-md);
+  border-color: transparent;
+}
+
+.padding-sm {
+  padding: var(--ds-space-3);
+}
+
+.padding-md {
+  padding: var(--ds-space-6);
+}
+
+.padding-lg {
+  padding: var(--ds-space-8);
+}
+
+.selected {
+  border-color: var(--ds-color-accent);
+  background: var(--ds-color-accent-soft);
+}
+
+.selectedMark {
+  position: absolute;
+  top: var(--ds-space-3);
+  right: var(--ds-space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-color-accent);
+  color: var(--ds-color-on-accent);
+  font-size: 0.7rem;
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 1;
+}

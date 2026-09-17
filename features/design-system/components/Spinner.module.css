@@ -1,0 +1,24 @@
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--ds-radius-full);
+  opacity: 0.85;
+  /* 900ms fixo, não um token de motion — os tokens `--ds-duration-*` foram calibrados para
+   * TRANSIÇÕES discretas (hover, foco), não para um loop contínuo como este. */
+  animation: ds-spin 900ms linear infinite;
+}
+
+.spinner.sm {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+@keyframes ds-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

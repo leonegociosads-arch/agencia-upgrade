@@ -1,0 +1,223 @@
+/**
+ * DESIGN SYSTEM — Tokens (Fase 18). Única fonte de verdade para cores, tipografia, espaçamento,
+ * bordas/raios, sombras e motion. `docs/DESIGN-SYSTEM.md` documenta o raciocínio por trás de cada
+ * valor (contraste calculado, não só "parece bom"). Importado uma vez em `app/globals.css`.
+ *
+ * Escopo desta fase (`docs/DECISIONS.md`, Fase 18): estes tokens NUNCA são aplicados às telas já
+ * existentes (Builder, admin, Home) — só ficam disponíveis para os componentes NOVOS de
+ * `features/design-system/components` e para a rota de showcase (`/design-system`). Os tokens
+ * antigos em `app/globals.css` (`--background`, `--foreground`, `--builder-*`) continuam
+ * intocados, porque o Builder já em produção depende deles. Aplicar esta identidade ao resto do
+ * site é o trabalho da Etapa 19.
+ *
+ * Prefixo `--ds-` em todo token novo, para nunca colidir com os tokens antigos acima.
+ */
+
+:root {
+  /* ============================== CORES — TEMA ESCURO (padrão) ==============================
+   * O tema escuro é o principal ("flagship") desta identidade — o de melhor efeito para
+   * transmitir tecnologia/sofisticação/premium (docs/DESIGN-SYSTEM.md, Seção 1). O tema claro
+   * (Seção `[data-theme="light"]` abaixo) existe com o mesmo conjunto de tokens, prontos para
+   * quando/se uma tela precisar dele — nenhum mecanismo de alternância (toggle) foi construído
+   * nesta fase, só os valores.
+   */
+  /* `bg`/`text-primary`/`accent` batem exatamente com o manual de marca oficial (preto #000000,
+   * branco #FBFBFB, verde #2DB958) — `surface`/`surface-elevated`/`border*` foram reajustados
+   * nesta revisão para a família "grafite azulado" (#22313B) do manual, em vez do cinza neutro
+   * usado antes; `--ds-color-surface-elevated` agora é o próprio tom oficial (contraste
+   * reverificado — ver `docs/DECISIONS.md`). */
+  --ds-color-bg: #000000;
+  --ds-color-bg-secondary: #0b0f14;
+  --ds-color-surface: #141b22;
+  --ds-color-surface-elevated: #22313b;
+
+  --ds-color-border: #2c3944;
+  --ds-color-border-strong: #3f4f5c;
+
+  --ds-color-text-primary: #fbfbfb;
+  --ds-color-text-secondary: #a6b0bb;
+  --ds-color-text-disabled: #5b6570;
+
+  /* Verde da marca — usado com moderação (nunca como identidade de "sucesso"; ver `--ds-color-success`
+   * abaixo, uma família de cor separada de propósito). */
+  --ds-color-accent: #2db958;
+  --ds-color-accent-hover: #43ce70;
+  --ds-color-accent-active: #23a34c;
+  --ds-color-accent-soft: rgba(45, 185, 88, 0.14);
+  /* Como texto/ícone corrido sobre o fundo escuro, o verde puro já atinge >8:1 de contraste — não
+   * precisa de uma variante própria aqui (ao contrário do tema claro, ver abaixo). */
+  --ds-color-accent-text: var(--ds-color-accent);
+  /* Cor para elementos colocados EM CIMA de uma superfície com `--ds-color-accent` (botão
+   * primário, badges de destaque) — nunca branco puro: branco sobre este verde mede só ~2.5:1de
+   * contraste (reprovado); um tom quase preto mede ~7.5:1 nos dois temas. */
+  --ds-color-on-accent: #0a0e12;
+
+  /* Token semanticamente separado de `--ds-color-accent`, mesmo com o mesmo valor hoje — permite
+   * no futuro usar uma cor "interativa" (links, foco) diferente da cor de "destaque" (CTAs, marca)
+   * sem precisar tocar em nenhum componente, só neste arquivo. */
+  --ds-color-interactive: var(--ds-color-accent);
+  --ds-color-interactive-hover: var(--ds-color-accent-hover);
+
+  --ds-color-success: #22a35a;
+  --ds-color-warning: #e8a33d;
+  --ds-color-error: #e5484d;
+  --ds-color-info: #4c9fe8;
+  --ds-color-success-soft: rgba(34, 163, 90, 0.14);
+  --ds-color-warning-soft: rgba(232, 163, 61, 0.14);
+  --ds-color-error-soft: rgba(229, 72, 77, 0.14);
+  --ds-color-info-soft: rgba(76, 159, 232, 0.14);
+
+  --ds-color-focus-ring: var(--ds-color-accent);
+
+  /* ============================== TIPOGRAFIA ============================== */
+  /* `--font-display`/`--font-body` vêm do `next/font/google` (Montserrat/Inter), aplicados em
+   * `app/layout.tsx` — ver docs/DESIGN-SYSTEM.md, Seção 2, para o motivo de duas famílias. */
+  --ds-font-display: var(--font-display), "Segoe UI", Arial, sans-serif;
+  --ds-font-body: var(--font-body), "Segoe UI", Arial, sans-serif;
+
+  /* `display`/`h1`/`h2` usam `clamp()` (Fase 20, Seção 15) — títulos grandes precisam diminuir
+   * proporcionalmente em vez de quebrar de forma feia em telas estreitas; evita multiplicar
+   * `@media` só para `font-size` em cada `Heading`. O valor máximo (o mesmo de antes) só é
+   * atingido a partir de ~1432px; abaixo disso a escala é fluida até um mínimo confortável em
+   * mobile. `h3` e menores já cabem bem sem precisar de clamp. */
+  --ds-font-size-display: clamp(2.25rem, 1.8rem + 1.9vw, 3.5rem);
+  --ds-font-size-h1: clamp(1.75rem, 1.5rem + 1.1vw, 2.5rem);
+  --ds-font-size-h2: clamp(1.5rem, 1.3rem + 0.9vw, 2rem);
+  --ds-font-size-h3: 1.5rem;
+  --ds-font-size-body-lg: 1.125rem;
+  --ds-font-size-body: 1rem;
+  --ds-font-size-body-sm: 0.875rem;
+  --ds-font-size-label: 0.8125rem;
+  --ds-font-size-caption: 0.75rem;
+
+  --ds-line-height-tight: 1.1;
+  --ds-line-height-snug: 1.25;
+  --ds-line-height-normal: 1.5;
+  --ds-line-height-relaxed: 1.6;
+
+  --ds-font-weight-regular: 400;
+  --ds-font-weight-medium: 500;
+  --ds-font-weight-semibold: 600;
+  --ds-font-weight-bold: 700;
+
+  /* ============================== ESPAÇAMENTO ============================== */
+  --ds-space-1: 4px;
+  --ds-space-2: 8px;
+  --ds-space-3: 12px;
+  --ds-space-4: 16px;
+  --ds-space-6: 24px;
+  --ds-space-8: 32px;
+  --ds-space-12: 48px;
+  --ds-space-16: 64px;
+  --ds-space-24: 96px;
+
+  /* ============================== GRID / CONTAINER ==============================
+   * Breakpoints em pixels (documentados aqui por referência — `@media` não lê custom properties,
+   * então cada CSS Module usa o valor literal correspondente; ver docs/DESIGN-SYSTEM.md, Seção 4).
+   * sm: 480px · md: 768px · lg: 1024px · xl: 1280px
+   */
+  --ds-container-max-width: 1240px;
+  --ds-container-padding: var(--ds-space-4);
+
+  /* ============================== BORDAS / RAIOS ============================== */
+  --ds-radius-sm: 6px;
+  --ds-radius-md: 10px;
+  --ds-radius-lg: 16px;
+  --ds-radius-full: 999px;
+
+  --ds-border-width: 1px;
+
+  /* ============================== SOMBRAS (elevação) ==============================
+   * Calibradas para o tema escuro (sombra escura sobre fundo escuro precisa de mais opacidade
+   * para aparecer); o tema claro redefine as três abaixo com valores mais suaves.
+   */
+  --ds-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --ds-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.55);
+  --ds-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+
+  /* ============================== MOTION (Fase 18 — valores; Fase Motion Design — hierarquia) ====
+   * `--ds-easing-base` é o valor original da Fase 18 (mantido — dezenas de componentes já usam
+   * este nome; nunca renomeado só por causa desta fase). `--ds-easing-standard` é o nome
+   * canônico novo para o mesmo curva, para bater com a nomenclatura de `docs/MOTION-DESIGN.md`
+   * (Nível 1-4) sem precisar reescrever nenhum arquivo existente. Ver `docs/MOTION-DESIGN.md`,
+   * Seção "Motion tokens", para o raciocínio de cada duração/easing/stagger.
+   */
+  --ds-duration-instant: 80ms;
+  --ds-duration-fast: 120ms;
+  --ds-duration-normal: 200ms;
+  --ds-duration-slow: 360ms;
+  --ds-duration-scene: 480ms;
+
+  --ds-easing-base: cubic-bezier(0.4, 0, 0.2, 1);
+  --ds-easing-standard: var(--ds-easing-base);
+  --ds-easing-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ds-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ds-easing-smooth: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --ds-stagger-xs: 40ms;
+  --ds-stagger-sm: 80ms;
+  --ds-stagger-md: 140ms;
+}
+
+/**
+ * Tema claro — mesmo conjunto de tokens, valores calibrados separadamente (não é uma simples
+ * inversão: cada cor foi recalculada para manter contraste AA no novo fundo, ver
+ * docs/DESIGN-SYSTEM.md, Seção 1 "Contraste"). Ativado só via `[data-theme="light"]` explícito no
+ * `<html>` — nenhum toggle nem `prefers-color-scheme` conectado a ele nesta fase.
+ */
+[data-theme="light"] {
+  --ds-color-bg: #fbfbfb;
+  --ds-color-bg-secondary: #f1f3f5;
+  --ds-color-surface: #ffffff;
+  --ds-color-surface-elevated: #ffffff;
+
+  --ds-color-border: #e2e5e9;
+  --ds-color-border-strong: #c7cdd3;
+
+  --ds-color-text-primary: #12171d;
+  --ds-color-text-secondary: #4b5560;
+  --ds-color-text-disabled: #9aa3ac;
+
+  --ds-color-accent: #2db958;
+  --ds-color-accent-hover: #26a34e;
+  --ds-color-accent-active: #1f9e4a;
+  --ds-color-accent-soft: rgba(45, 185, 88, 0.12);
+  /* Sobre fundo CLARO, o verde puro da marca não atinge contraste de texto adequado (~2.5:1) —
+   * como texto/ícone corrido, um tom mais escuro (~4.7:1) é usado no lugar; como superfície de
+   * botão/badge (par com `--ds-color-on-accent`), o tom vívido continua o mesmo dos dois temas. */
+  --ds-color-accent-text: #158239;
+  --ds-color-on-accent: #0a0e12;
+
+  --ds-color-interactive: var(--ds-color-accent);
+  --ds-color-interactive-hover: var(--ds-color-accent-hover);
+
+  --ds-color-success: #17853f;
+  --ds-color-warning: #8a5a00;
+  --ds-color-error: #c7343a;
+  --ds-color-info: #175ea8;
+  --ds-color-success-soft: rgba(23, 133, 63, 0.1);
+  --ds-color-warning-soft: rgba(138, 90, 0, 0.1);
+  --ds-color-error-soft: rgba(199, 52, 58, 0.1);
+  --ds-color-info-soft: rgba(23, 94, 168, 0.1);
+
+  --ds-color-focus-ring: var(--ds-color-accent-text);
+
+  --ds-shadow-sm: 0 1px 2px rgba(15, 23, 30, 0.08);
+  --ds-shadow-md: 0 4px 16px rgba(15, 23, 30, 0.1);
+  --ds-shadow-lg: 0 16px 40px rgba(15, 23, 30, 0.14);
+}
+
+/* Acessibilidade (Seção 14) — base para "suporte futuro a prefers-reduced-motion": nenhuma
+ * animação real existe ainda nesta fase, mas a regra já protege qualquer transição que os novos
+ * componentes-base usam (ex.: hover de botão) desde já, sem esperar pela fase de Motion/GSAP. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
