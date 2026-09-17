@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { canFinalizeProject, hasPendingDraft, useBuilder } from "../state/BuilderContext";
 import { SERVICES } from "../data/services";
+import { trackEvent } from "@/lib/analytics/trackEvent";
+import Heading from "@/features/design-system/components/Heading";
+import Text from "@/features/design-system/components/Text";
+import Button from "@/features/design-system/components/Button";
+import { playSound } from "@/features/design-system/motion/sound";
 import MyUpgradeItem from "./MyUpgradeItem";
 import EmptyUpgradeState from "./EmptyUpgradeState";
 import RemoveServiceDialog from "./RemoveServiceDialog";
@@ -18,7 +23,13 @@ import styles from "./MyUpgrade.module.css";
  * um modal/rota) — por isso "editar" e "remover" nunca precisam de um mecanismo de "retorno": ao
  * salvar ou cancelar uma edição, o próprio painel, que nunca saiu da tela, já reflete o resultado.
  */
-export default function MyUpgrade() {
+interface MyUpgradeProps {
+  /** Fecha o drawer (Fase 19) — opcional para não quebrar quem ainda monta `MyUpgrade` sem um
+   * container de drawer ao redor (ex.: um teste isolado do componente). */
+  onClose?: () => void;
+}
+
+export default function MyUpgrade({ onClose }: MyUpgradeProps) {
   const { state, startEditingService, removeService, goToEntry, finalizeProject, cancelServiceDraft } = useBuilder();
   // Ordem previsível: `confirmedServices` é um objeto simples, e a ordem de suas chaves de string
   // já é a ordem de inserção (a primeira vez que cada `serviceId` foi confirmado) — editar um
@@ -31,6 +42,7 @@ export default function MyUpgrade() {
 
   function handleRemoveConfirmed() {
     if (!pendingRemoval) return;
+    trackEvent("service_removed", { serviceId: pendingRemoval });
     removeService(pendingRemoval);
     setPendingRemoval(null);
   }
@@ -48,21 +60,38 @@ export default function MyUpgrade() {
     setShowPendingDraftNotice(false);
   }
 
+  const header = (
+    <div className={styles.header}>
+      <div>
+        <Heading variant="h3" as="h2" className={styles.title}>
+          Meu Upgrade
+        </Heading>
+        {items.length > 0 && (
+          <Text as="span" size="caption" color="secondary">
+            {items.length} {items.length === 1 ? "serviço" : "serviços"}
+          </Text>
+        )}
+      </div>
+      {onClose && (
+        <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Fechar Meu Upgrade">
+          ×
+        </button>
+      )}
+    </div>
+  );
+
   if (items.length === 0) {
     return (
-      <div className={styles.panel}>
-        <h2 className={styles.title}>Meu Upgrade</h2>
+      <div className={styles.panel} data-testid="my-upgrade-panel">
+        {header}
         <EmptyUpgradeState onAddService={goToEntry} />
       </div>
     );
   }
 
   return (
-    <div className={styles.panel}>
-      <h2 className={styles.title}>Meu Upgrade</h2>
-      <p className={styles.count}>
-        {items.length} {items.length === 1 ? "serviço" : "serviços"}
-      </p>
+    <div className={styles.panel} data-testid="my-upgrade-panel">
+      {header}
 
       {items.map(([serviceId, item]) => (
         <MyUpgradeItem
@@ -88,9 +117,9 @@ export default function MyUpgrade() {
             Você está configurando ou editando um serviço. Termine antes de finalizar o projeto.
           </p>
           <div className={styles.draftNoticeActions}>
-            <button type="button" className={styles.secondaryButton} onClick={() => setShowPendingDraftNotice(false)}>
+            <Button variant="secondary" size="sm" onClick={() => setShowPendingDraftNotice(false)}>
               Continuar edição
-            </button>
+            </Button>
             <button type="button" className={styles.linkButton} onClick={handleDiscardDraft}>
               Descartar alterações
             </button>
@@ -99,17 +128,26 @@ export default function MyUpgrade() {
       )}
 
       <div className={styles.footer}>
-        <button type="button" className={styles.secondaryButton} onClick={goToEntry}>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => {
+            playSound("ui_press");
+            goToEntry();
+          }}
+        >
           + Adicionar outro serviço
-        </button>
-        <button
-          type="button"
-          className={styles.primaryButton}
+        </Button>
+        <Button
+          fullWidth
           disabled={!canFinalizeProject(state)}
-          onClick={handleFinalizeClick}
+          onClick={() => {
+            playSound("ui_press");
+            handleFinalizeClick();
+          }}
         >
           Finalizar projeto
-        </button>
+        </Button>
       </div>
     </div>
   );

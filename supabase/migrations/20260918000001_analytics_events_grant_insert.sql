@@ -1,0 +1,11 @@
+-- Fase 17 — correção. A migration anterior (20260918000000_analytics_events.sql) habilitou RLS em
+-- `analytics_events` e concedeu SELECT só a `authenticated` (para o admin), mas nunca concedeu
+-- INSERT a `service_role` — descoberto ao testar de verdade contra o Supabase real do usuário
+-- ("permission denied for table analytics_events", erro 42501).
+--
+-- `service_role` ignora RLS (bypassa a checagem de LINHA), mas isso não substitui o GRANT: RLS e
+-- GRANT são duas camadas independentes de segurança no Postgres — a mesma lição já registrada nas
+-- Fases 13 e 16 (lá, sobre `authenticated`; aqui, sobre `service_role`). Sem este GRANT, mesmo a
+-- service role (usada só pela Server Action `recordEvent`, nunca exposta ao navegador) era barrada
+-- no nível de privilégio da tabela, antes mesmo de a RLS entrar em jogo.
+grant insert on public.analytics_events to service_role;

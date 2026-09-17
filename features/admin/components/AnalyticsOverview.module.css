@@ -1,0 +1,84 @@
+.wrapper {
+  margin-bottom: var(--ds-space-8);
+  padding-bottom: var(--ds-space-6);
+  border-bottom: var(--ds-border-width) solid var(--ds-color-border);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
+}
+
+.title {
+  margin: 0;
+}
+
+.periods {
+  display: flex;
+  gap: var(--ds-space-2);
+}
+
+.periodLink {
+  padding: var(--ds-space-1) var(--ds-space-3);
+  border-radius: var(--ds-radius-sm);
+  font-size: var(--ds-font-size-caption);
+  color: var(--ds-color-text-secondary);
+}
+
+.periodLinkActive {
+  background: var(--ds-color-accent);
+  color: var(--ds-color-on-accent);
+}
+
+.funnel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
+}
+
+@media (max-width: 640px) {
+  .funnel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-3);
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+}
+
+.stepValue {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-h3);
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--ds-color-text-primary);
+}
+
+.stepLabel {
+  font-size: var(--ds-font-size-caption);
+  color: var(--ds-color-text-secondary);
+}
+
+.rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-4);
+  font-size: var(--ds-font-size-caption);
+  color: var(--ds-color-text-secondary);
+}
+
+.topService {
+  margin-top: var(--ds-space-3);
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+}
