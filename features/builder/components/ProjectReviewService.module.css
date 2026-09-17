@@ -1,0 +1,95 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-6);
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+}
+
+.title {
+  margin: 0;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.label {
+  font-size: var(--ds-font-size-caption);
+  color: var(--ds-color-text-secondary);
+  margin: 0;
+}
+
+.value {
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-primary);
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+.emptyItem {
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-4);
+  margin-top: var(--ds-space-1);
+}
+
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+  transition: color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.removeButton:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Mesmo padrão de `MyUpgradeItem.module.css` (briefing Microinterações, Seção 18: comunicar
+ * intenção sem brincadeira) — o ícone só aparece ao ficar clara a intenção de remover. */
+.removeIcon {
+  display: inline-flex;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    width var(--ds-duration-fast) var(--ds-easing-base),
+    opacity var(--ds-duration-fast) var(--ds-easing-base),
+    transform var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.removeButton:hover,
+.removeButton:focus-visible {
+  color: var(--ds-color-error);
+}
+
+.removeButton:hover .removeIcon,
+.removeButton:focus-visible .removeIcon {
+  width: 14px;
+  opacity: 1;
+  transform: translateX(0);
+}

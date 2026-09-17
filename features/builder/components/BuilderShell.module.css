@@ -1,16 +1,95 @@
 .shell {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  background: var(--ds-color-bg);
 }
 
 .body {
   flex: 1;
-  padding-bottom: 2rem;
+  padding-bottom: var(--ds-space-8);
+}
+
+/* Drawer do "Meu Upgrade" (Fase 19, Seção 12) — painel lateral no desktop, bottom sheet no
+ * mobile; a MESMA marcação em ambos, só o CSS muda pela media query (Seção 25 do briefing da Fase
+ * 20: "criar UI mobile de verdade, não apenas reduzir desktop" — aqui a mudança é de posição, não
+ * só um reflow). `showMyUpgrade`/`onToggleMyUpgrade` continuam exatamente os mesmos (nenhuma
+ * lógica nova, só onde e como o painel aparece na tela).
+ *
+ * Abertura/fechamento animados via GSAP (`Drawer`, `features/design-system/motion/Drawer.tsx`,
+ * Fase GSAP e Transições) — este CSS só define a POSIÇÃO estática (lateral vs. bottom sheet);
+ * `opacity`/`scale` de entrada/saída são aplicados via `style` inline pelo próprio `Drawer`. */
+/* `pointer-events: none` (Etapa 31 — Testes Funcionais): bug real encontrado via E2E, nunca
+ * visível em teste unitário (`jsdom` não aplica sobreposição/z-index de verdade a cliques). Este
+ * painel é documentadamente "uma seção persistente, não um modal" (`MyUpgrade.tsx`) — continua
+ * visível ENQUANTO o usuário edita um serviço ou é levado de volta ao seletor (`MyUpgrade.test.tsx`,
+ * TESTES 5/6/7/13 e "+ Adicionar outro serviço" cobrem esse comportamento de propósito). Só que o
+ * backdrop cobria a tela INTEIRA (`inset: 0`) e capturava todo clique — na prática, um usuário real
+ * não conseguia interagir com a tela de edição atrás do painel. `pointer-events: none` aqui (o
+ * escurecido visual continua idêntico) devolve a interação à área fora do painel; `.upgradePanel`
+ * recupera `pointer-events: auto` para continuar clicável normalmente. Como consequência aceita:
+ * clicar no fundo escurecido não fecha mais o painel (nunca foi testado nem parte do contrato
+ * documentado) — fechar continua funcionando pelo botão "×" e por Esc. */
+.upgradeOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
 }
 
 .upgradePanel {
-  max-width: 480px;
-  margin: 0 auto 2rem;
-  padding: 0 1.5rem;
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--ds-color-bg-secondary);
+  border-left: var(--ds-border-width) solid var(--ds-color-border);
+  padding: var(--ds-space-6) var(--ds-space-4);
+  pointer-events: auto;
+  /* `Drawer` dá `tabIndex={-1}` + foco programático ao abrir (Seção 25 do briefing) — sem
+   * interação de teclado real neste container, o anel de foco do navegador só poluiria. */
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .upgradeOverlay {
+    align-items: flex-end;
+  }
+
+  .upgradePanel {
+    max-width: none;
+    height: auto;
+    max-height: 85vh;
+    max-height: 85dvh;
+    border-left: none;
+    border-top: var(--ds-border-width) solid var(--ds-color-border);
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
+    /* Área segura do iPhone (Fase 20, Seção 23) — o bottom sheet fica colado à borda inferior,
+     * então o padding de baixo precisa respeitar a home indicator/gesture area. */
+    padding-bottom: calc(var(--ds-space-6) + env(safe-area-inset-bottom));
+  }
+}
+
+.hydrating {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-body-sm);
+}
+
+.restoredBanner {
+  max-width: 520px;
+  margin: var(--ds-space-4) auto 0;
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-accent-soft);
+  color: var(--ds-color-accent-text);
+  font-size: var(--ds-font-size-body-sm);
+  text-align: center;
 }
