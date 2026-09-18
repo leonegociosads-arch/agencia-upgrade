@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useBuilder } from "../state/BuilderContext";
 import SoundToggle from "@/features/design-system/components/SoundToggle";
-import CustomCursor from "@/features/design-system/components/CustomCursor";
 import styles from "./BuilderNavigation.module.css";
 
 interface BuilderNavigationProps {
@@ -31,7 +30,6 @@ export default function BuilderNavigation({ onToggleMyUpgrade, onResetSession }:
 
   return (
     <div className={styles.bar}>
-      <CustomCursor />
       <Link href="/" className={styles.logo}>
         {/* Etapa 30 (Performance): dimensões intrínsecas = 2x o tamanho exibido (`.logoMark`,
          * `height: 22px`) — ver o mesmo comentário em `SiteHeader.tsx` para o racional completo. */}

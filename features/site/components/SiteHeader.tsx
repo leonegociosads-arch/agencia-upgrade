@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import LinkButton from "@/features/design-system/components/LinkButton";
 import SoundToggle from "@/features/design-system/components/SoundToggle";
-import CustomCursor from "@/features/design-system/components/CustomCursor";
 import { useMagneticHover } from "@/features/design-system/motion/useMagneticHover";
 import { useScrolled } from "@/features/design-system/motion/useScrolled";
 import { useScrollLock } from "@/features/design-system/motion/useScrollLock";
@@ -36,7 +35,6 @@ export default function SiteHeader() {
 
   return (
     <header className={cx(styles.header, scrolled && styles.headerScrolled)}>
-      <CustomCursor />
       <Link href="/" className={styles.logo}>
         {/* Etapa 30 (Performance): dimensões intrínsecas = 2x o tamanho real exibido (`.logoMark`,
          * `height: 26px`), não o tamanho do arquivo-fonte (556×731, usado só pelas rotas de geração

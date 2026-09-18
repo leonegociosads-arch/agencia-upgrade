@@ -1654,6 +1654,152 @@ Formato: `[Fase X] Decisão — justificativa`
   de destaque no topo do `SiteFooter`. Nenhum dos quatro foi encontrado como problema crítico — a
   auditoria completa (`docs/AWARD-AUDIT.md`) concluiu que o sistema de motion/sound/WebGL já estava
   maduro o suficiente para não precisar de mudança estrutural nesta etapa.
+- **[HERO] Monograma 3D sólido substituído por logo em partículas com magnetismo ao cursor** —
+  pedido direto do usuário, fora da sequência de Etapas numeradas. `UpgradeLogo3D.tsx` e
+  `buildUpgradeMonogramGeometry.ts` permanecem no repositório (testados, documentados em várias
+  Etapas anteriores), só deixaram de ser referenciados no Hero — decisão de não deletar, para não
+  descartar trabalho de uma fase anterior sem pedido explícito. O novo componente
+  (`UpgradeLogoParticles.tsx`) segue a mesma arquitetura isolada dos outros efeitos WebGL do projeto
+  (client-only, `next/dynamic({ ssr: false })`, fallback CSS do pai sempre por baixo, dispose
+  completo no cleanup). Duas decisões técnicas específicas, registradas para não serem repetidas
+  sem contexto numa fase futura:
+  - **Amostragem de partículas a partir do PNG oficial (`public/logo-mark.png`), não do SVG
+    enviado pelo usuário** — o SVG era um auto-trace (potrace) do próprio PNG, fragmentado em
+    centenas de paths minúsculos e irregulares (ruído da vetorização de uma imagem com sombreado em
+    gradiente), não um contorno limpo. Ler os pixels do PNG (já o arquivo oficial usado em toda a
+    marca) via canvas 2D deu um resultado mais fiel à forma real e mais simples de manter do que
+    tentar limpar aquele SVG. Ver o comentário no topo de `buildLogoParticleData.ts`.
+  - **Interação com o mouse sem simulação física com estado (sem GPGPU, sem histórico de
+    velocidade)** — o deslocamento de cada partícula é uma função instantânea da distância atual até
+    o cursor, calculada inteiramente no vertex shader; só um único valor (`uMouseInfluence`) é
+    suavizado no JS a cada frame. Suficiente para o resultado pedido ("atração suave, sem física
+    exagerada") sem a complexidade de manutenção de uma simulação real — ver
+    `shaders/logoParticles.ts`.
+- **[HERO - correção] Bug real corrigido: `smoothstep` com argumentos invertidos em
+  `shaders/logoParticles.ts`** — a primeira versão calculava o raio de influência do mouse e o
+  desenho de cada partícula com `smoothstep(edgeMaior, edgeMenor, x)`. A especificação do GLSL
+  define esse caso como comportamento indefinido (drivers diferentes podem produzir um corte quase
+  binário em vez de um degradê suave). Era a explicação mais provável para dois sintomas relatados
+  que pareciam contraditórios — "a reação ao mouse está fraca" e "aparece um círculo visível" — os
+  dois consistentes com uma borda dura na fronteira do raio em vez de uma transição suave. Corrigido
+  para sempre usar a ordem de argumentos garantida pela spec (`1.0 - smoothstep(edgeMenor, edgeMaior,
+  x)`). Junto com a correção, três parâmetros foram reajustados por pedido direto do usuário: raio de
+  influência reduzido à metade (`MOUSE_INFLUENCE_RADIUS`, 1.1 → 0.55), contagem de partículas
+  praticamente dobrada (`PARTICLE_COUNT_DESKTOP`/`MOBILE`, 3200/1400 → 6000/2200) e a amplitude do
+  movimento idle reduzida bastante (`IDLE_AMPLITUDE`, 0.045 → 0.012) — esse último valor, maior que o
+  espaçamento típico entre partículas vizinhas na densidade original, era a causa real (mais do que o
+  algoritmo de amostragem em si) da logo parecer um aglomerado sem forma reconhecível em repouso.
+- **[HERO - correção 2] Diagnóstico completo pedido pelo usuário após a correção anterior não ter
+  resolvido o problema relatado ("sem o mouse, não aparece logo nenhuma")** — em vez de continuar
+  ajustando parâmetros de aparência, os pixels reais de `public/logo-mark.png` foram inspecionados
+  fora do código de produção (script único, com `sharp`, descartado depois). Dois achados concretos,
+  não suposição:
+  - **`public/logo-mark.png` não tem transparência real** — 100% dos pixels amostrados têm alpha 255,
+    incluindo o que parece "fundo vazio". `ALPHA_THRESHOLD` em `buildLogoParticleData.ts` é, portanto,
+    um no-op para este arquivo; quem de fato separa logo de fundo é `DARK_LUMINANCE_THRESHOLD` (o
+    fundo é quase todo luminância 0-9, a logo fica acima de 80) — confirmado por um preview ASCII da
+    máscara resultante (61958/134720 pixels amostrados, ~46%, traçando um "U" reconhecível). O filtro
+    de alpha foi mantido (no-op defensivo, não incorreto) para o caso de um PNG com transparência de
+    verdade ser usado no futuro; a descoberta foi documentada em comentário no topo do arquivo.
+  - **Bug real no fragment shader**: a cor era premultiplicada manualmente pelo alpha
+    (`vColor * alpha`) e o mesmo alpha era enviado de novo no canal alpha da saída — mas
+    `THREE.AdditiveBlending` já usa `SRC_ALPHA` como blend factor de origem, ou seja, a GPU
+    multiplicava pelo alpha PELA SEGUNDA VEZ. Na prática, uma partícula em repouso (alpha 0.62) tinha
+    brilho equivalente a ~0.38 (0.62²) — e como o alpha perto do cursor sobe perto de 1.0 (pouco
+    afetado por elevar ao quadrado), a partícula perto do mouse parecia "aparecer do nada" comparada
+    ao resto, quase invisível. Corrigido enviando `vec4(vColor, alpha)` sem premultiplicar, deixando a
+    GPU aplicar o alpha uma única vez.
+  - **Modo de debug temporário adicionado** (`?particlesDebug=1` na URL) — desliga motion/interação e
+    força pontos brancos opacos com blending normal, para o usuário confirmar visualmente que a
+    amostragem da logo está correta, isolada de qualquer escolha de cor/blending/tamanho. Para ser
+    removido depois que a legibilidade em repouso for confirmada — não é um recurso de produção.
+  - Diagnóstico dev-only (`console.info`, ativo só fora de produção) adicionado ao mount da cena, com
+    contagem real de candidatos/partículas, dimensões do canvas e valores de uniforms — para não
+    depender de suposição em uma próxima investigação.
+- **[HERO - ajuste 3] O "círculo visível" nunca foi o shader de partículas — era o `CustomCursor`
+  (halo verde de 28px, `border-radius` total, Fase Microinterações, Seção 9), um recurso GLOBAL do
+  site, mostrado sobre qualquer área com `pointer: fine`, incluindo o Hero. Como `.heroGraphic` tem
+  `pointer-events: none`, o alvo real do `pointerover` do `CustomCursor` ali nunca é o canvas — por
+  isso a detecção de "elemento interativo" já existente nele nunca escondia o halo sobre a área de
+  partículas.** Resolvido com um sinal transiente entre os dois componentes
+  (`features/design-system/motion/cursorHaloSuppress.ts`, mesmo padrão de evento em `window` já usado
+  por `sound.ts`/`SOUND_ENABLED_CHANGE_EVENT`): `UpgradeLogoParticles.tsx` já sabia, a cada
+  `pointermove`, se o cursor está dentro dos limites do campo de partículas — passou a avisar
+  `CustomCursor.tsx` disso, que esconde o halo (sem afetar o cursor nativo do sistema) enquanto
+  suprimido. **O `CustomCursor` continua ativo normalmente no resto do site** — não foi removido nem
+  alterado globalmente, só passou a saber ficar invisível sobre essa uma área específica.
+- **[HERO - ajuste 3] Fundo do Hero (`.heroGraphicFallback`) espelhado horizontalmente**
+  (`transform: scaleX(-1)`) por pedido do usuário, para melhorar o encaixe visual com a logo em
+  partículas — escolhida em vez de recalcular o gradiente/`clip-path` manualmente, por ser mais
+  simples e sem risco de introduzir um valor errado nessas coordenadas. **Superada no ajuste 4
+  abaixo** — o usuário decidiu, na rodada seguinte, tirar esse elemento de trás da logo por completo
+  em vez de só espelhá-lo.
+- **[HERO - ajuste 4] Recorte diagonal decorativo tirado de trás da logo em partículas e deslocado
+  para a esquerda da composição** — virou um elemento próprio (`.heroAccentGraphic` em
+  `HeroSection.module.css`/`.tsx`), na orientação original (sem espelhar — o espelhamento do ajuste
+  3 deixou de fazer sentido). `.heroGraphicFallback` (a camada atrás do canvas de partículas) deixou
+  de ter o recorte/gradiente de marca e virou um degradê radial escuro e discreto, só para a logo
+  "respirar" com menos interferência visual atrás dela — continua servindo de fallback caso o WebGL
+  falhe (Seção 31 do briefing).
+- **[HERO - ajuste 4] `CustomCursor` (halo verde de 28px que seguia o mouse, Fase Microinterações,
+  Seção 9) REMOVIDO do projeto por completo, a pedido explícito do usuário** — o ajuste anterior só
+  suprimia o halo sobre a área de partículas do Hero; o usuário esclareceu que não queria esse
+  círculo em NENHUM lugar do site no desktop. Como o halo era a única razão de existir do
+  componente, a decisão foi remover de vez (não deixar desabilitado/morto no código): apagados
+  `CustomCursor.tsx`, `.module.css`, `.test.tsx` e o helper que ficou órfão,
+  `features/design-system/motion/cursorHaloSuppress.ts` (criado no ajuste anterior só para
+  comunicar com esse componente). Removidas as duas montagens (`<CustomCursor />` em
+  `SiteHeader.tsx` e `BuilderNavigation.tsx`). Documentado aqui porque era um recurso de produto
+  aprovado numa fase anterior (Microinterações) — sua remoção completa é uma reversão dessa decisão
+  antiga, não uma limpeza de código morto por iniciativa própria.
+- **[HERO - ajuste 5] Velocidade da reação ao mouse reduzida a ~20% (pedido: "5x mais devagar"),
+  sem tocar em raio/força/quantidade de partículas/formação/idle** — os únicos dois números que
+  controlam essa velocidade são as taxas de suavização de `UpgradeLogoParticles.tsx`
+  (`MOUSE_INFLUENCE_EASE`, era `0.06` → `0.012`; `MOUSE_FOLLOW_EASE`, era `0.12` → `0.024`), nunca a
+  força de atração/raio no shader (`shaders/logoParticles.ts`, intocado nesta rodada). O
+  deslocamento de cada partícula já era recalculado do zero a cada frame a partir da posição atual
+  do mouse (sem física com estado nem histórico de velocidade — decisão original documentada mais
+  acima); reduzir essas duas taxas deixa esse recálculo convergir mais devagar para o alvo, o que dá
+  a sensação de inércia/peso pedida sem introduzir nenhum delay artificial (a resposta continua
+  contínua, quadro a quadro).
+- **[HERO - ajuste 6] Mesmas duas taxas do ajuste 5, reduzidas mais ~3x** (pedido: "ainda mais
+  lento") — `MOUSE_INFLUENCE_EASE` `0.012` → `0.004`; `MOUSE_FOLLOW_EASE` `0.024` → `0.008`.
+  Histórico completo: `0.06`/`0.12` (original) → `0.012`/`0.024` (ajuste 5) → `0.004`/`0.008` (este
+  ajuste). Nada além dessas duas constantes mudou — raio, força, contagem de partículas, formação da
+  logo e background continuam exatamente como no ajuste 5.
+- **[HERO - ajuste 7] Mudança de arquitetura: a posição do mouse lida pelas partículas deixou de
+  ter QUALQUER suavização — passou a ser exata, no mesmo frame — e a "lentidão"/peso do efeito
+  passou a viver inteiramente numa suavização por partícula, nova (`PARTICLE_EASE`), decorrelacionada
+  da posição do mouse.** O usuário identificou corretamente um problema real de design nos ajustes
+  5/6: `MOUSE_FOLLOW_EASE` suavizava a PRÓPRIA POSIÇÃO do mouse usada pelo shader — ou seja, o
+  "centro de gravidade" ficava fisicamente atrasado em relação ao cursor de verdade, não só as
+  partículas. Corrigido:
+  - `MOUSE_FOLLOW_EASE` removida — `currentMouse` (`UpgradeLogoParticles.tsx`) agora recebe a
+    posição exata do cursor a cada frame, sem interpolação nenhuma.
+  - `MOUSE_INFLUENCE_EASE` (o liga/desliga da influência ao entrar/sair da área): `0.004` → `0.008`
+    (pedido: "2x mais rápido").
+  - **Mudança de arquitetura necessária para separar as duas coisas**: o cálculo de atração
+    (deslocamento radial + redemoinho tangencial + teto de magnitude), que antes vivia inteiro no
+    vertex shader como uma função puramente instantânea da posição do mouse, foi portado para JS
+    (`renderFrame`, mesma fórmula, mesmas constantes 0.34/0.38/0.5/0.22) — e passou a ter estado
+    por partícula: um buffer `renderedPositions` (Float32Array, começa igual a `basePositions`)
+    converge (`PARTICLE_EASE = 0.016`) para o alvo que a atração pede a cada frame, e é isso —
+    somente isso — que dá a sensação de peso. Isso é uma reversão parcial e deliberada da decisão
+    original ("sem simulação física com estado, sem GPGPU") registrada mais acima: continua sem
+    GPGPU (sem textura de posições, sem passes extras de shader), mas passou a ter um pequeno
+    estado por partícula mantido e atualizado em JS. O vertex shader ficou mais simples: só aplica
+    a respiração idle e calcula `falloff` (a partir da posição JÁ ATRAÍDA) só para brilho/tamanho,
+    nunca para mover nada.
+  - Performance: o novo loop por partícula em JS (até 6000 iterações, com `Math.sin`/`Math.sqrt`)
+    roda só quando há interação de mouse em desktop (nunca em mobile/`reducedMotion`) — ordem de
+    grandeza de dezenas de milhares de operações por frame, folga confortável dentro do orçamento de
+    16ms a 60fps em qualquer hardware desktop razoável; sem medição formal de performance nesta
+    rodada (mudança pequena o suficiente para não justificar remedir `docs/PERFORMANCE.md`).
+- **[HERO - ajuste 8] Mesmo pedido do ajuste 7 ("2x mais rápido"), reaplicado sobre o estado já
+  corrigido** — a arquitetura (mouse lido sem nenhuma suavização, peso vivendo só em
+  `PARTICLE_EASE`) não mudou, só os dois números: `MOUSE_INFLUENCE_EASE` `0.008` → `0.016`;
+  `PARTICLE_EASE` `0.016` → `0.032`. Confirmado que `currentMouse` continua uma atribuição direta
+  (`=`), nunca um lerp — o centro de atração segue exato independente desses valores.
 
 ---
 

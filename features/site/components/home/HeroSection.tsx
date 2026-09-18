@@ -13,10 +13,17 @@ import styles from "./HeroSection.module.css";
 
 // Client-only + code-split (Fase 3D/WebGL, Seções 43/44/21 do briefing: "WebGL só no client";
 // "Home comum carrega primeiro, 3D depois") — `three` nunca entra no bundle inicial da Home.
-// `.heroGraphic` (abaixo) mantém o gradiente CSS original como fundo o tempo todo: se este import
-// falhar, demorar, ou `hasWebGL()` recusar dentro do próprio componente, o fallback já shipado
-// continua exatamente igual (Seção 31: "fallback é obrigatório").
-const UpgradeLogo3D = dynamic(() => import("@/features/design-system/webgl/UpgradeLogo3D"), { ssr: false });
+// `.heroGraphicFallback` (abaixo) mantém um fundo simples atrás da área das partículas o tempo
+// todo: se este import falhar, demorar, ou `hasWebGL()` recusar dentro do próprio componente, o
+// fallback já shipado continua exatamente igual (Seção 31: "fallback é obrigatório").
+//
+// Pedido do usuário (fora da sequência de Etapas numeradas): troca do monograma sólido
+// (`UpgradeLogo3D`, mantido no repositório mas não usado aqui) pela logo oficial recomposta como
+// campo de partículas com magnetismo ao cursor — ver `docs/DECISIONS.md` para o registro completo.
+// Pedido do usuário, rodada seguinte: o recorte diagonal decorativo que antes vivia atrás das
+// partículas (`.heroGraphicFallback`) virou um elemento próprio (`.heroAccentGraphic`), deslocado
+// para a esquerda — a área atrás das partículas ficou só um fundo limpo/escuro, sem o recorte.
+const UpgradeLogoParticles = dynamic(() => import("@/features/design-system/webgl/UpgradeLogoParticles"), { ssr: false });
 
 /**
  * Hero da Home (Fase 19, `docs/UI-FINAL.md`) — conteúdo idêntico ao de antes da Fase ScrollTrigger
@@ -73,9 +80,10 @@ export default function HeroSection() {
           Ver projetos
         </LinkButton>
       </div>
+      <div className={styles.heroAccentGraphic} aria-hidden="true" />
       <div className={styles.heroGraphic} aria-hidden="true">
         <div className={styles.heroGraphicFallback} />
-        {webglReady && <UpgradeLogo3D />}
+        {webglReady && <UpgradeLogoParticles />}
       </div>
     </SectionContainer>
   );

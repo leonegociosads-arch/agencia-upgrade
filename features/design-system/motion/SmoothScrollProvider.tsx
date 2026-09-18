@@ -23,7 +23,7 @@ export function useSmoothScroll(): Lenis | null {
  *
  * Desabilitado por completo (nem instancia Lenis) quando `prefers-reduced-motion: reduce`
  * (Seções 17/64) — mesmo padrão de "desligar de vez", nunca "suavizar menos", já usado em
- * `useFinePointer`/`useTilt`/`CustomCursor` na Fase Microinterações.
+ * `useFinePointer`/`useTilt` na Fase Microinterações.
  *
  * RAF único (Seções 6-8): nenhum loop próprio do Lenis — `lenis.raf` é chamado a partir do
  * `gsap.ticker`, e `lenis.on("scroll", ScrollTrigger.update)` garante que pins/scrub do

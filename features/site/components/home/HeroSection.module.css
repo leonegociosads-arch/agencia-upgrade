@@ -82,29 +82,58 @@
  * "logo/símbolo muda de escala").
  *
  * Fase 3D/WebGL: `.heroGraphic` agora é só o ENVELOPE de posição/tamanho — o recorte diagonal em
- * si vive em `.heroGraphicFallback` (abaixo), para o monograma 3D (`UpgradeLogo3D`, renderizado
- * por cima) ter o quadrado inteiro disponível, sem ficar cortado pelo mesmo `clip-path` do
- * fallback 2D. */
+ * si vive em `.heroGraphicFallback` (abaixo), para a peça 3D renderizada por cima ter o quadrado
+ * inteiro disponível, sem ficar cortada pelo mesmo `clip-path` do fallback 2D.
+ *
+ * Pedido do usuário: a logo em partículas (`UpgradeLogoParticles`) precisa ter mais presença visual
+ * do que o monograma anterior ("ocupando grande área visual", "elemento de alto impacto"). O
+ * envelope cresce (era 480px/60vw) mas continua `z-index: -1` e `pointer-events: none` — sempre
+ * atrás do texto/CTA e nunca intercepta clique, então a leitura da headline e a usabilidade do CTA
+ * não mudam, só a área que o grafismo ocupa ao redor/atrás delas. */
 .heroGraphic {
   position: absolute;
-  top: -10%;
-  right: -10%;
+  top: -20%;
+  right: -15%;
+  width: 720px;
+  height: 720px;
+  max-width: 85vw;
+  max-height: 85vw;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Recorte diagonal decorativo — até a rodada anterior vivia atrás das partículas
+ * (`.heroGraphicFallback`); pedido do usuário: tirar de trás da logo e deslocar para o lado
+ * esquerdo da composição, mantendo a orientação original (sem espelhar — o espelhamento testado na
+ * rodada anterior deixou de fazer sentido agora que o elemento não fica mais atrás das partículas).
+ * `z-index`/`pointer-events` seguem o mesmo padrão de `.heroGraphic`: puramente decorativo, nunca
+ * intercepta clique nem compete com o texto. */
+.heroAccentGraphic {
+  position: absolute;
+  bottom: -18%;
+  left: -12%;
   width: 480px;
   height: 480px;
   max-width: 60vw;
   max-height: 60vw;
   z-index: -1;
   pointer-events: none;
-}
-
-/* Fallback (Seção 31 do briefing: "fallback é obrigatório") — o MESMO visual que existia antes
- * desta fase, sempre presente por baixo; só fica coberto quando `UpgradeLogo3D` monta com sucesso
- * (canvas com fundo transparente, então as bordas deste gradiente continuam visíveis ao redor da
- * peça 3D mesmo quando ela está ativa). */
-.heroGraphicFallback {
-  position: absolute;
-  inset: 0;
   background: linear-gradient(135deg, var(--ds-color-surface-elevated) 0%, var(--ds-color-surface-elevated) 55%, var(--ds-color-accent-soft) 55%, var(--ds-color-accent-soft) 100%);
   clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 60% 100%);
   opacity: 0.6;
+}
+
+/* Fallback (Seção 31 do briefing: "fallback é obrigatório") atrás da área das partículas — sempre
+ * presente por baixo do canvas; só fica coberto quando `UpgradeLogoParticles` monta com sucesso
+ * (canvas com fundo transparente, então esta camada continua visível ao redor das partículas mesmo
+ * com o efeito ativo).
+ *
+ * Pedido do usuário: sem o recorte diagonal (que virou `.heroAccentGraphic`, acima) — só um
+ * degradê escuro e discreto, para a logo em partículas "respirar" com menos interferência visual
+ * atrás dela. */
+.heroGraphicFallback {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, var(--ds-color-surface-elevated) 0%, transparent 65%);
+  opacity: 0.5;
 }

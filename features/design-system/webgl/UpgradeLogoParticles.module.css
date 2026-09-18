@@ -1,0 +1,29 @@
+.canvasWrapper {
+  position: absolute;
+  inset: 0;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Mesmo tratamento de `UpgradeLogo3D.module.css`: nunca um "pop-in" abrupto assim que o canvas
+   * monta por cima do fallback CSS do elemento-pai. */
+  animation: canvasFadeIn var(--ds-duration-slow, 0.4s) ease forwards;
+}
+
+@keyframes canvasFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas {
+    animation: none;
+    opacity: 1;
+  }
+}
