@@ -32,16 +32,23 @@ const MOUSE_INFLUENCE_RADIUS = 0.55;
 // em si, era a causa real da logo parecer um aglomerado sem forma em vez de uma silhueta legível.
 const IDLE_AMPLITUDE = 0.012;
 // Velocidade com que a influência do mouse liga/desliga (entrar/sair da área de partículas) a cada
-// frame. Histórico: 0.06 (original) → 0.012 → 0.004 → 0.008 → 0.016 (esta rodada, "2x mais rápido"
-// de novo, sobre o estado já com posição do mouse exata — ver `PARTICLE_EASE` abaixo).
-const MOUSE_INFLUENCE_EASE = 0.016;
+// frame. Histórico (desktop): 0.06 (original) → 0.012 → 0.004 → 0.008 → 0.016 (rodada "2x mais
+// rápido" sobre o estado já com posição do mouse exata — ver `PARTICLE_EASE_DESKTOP` abaixo).
+const MOUSE_INFLUENCE_EASE_DESKTOP = 0.016;
 // Velocidade com que CADA PARTÍCULA converge para a posição que a atração do mouse pede agora —
 // é isto, e só isto, que dá a sensação de peso/elegância; a posição do mouse em si
 // (`currentMouse`, em `renderFrame`) não tem NENHUMA suavização própria desde a rodada anterior —
 // é lida exata, todo frame, então o centro de atração nunca fica atrasado em relação ao cursor,
-// não importa o valor daqui. Histórico: introduzida em 0.016 → 0.032 (esta rodada, "2x mais
+// não importa o valor daqui. Histórico (desktop): introduzida em 0.016 → 0.032 (rodada "2x mais
 // rápido").
-const PARTICLE_EASE = 0.032;
+const PARTICLE_EASE_DESKTOP = 0.032;
+// Pedido do usuário (ajuste mobile): reação ~3x mais rápida SÓ no toque, sem tocar em nada do
+// desktop — por isso mobile ganhou suas PRÓPRIAS constantes em vez de continuar reaproveitando as
+// de desktop. `0.016 * 3 = 0.048`; `0.032 * 3 = 0.096` — ambos ainda bem abaixo de 1 (o teto onde
+// `x += (alvo - x) * ease` deixaria de ser suave e passaria a "saltar" direto para o alvo em um
+// frame só), então o aumento de velocidade não introduz jitter/salto, só chega mais rápido no alvo.
+const MOUSE_INFLUENCE_EASE_MOBILE = 0.048;
+const PARTICLE_EASE_MOBILE = 0.096;
 
 /**
  * Substitui o antigo monograma sólido (`UpgradeLogo3D`, mantido no repositório mas não mais
@@ -57,7 +64,7 @@ const PARTICLE_EASE = 0.032;
  * Interação com o mouse — duas coisas deliberadamente separadas (pedido explícito do usuário: "o
  * campo de atração deve seguir o mouse exatamente, sem lag; as partículas podem continuar mais
  * lentas"): a posição do mouse (`currentMouse`, em `renderFrame`) é lida sem NENHUM atraso; só a
- * posição de CADA PARTÍCULA converge (com uma suavização própria, `PARTICLE_EASE`) para o alvo que
+ * posição de CADA PARTÍCULA converge (com uma suavização própria, `particleEase`) para o alvo que
  * essa posição exata pede a cada frame. Isso exige um pequeno estado por partícula
  * (`renderedPositions`, atualizado em JS e reenviado para a GPU a cada frame) — uma simulação bem
  * mais simples que GPGPU (sem textura de posições, sem passes extras de shader), mas é estado de
@@ -65,16 +72,29 @@ const PARTICLE_EASE = 0.032;
  * `docs/DECISIONS.md` para o histórico completo dessa mudança de abordagem.
  *
  * Interação por toque (pedido do usuário, ajuste mobile): dedo = a mesma "gravidade" que o mouse é
- * no desktop. Em vez de `window.addEventListener("pointermove", ...)` (usado só quando
- * `isFinePointer`, porque o desktop quer reagir ao mouse em qualquer lugar da tela), o toque escuta
- * `pointerdown/move/up/cancel/leave` diretamente no `wrapper` — só interessa o toque que começou
- * DENTRO da área da logo, e o navegador já entrega os `pointermove` seguintes ao mesmo elemento
- * mesmo que o dedo saia da área (captura implícita de ponteiro em toques). As duas fontes (mouse e
- * toque) escrevem nas MESMAS variáveis (`targetMouseNdc`, `targetInfluence`) e alimentam o MESMO
- * laço de atração por partícula em `renderFrame` — nenhuma duplicação de física, só a origem do
- * "alvo" muda. Todos os listeners são `{ passive: true }` e nenhum chama `preventDefault()` — o
- * scroll nativo da página nunca é interrompido (o CSS complementa isso com
- * `touch-action: pan-y` em `HeroSection.module.css`, nunca `touch-action: none`).
+ * no desktop. As duas fontes (mouse e toque) escrevem nas MESMAS variáveis (`targetMouseNdc`,
+ * `targetInfluence`) e alimentam o MESMO laço de atração por partícula em `renderFrame` — nenhuma
+ * duplicação de física, só a origem do "alvo" muda (e, no toque, os parâmetros de velocidade:
+ * `MOUSE_INFLUENCE_EASE_MOBILE`/`PARTICLE_EASE_MOBILE`, independentes dos de desktop).
+ *
+ * Correção importante (2ª rodada do ajuste mobile): a primeira versão usava Pointer Events também
+ * para o toque (`pointerdown/move/up/cancel/leave`) — funcionava para "tocar e mexer o dedo parado
+ * sobre a logo", mas FALHAVA no caso mais comum de todos: o usuário abre a página e já rola direto
+ * para baixo passando o dedo pela área da logo. Causa raiz: quando o navegador reconhece que um
+ * toque virou um gesto de rolagem nativa (o que `touch-action: pan-y`, em `HeroSection.module.css`,
+ * explicitamente permite), ele emite `pointercancel` e PARA de entregar `pointermove` para aquele
+ * toque — o gesto passa a ser tratado inteiramente pelo scroll nativo, sem mais nenhum evento
+ * chegando em JS. Por isso "só reagia parado, nunca durante o scroll".
+ *
+ * Corrigido usando a API de Touch Events "crua" (`touchstart`/`touchmove`/`touchend`/`touchcancel`)
+ * em vez de Pointer Events só para este caminho: ao contrário de Pointer Events, `touchmove`
+ * continua disparando durante TODO o gesto — inclusive enquanto o navegador já está rolando a
+ * página nativamente ao mesmo tempo — desde que `preventDefault()` nunca seja chamado (e não é,
+ * aqui ou em qualquer lugar deste arquivo). Os listeners ficam no `wrapper` (a captura de toque vai
+ * para o elemento onde o dedo tocou primeiro, então continuam chegando mesmo se a página rolar e o
+ * `wrapper` se mover na tela) e cada evento recalcula `getBoundingClientRect()` na hora — como o
+ * elemento pode estar se movendo (é a própria página rolando), a posição do dedo relativa à logo, e
+ * se ele ainda está "dentro" dela, precisam ser recalculadas a cada evento, nunca cacheadas.
  */
 export default function UpgradeLogoParticles() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -135,6 +155,10 @@ export default function UpgradeLogoParticles() {
       }
 
       const particleCount = isFinePointer ? PARTICLE_COUNT_DESKTOP : PARTICLE_COUNT_MOBILE;
+      // Pedido do usuário: mobile reage ~3x mais rápido que desktop — parâmetros de física
+      // totalmente separados por dispositivo, desktop nunca herda o valor de mobile nem vice-versa.
+      const mouseInfluenceEase = isFinePointer ? MOUSE_INFLUENCE_EASE_DESKTOP : MOUSE_INFLUENCE_EASE_MOBILE;
+      const particleEase = isFinePointer ? PARTICLE_EASE_DESKTOP : PARTICLE_EASE_MOBILE;
       const { positions: basePositions, colors, randoms, halfHeight, halfWidth, candidateCount } = buildLogoParticleData(imageData, particleCount);
       // Buffer realmente enviado à GPU — começa igual à posição-base (repouso) e é atualizado a
       // cada frame (só quando há interação de mouse) para convergir para onde a atração pede.
@@ -190,6 +214,8 @@ export default function UpgradeLogoParticles() {
           devicePixelRatioUsed: pixelRatio,
           mouseInfluenceRadius: MOUSE_INFLUENCE_RADIUS,
           idleAmplitude: reducedMotion ? 0 : IDLE_AMPLITUDE,
+          mouseInfluenceEase,
+          particleEase,
           basePointSize: debugMode ? 3 : 1.9,
           baseAlpha: debugMode ? 1 : 0.62,
           blending: debugMode ? "NormalBlending" : "AdditiveBlending",
@@ -247,23 +273,32 @@ export default function UpgradeLogoParticles() {
         if (!event.relatedTarget) targetInfluence = 0;
       }
 
-      // Toque (mobile/coarse pointer): só rastreia enquanto o dedo está de fato tocando a área (não
-      // existe "hover" em touch) — começa em `pointerdown`, atualiza em `pointermove`, encerra em
-      // `pointerup`/`pointercancel`/`pointerleave`. Ver comentário no topo do arquivo.
-      function updateTouchTarget(event: PointerEvent) {
-        if (!wrapper) return;
+      // Toque (mobile/coarse pointer) — Touch Events "crus", não Pointer Events: precisa continuar
+      // recebendo a posição do dedo mesmo quando o gesto também está rolando a página nativamente
+      // (ver comentário no topo do arquivo para o porquê de Pointer Events falharem nesse caso
+      // específico). `getBoundingClientRect()` é recalculado a cada evento de propósito — o
+      // `wrapper` pode estar se movendo na tela (a própria página rolando), então nem o retângulo
+      // nem "o dedo está dentro?" podem ser cacheados de um evento para o outro.
+      function updateTouchTarget(clientX: number, clientY: number) {
+        if (!wrapper) return false;
         const rect = wrapper.getBoundingClientRect();
-        if (rect.width <= 0 || rect.height <= 0) return;
-        targetMouseNdc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        targetMouseNdc.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
+        if (rect.width <= 0 || rect.height <= 0) return false;
+        const inBounds = clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+        if (inBounds) {
+          targetMouseNdc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+          targetMouseNdc.y = -(((clientY - rect.top) / rect.height) * 2 - 1);
+        }
+        return inBounds;
       }
-      function handleTouchStart(event: PointerEvent) {
-        updateTouchTarget(event);
-        targetInfluence = 1;
+      function handleTouchStart(event: TouchEvent) {
+        const touch = event.touches[0];
+        if (!touch) return;
+        targetInfluence = updateTouchTarget(touch.clientX, touch.clientY) ? 1 : 0;
       }
-      function handleTouchMove(event: PointerEvent) {
-        if (targetInfluence === 0) return;
-        updateTouchTarget(event);
+      function handleTouchMove(event: TouchEvent) {
+        const touch = event.touches[0];
+        if (!touch) return;
+        targetInfluence = updateTouchTarget(touch.clientX, touch.clientY) ? 1 : 0;
       }
       function handleTouchEnd() {
         targetInfluence = 0;
@@ -275,11 +310,10 @@ export default function UpgradeLogoParticles() {
         window.addEventListener("mouseout", handlePointerLeaveWindow, { passive: true });
       }
       if (interactive && !isFinePointer) {
-        wrapper.addEventListener("pointerdown", handleTouchStart, { passive: true });
-        wrapper.addEventListener("pointermove", handleTouchMove, { passive: true });
-        wrapper.addEventListener("pointerup", handleTouchEnd, { passive: true });
-        wrapper.addEventListener("pointercancel", handleTouchEnd, { passive: true });
-        wrapper.addEventListener("pointerleave", handleTouchEnd, { passive: true });
+        wrapper.addEventListener("touchstart", handleTouchStart, { passive: true });
+        wrapper.addEventListener("touchmove", handleTouchMove, { passive: true });
+        wrapper.addEventListener("touchend", handleTouchEnd, { passive: true });
+        wrapper.addEventListener("touchcancel", handleTouchEnd, { passive: true });
       }
 
       function handleContextLost(event: Event) {
@@ -314,7 +348,7 @@ export default function UpgradeLogoParticles() {
         const elapsed = elapsedMs / 1000;
 
         if (interactive && frustum) {
-          currentInfluence += (targetInfluence - currentInfluence) * MOUSE_INFLUENCE_EASE;
+          currentInfluence += (targetInfluence - currentInfluence) * mouseInfluenceEase;
           // Posição do mouse: exata, sem suavização — o campo de atração acompanha o cursor
           // imediatamente (pedido explícito do usuário, ver comentário no topo do arquivo).
           currentMouse.x = targetMouseNdc.x * frustum.fitHalfWidth;
@@ -324,7 +358,7 @@ export default function UpgradeLogoParticles() {
 
           // Atração por partícula: mesma fórmula (atração radial + redemoinho tangencial, com teto
           // de magnitude) que antes vivia inteira no vertex shader — só que agora o ALVO calculado
-          // aqui é atingido aos poucos (`PARTICLE_EASE`), não instantaneamente. É essa suavização,
+          // aqui é atingido aos poucos (`particleEase`), não instantaneamente. É essa suavização,
           // e não mais a posição do mouse, que dá a sensação de peso/elegância.
           for (let i = 0; i < particleCount; i += 1) {
             const ix = i * 3;
@@ -366,9 +400,9 @@ export default function UpgradeLogoParticles() {
             const targetY = baseY + rawY * scalar;
             const targetZ = baseZ + scalar * 0.22;
 
-            renderedPositions[ix] += (targetX - renderedPositions[ix]) * PARTICLE_EASE;
-            renderedPositions[iy] += (targetY - renderedPositions[iy]) * PARTICLE_EASE;
-            renderedPositions[iz] += (targetZ - renderedPositions[iz]) * PARTICLE_EASE;
+            renderedPositions[ix] += (targetX - renderedPositions[ix]) * particleEase;
+            renderedPositions[iy] += (targetY - renderedPositions[iy]) * particleEase;
+            renderedPositions[iz] += (targetZ - renderedPositions[iz]) * particleEase;
           }
           geometry.attributes.position.needsUpdate = true;
         }
@@ -395,11 +429,10 @@ export default function UpgradeLogoParticles() {
         canvas!.removeEventListener("webglcontextlost", handleContextLost);
         window.removeEventListener("pointermove", handlePointerMove);
         window.removeEventListener("mouseout", handlePointerLeaveWindow);
-        wrapper!.removeEventListener("pointerdown", handleTouchStart);
-        wrapper!.removeEventListener("pointermove", handleTouchMove);
-        wrapper!.removeEventListener("pointerup", handleTouchEnd);
-        wrapper!.removeEventListener("pointercancel", handleTouchEnd);
-        wrapper!.removeEventListener("pointerleave", handleTouchEnd);
+        wrapper!.removeEventListener("touchstart", handleTouchStart);
+        wrapper!.removeEventListener("touchmove", handleTouchMove);
+        wrapper!.removeEventListener("touchend", handleTouchEnd);
+        wrapper!.removeEventListener("touchcancel", handleTouchEnd);
         geometry.dispose();
         material.dispose();
         renderer.dispose();

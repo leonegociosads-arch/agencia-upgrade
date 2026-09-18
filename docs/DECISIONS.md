@@ -1852,6 +1852,50 @@ Formato: `[Fase X] Decisão — justificativa`
     grande, sem corte, sem sobrepor a headline, sem overflow horizontal), toque simulado
     (`PointerEvent` sintético, `pointerType:"touch"`) confirmado atraindo partículas, scroll
     confirmado funcionando durante o toque. Script descartável, não commitado.
+- **[HERO - ajuste mobile 2] Correção: o gesto de ROLAR a página passando o dedo pela logo não
+  gerava nenhuma interação (só reagia quando o dedo ficava parado sobre ela) + velocidade da
+  atração no mobile ~3x mais rápida. Desktop 100% intocado.**
+  - **Causa raiz do problema 1**: a implementação anterior (ajuste mobile 1) usava Pointer Events
+    para o toque (`pointerdown/move/up/cancel/leave`). Quando o navegador reconhece que um toque
+    virou um gesto de rolagem nativa (o que `touch-action: pan-y` explicitamente permite), ele emite
+    `pointercancel` no ponteiro ativo e PARA de entregar `pointermove` — o gesto passa a ser tratado
+    inteiramente pelo scroll nativo, sem mais nenhum evento chegando em JS. Por isso a interação só
+    funcionava com o dedo parado (nenhum gesto de scroll acontecendo para o navegador "roubar" o
+    ponteiro): scroll e atração por toque nunca conviviam ao mesmo tempo.
+  - **Correção**: trocado Pointer Events por Touch Events "crus" (`touchstart`/`touchmove`/
+    `touchend`/`touchcancel`) só no caminho de toque (`UpgradeLogoParticles.tsx`) — ao contrário de
+    Pointer Events, `touchmove` continua disparando durante TODO o gesto, inclusive com o navegador
+    rolando a página nativamente ao mesmo tempo, desde que `preventDefault()` nunca seja chamado
+    (continua não sendo chamado em lugar nenhum deste arquivo — confirmado por busca no código). Os
+    listeners continuam no `wrapper` (a captura de toque vai para o elemento tocado primeiro) e cada
+    evento recalcula `getBoundingClientRect()` na hora, porque o próprio elemento pode estar se
+    movendo na tela enquanto a página rola. `touch-action: pan-y` (nunca `none`) continua a mesma,
+    em `HeroSection.module.css` — nada mudou aí.
+  - **Velocidade mobile 3x mais rápida, parâmetros separados de desktop**: `MOUSE_INFLUENCE_EASE` e
+    `PARTICLE_EASE` deixaram de ser constantes únicas compartilhadas e viraram
+    `MOUSE_INFLUENCE_EASE_DESKTOP`/`_MOBILE` e `PARTICLE_EASE_DESKTOP`/`_MOBILE`, escolhidas em
+    `startScene` via `isFinePointer` (a mesma variável que já decidia contagem de partículas e
+    listener de mouse vs. toque). Antes → depois (só mobile; desktop permanece exatamente
+    `0.016`/`0.032`):
+    - `MOUSE_INFLUENCE_EASE_MOBILE`: `0.016` → `0.048` (3x)
+    - `PARTICLE_EASE_MOBILE`: `0.032` → `0.096` (3x)
+    Ambos os valores continuam bem abaixo de 1 (o teto de um `lerp` simples `x += (alvo-x)*ease`
+    onde deixaria de ser suave e passaria a saltar direto pro alvo em um frame), então não introduz
+    jitter/salto — só converge mais rápido.
+  - **Confirmação de que o desktop não mudou**: `isFinePointer` continua controlando 100% do branch
+    de desktop (listener `pointermove`/`mouseout` em `window`, inalterado) e as constantes
+    `*_DESKTOP` mantêm exatamente os valores herdados dos ajustes anteriores — nenhuma lógica nova
+    roda quando `isFinePointer` é `true`.
+  - **Validação**: script Playwright (descartável, não commitado) disparando `TouchEvent`s reais
+    (`new Touch(...)`/`new TouchEvent(...)`, não `PointerEvent`) — Caso 1 (toque parado, dedo se
+    move dentro da logo): screenshot confirma atração visível e nítida das partículas na direção do
+    toque. Caso 2 (toque inicia na logo e "sobe" na tela em vários passos, com o scroll real da
+    página avançando junto a cada passo): zero erros de página, `touchmove` disparando normalmente a
+    cada passo, `window.scrollY` avançou de `0` para `177` — grep confirma zero
+    `preventDefault()` no caminho de toque e `touch-action: pan-y` inalterado.
+  - **Arquivo alterado**: só `features/design-system/webgl/UpgradeLogoParticles.tsx`. Nenhuma
+    mudança em `HeroSection.module.css`/`HeroSection.tsx` nesta rodada (layout, tamanho, posição e
+    quantidade de partículas continuam exatamente como no ajuste mobile 1).
 
 ---
 
