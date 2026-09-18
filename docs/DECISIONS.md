@@ -1800,6 +1800,58 @@ Formato: `[Fase X] Decisão — justificativa`
   `PARTICLE_EASE`) não mudou, só os dois números: `MOUSE_INFLUENCE_EASE` `0.008` → `0.016`;
   `PARTICLE_EASE` `0.016` → `0.032`. Confirmado que `currentMouse` continua uma atribuição direta
   (`=`), nunca um lerp — o centro de atração segue exato independente desses valores.
+- **[HERO - ajuste mobile] A logo em partículas vira a PRIMEIRA cena da Home no mobile (antes da
+  headline), com interação por toque equivalente ao mouse do desktop — desktop fica 100% intocado.**
+  Pedido explícito do usuário: no mobile a logo estava "presa atrás do texto", funcionando só como
+  fundo decorativo; ele queria uma experiência de duas cenas (logo em destaque → depois o conteúdo
+  comercial), com o dedo funcionando como campo gravitacional, sem quebrar o scroll da página.
+  - **Breakpoint**: `max-width: 640px` (o mesmo já usado no resto do arquivo/projeto para "mobile"),
+    **composto com** `(max-height: 500px) and (orientation: landscape)` — achado durante o teste
+    visual: um celular DEITADO (ex. 844x390) tem largura MAIOR que 640px e caía no layout desktop
+    (absoluto, atrás do texto), sobrepondo a headline. A consulta por altura pega celulares deitados
+    sem capturar monitores widescreen de verdade (altura tipicamente ≥ 700px).
+  - **Reestruturação**: nenhuma mudança de JSX/DOM — `.hero` já é `display:flex; flex-direction:
+    column`, então `.heroGraphic` ganhou `order:-1` nesse breakpoint (Flexbox reordena visualmente
+    sem mexer na ordem real do DOM), e trocou `position:absolute` (desktop, atrás do texto) por
+    `position:relative` (mobile, ocupa espaço de verdade, entra em fluxo antes do badge/headline).
+    `.heroAccentGraphic` (recorte diagonal decorativo) some no mobile (`display:none`) — "sem
+    elementos disputando atenção" no novo cenário de impacto.
+  - **Altura reservada**: `height: 85svh` (85% da altura útil "de verdade" do viewport — `svh`, não
+    `vh`, para não pular de tamanho quando a barra de endereço do navegador mobile aparece/some) com
+    `min-height: 280px` (piso de segurança para paisagem muito baixa). Confirmado via Playwright que
+    fica em 85% da altura em 4 viewports diferentes, sem cortar a logo nem invadir o texto.
+  - **Interação touch/pointer**: reaproveita a MESMA física por partícula do mouse (nenhuma
+    duplicação) — só a origem do alvo (`targetMouseNdc`/`targetInfluence`) muda. Desktop continua
+    ouvindo `pointermove` em `window` (`isFinePointer`); mobile passou a ouvir
+    `pointerdown/move/up/cancel/leave` diretamente no wrapper da logo (`!isFinePointer`), começando a
+    influência em `pointerdown` (toque não tem "hover") e zerando em `pointerup/cancel/leave`. O
+    gate do laço de atração em `renderFrame` mudou de `isFinePointer && !reducedMotion && !debugMode`
+    para `interactive && frustum` (`interactive = !reducedMotion && !debugMode`), agora comum às duas
+    origens.
+  - **Scroll nunca bloqueado**: todos os listeners são `{ passive: true }` e nenhum chama
+    `preventDefault()` — zero, não "raramente". CSS usa `touch-action: pan-y` (permite rolagem
+    vertical nativa) em vez de `touch-action: none` (que mataria o scroll), exatamente a "solução
+    equilibrada" pedida. Verificado via Playwright: com um toque simulado ativo sobre a área da
+    logo, `window.scrollY` ainda avança normalmente com `mouse.wheel()`.
+  - **Partículas desktop vs. mobile**: `PARTICLE_COUNT_DESKTOP` continua `6000`; `PARTICLE_COUNT_
+    MOBILE` subiu de `2200` para `3200` — a logo no mobile passou de um grafismo pequeno de canto
+    para quase a tela inteira, então a mesma contagem de antes ficaria visivelmente mais espaçada
+    nessa área maior; ainda bem abaixo do desktop porque o laço de atração por partícula (JS, com
+    `Math.sin`/`Math.sqrt`) agora também roda em touch, e CPUs de celular são mais limitadas.
+  - **`prefers-reduced-motion`**: nada de novo precisou ser feito — o gate `interactive =
+    !reducedMotion && !debugMode` já impede os listeners de toque (e os de mouse) de serem
+    registrados quando `reducedMotion` é verdadeiro, herdando o comportamento já existente (um
+    único `renderFrame(0)` estático, sem laço de animação).
+  - **Arquivos alterados**: `features/design-system/webgl/UpgradeLogoParticles.tsx` (listeners de
+    toque, gate unificado, `PARTICLE_COUNT_MOBILE`) e `features/site/components/home/
+    HeroSection.module.css` (breakpoint mobile/landscape para `.heroGraphic`/`.heroAccentGraphic`).
+    Nenhuma mudança em `HeroSection.tsx` (JSX) nem em nenhum arquivo/regra de desktop fora do novo
+    bloco `@media`.
+  - **Teste visual**: 4 viewports via Playwright headless antes de finalizar (375x667, 390x844,
+    360x800, 844x390 paisagem) — screenshots conferidos manualmente (logo "U" claramente formada,
+    grande, sem corte, sem sobrepor a headline, sem overflow horizontal), toque simulado
+    (`PointerEvent` sintético, `pointerType:"touch"`) confirmado atraindo partículas, scroll
+    confirmado funcionando durante o toque. Script descartável, não commitado.
 
 ---
 

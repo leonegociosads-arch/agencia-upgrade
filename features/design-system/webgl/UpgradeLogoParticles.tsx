@@ -18,7 +18,12 @@ const SAMPLE_WIDTH = 320;
 // Ajuste (correção pós-entrega): densidade bem maior para a logo ficar claramente legível —
 // "aglomerado genérico" antes, não "densidade rica" — ver `docs/DECISIONS.md`. Configurável aqui.
 const PARTICLE_COUNT_DESKTOP = 6000;
-const PARTICLE_COUNT_MOBILE = 2200;
+// Pedido do usuário: no mobile a logo passa a ocupar quase a tela inteira (era um grafismo pequeno
+// no canto) — o mesmo valor de antes (2200) ficaria visivelmente mais espaçado/vazio numa área tão
+// maior. Subiu para 3200 (ainda bem abaixo do desktop) como equilíbrio entre "logo reconhecível e
+// com boa densidade" e "o laço de atração por toque, que roda em JS por partícula a cada frame,
+// continuar leve o suficiente para celulares médios" — ver `renderFrame` mais abaixo.
+const PARTICLE_COUNT_MOBILE = 3200;
 // Raio reduzido à metade do valor original (pedido explícito: reação mais concentrada e precisa).
 const MOUSE_INFLUENCE_RADIUS = 0.55;
 // Amplitude do micro movimento em repouso, bem menor que antes: o valor original (0.045) era maior
@@ -58,6 +63,18 @@ const PARTICLE_EASE = 0.032;
  * mais simples que GPGPU (sem textura de posições, sem passes extras de shader), mas é estado de
  * verdade, ao contrário da primeira versão deste arquivo (puramente sem estado). Ver
  * `docs/DECISIONS.md` para o histórico completo dessa mudança de abordagem.
+ *
+ * Interação por toque (pedido do usuário, ajuste mobile): dedo = a mesma "gravidade" que o mouse é
+ * no desktop. Em vez de `window.addEventListener("pointermove", ...)` (usado só quando
+ * `isFinePointer`, porque o desktop quer reagir ao mouse em qualquer lugar da tela), o toque escuta
+ * `pointerdown/move/up/cancel/leave` diretamente no `wrapper` — só interessa o toque que começou
+ * DENTRO da área da logo, e o navegador já entrega os `pointermove` seguintes ao mesmo elemento
+ * mesmo que o dedo saia da área (captura implícita de ponteiro em toques). As duas fontes (mouse e
+ * toque) escrevem nas MESMAS variáveis (`targetMouseNdc`, `targetInfluence`) e alimentam o MESMO
+ * laço de atração por partícula em `renderFrame` — nenhuma duplicação de física, só a origem do
+ * "alvo" muda. Todos os listeners são `{ passive: true }` e nenhum chama `preventDefault()` — o
+ * scroll nativo da página nunca é interrompido (o CSS complementa isso com
+ * `touch-action: pan-y` em `HeroSection.module.css`, nunca `touch-action: none`).
  */
 export default function UpgradeLogoParticles() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -167,6 +184,7 @@ export default function UpgradeLogoParticles() {
           particleCount: basePositions.length / 3,
           particleCountRequested: particleCount,
           isFinePointer,
+          interactionMode: isFinePointer ? "mouse" : "touch",
           reducedMotion,
           canvasCssSize: `${wrapper.clientWidth}x${wrapper.clientHeight}`,
           devicePixelRatioUsed: pixelRatio,
@@ -228,9 +246,40 @@ export default function UpgradeLogoParticles() {
       function handlePointerLeaveWindow(event: MouseEvent) {
         if (!event.relatedTarget) targetInfluence = 0;
       }
-      if (isFinePointer && !reducedMotion && !debugMode) {
+
+      // Toque (mobile/coarse pointer): só rastreia enquanto o dedo está de fato tocando a área (não
+      // existe "hover" em touch) — começa em `pointerdown`, atualiza em `pointermove`, encerra em
+      // `pointerup`/`pointercancel`/`pointerleave`. Ver comentário no topo do arquivo.
+      function updateTouchTarget(event: PointerEvent) {
+        if (!wrapper) return;
+        const rect = wrapper.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return;
+        targetMouseNdc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        targetMouseNdc.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
+      }
+      function handleTouchStart(event: PointerEvent) {
+        updateTouchTarget(event);
+        targetInfluence = 1;
+      }
+      function handleTouchMove(event: PointerEvent) {
+        if (targetInfluence === 0) return;
+        updateTouchTarget(event);
+      }
+      function handleTouchEnd() {
+        targetInfluence = 0;
+      }
+
+      const interactive = !reducedMotion && !debugMode;
+      if (interactive && isFinePointer) {
         window.addEventListener("pointermove", handlePointerMove, { passive: true });
         window.addEventListener("mouseout", handlePointerLeaveWindow, { passive: true });
+      }
+      if (interactive && !isFinePointer) {
+        wrapper.addEventListener("pointerdown", handleTouchStart, { passive: true });
+        wrapper.addEventListener("pointermove", handleTouchMove, { passive: true });
+        wrapper.addEventListener("pointerup", handleTouchEnd, { passive: true });
+        wrapper.addEventListener("pointercancel", handleTouchEnd, { passive: true });
+        wrapper.addEventListener("pointerleave", handleTouchEnd, { passive: true });
       }
 
       function handleContextLost(event: Event) {
@@ -264,7 +313,7 @@ export default function UpgradeLogoParticles() {
       function renderFrame(elapsedMs: number) {
         const elapsed = elapsedMs / 1000;
 
-        if (isFinePointer && !reducedMotion && !debugMode && frustum) {
+        if (interactive && frustum) {
           currentInfluence += (targetInfluence - currentInfluence) * MOUSE_INFLUENCE_EASE;
           // Posição do mouse: exata, sem suavização — o campo de atração acompanha o cursor
           // imediatamente (pedido explícito do usuário, ver comentário no topo do arquivo).
@@ -346,6 +395,11 @@ export default function UpgradeLogoParticles() {
         canvas!.removeEventListener("webglcontextlost", handleContextLost);
         window.removeEventListener("pointermove", handlePointerMove);
         window.removeEventListener("mouseout", handlePointerLeaveWindow);
+        wrapper!.removeEventListener("pointerdown", handleTouchStart);
+        wrapper!.removeEventListener("pointermove", handleTouchMove);
+        wrapper!.removeEventListener("pointerup", handleTouchEnd);
+        wrapper!.removeEventListener("pointercancel", handleTouchEnd);
+        wrapper!.removeEventListener("pointerleave", handleTouchEnd);
         geometry.dispose();
         material.dispose();
         renderer.dispose();

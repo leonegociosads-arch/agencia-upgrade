@@ -102,6 +102,61 @@
   pointer-events: none;
 }
 
+/* Pedido do usuário: no mobile (mesmo breakpoint de "aperta o espaçamento" já usado neste arquivo),
+ * a logo em partículas deixa de ser um grafismo decorativo atrás do texto e vira a PRIMEIRA cena da
+ * Home — "a pessoa precisa enxergar primeiro aquela logo enorme de partículas", antes da headline.
+ * Só o desktop original fica intocado (a regra acima continua valendo até 640px); esta é a única
+ * mudança de layout pedida.
+ *
+ * Implementado só com CSS `order` (Flexbox), sem tocar no JSX/DOM: `.hero` já é
+ * `display:flex; flex-direction:column`, então dar `order:-1` a este item o move para antes do
+ * badge/heading/subtitle/actions (todos em `order:0` implícito) — o `gap` do flex já cuida do
+ * espaçamento entre as duas "cenas" sem precisar de margem extra.
+ *
+ * `position: relative` (em vez de `static`) é necessário para `.heroGraphicFallback`
+ * (`position:absolute; inset:0`, dentro deste elemento) continuar ancorada aqui, e não no `.hero`
+ * inteiro. `pointer-events: auto` (desktop é `none`, propositalmente, por ser só decorativo atrás do
+ * texto) libera o toque, porque agora esta área precisa reagir ao dedo do usuário.
+ *
+ * Consulta composta (não só `max-width: 640px`): testado visualmente, um celular DEITADO (ex.:
+ * 844x390) tem largura MAIOR que 640px — caía no layout desktop (absoluto, atrás do texto),
+ * sobrepondo a headline, exatamente o cenário "landscape mobile" que o pedido original listava para
+ * testar. `(max-height: 500px) and (orientation: landscape)` cobre celulares deitados (altura de tela
+ * pequena) sem capturar monitores widescreen de desktop de verdade (altura tipicamente >= 700px).
+ */
+@media (max-width: 640px), (max-height: 500px) and (orientation: landscape) {
+  .heroGraphic {
+    position: relative;
+    inset: auto;
+    top: auto;
+    right: auto;
+    order: -1;
+    width: 100%;
+    /* `svh` (small viewport height) em vez de `vh` puro: em navegadores mobile, `vh` inclui a área
+     * que a barra de endereço ocupa quando visível, fazendo a seção "pular" de tamanho ao rolar.
+     * `min-height` garante uma área mínima razoável mesmo num celular em paisagem, onde 85% da
+     * altura da tela é um valor bem menor em pixels absolutos. */
+    height: 85svh;
+    min-height: 280px;
+    max-width: none;
+    max-height: none;
+    z-index: auto;
+    pointer-events: auto;
+    /* Permite rolagem vertical nativa por cima desta área (nunca `touch-action: none`, que mataria
+     * o scroll) — só evita que o navegador capture microgestos horizontais como pan de página antes
+     * de eles chegarem no JS de atração por toque. Ver `UpgradeLogoParticles.tsx` para a lógica de
+     * Pointer Events que lê a posição do dedo sem nunca chamar `preventDefault()`. */
+    touch-action: pan-y;
+  }
+
+  /* Recorte diagonal decorativo: no mobile, a nova cena da logo pede fundo limpo e sem elementos
+   * disputando atenção ("sem elementos disputando atenção", pedido explícito) — some só aqui,
+   * desktop continua exatamente igual. */
+  .heroAccentGraphic {
+    display: none;
+  }
+}
+
 /* Recorte diagonal decorativo — até a rodada anterior vivia atrás das partículas
  * (`.heroGraphicFallback`); pedido do usuário: tirar de trás da logo e deslocar para o lado
  * esquerdo da composição, mantendo a orientação original (sem espelhar — o espelhamento testado na
