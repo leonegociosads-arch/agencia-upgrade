@@ -78,7 +78,7 @@ export default function BuilderShell() {
   } else if (state.activeService) {
     content = <QuestionRenderer serviceId={state.activeService} />;
   } else {
-    content = <ServiceSelector />;
+    content = <ServiceSelector onToggleMyUpgrade={handleToggleMyUpgrade} onResetSession={resetSession} />;
   }
 
   function closeMyUpgrade() {
@@ -86,17 +86,23 @@ export default function BuilderShell() {
     setShowMyUpgrade(false);
   }
 
+  function handleToggleMyUpgrade() {
+    setShowMyUpgrade((prev) => {
+      playSound(prev ? "panel_close" : "panel_open");
+      return !prev;
+    });
+  }
+
+  // A tela "Escolha o seu Upgrade" (WF-03) tem seu próprio cabeçalho, integrado ao cenário
+  // espacial (pedido do usuário, ver `ServiceSelectorHeader.tsx`) — `BuilderNavigation` (a barra
+  // plana de sempre) só faz sentido nas outras telas, que continuam 100% inalteradas. Nenhuma
+  // lógica nova: `ServiceSelectorHeader` recebe as MESMAS duas funções (`onToggleMyUpgrade`/
+  // `onResetSession`) que `BuilderNavigation` sempre recebeu, só muda quem desenha o botão.
+  const isChoosingService = state.step === "choosing_service";
+
   return (
     <div className={styles.shell}>
-      <BuilderNavigation
-        onToggleMyUpgrade={() =>
-          setShowMyUpgrade((prev) => {
-            playSound(prev ? "panel_close" : "panel_open");
-            return !prev;
-          })
-        }
-        onResetSession={resetSession}
-      />
+      {!isChoosingService && <BuilderNavigation onToggleMyUpgrade={handleToggleMyUpgrade} onResetSession={resetSession} />}
 
       {justRestored && <div className={styles.restoredBanner}>Seu progresso foi recuperado.</div>}
 

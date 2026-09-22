@@ -47,13 +47,13 @@ function callsFor(mock: typeof trackEventMock, name: string) {
 describe("Disparo de eventos de analytics (Fase 17) — integração via BuilderShell", () => {
   it("TESTE 1 — builder_started dispara uma vez no momento correto (hidratação)", async () => {
     renderBuilder();
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     expect(trackFunnelMilestoneMock).toHaveBeenCalledWith("builder_started", {});
   });
 
   it("TESTE 2 — service_selected registra o serviceId correto ao escolher um serviço NOVO", async () => {
     renderBuilder();
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByText("Criar um site"));
     expect(trackEventMock).toHaveBeenCalledWith("service_selected", { serviceId: "site" });
   });
@@ -65,7 +65,7 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
     fireEvent.click(screen.getByText("Adicionar outro serviço"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     trackEventMock.mockClear();
 
     fireEvent.click(screen.getByText("Criar um site")); // já configurado -> reabre para editar
@@ -91,7 +91,7 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
     fireEvent.click(screen.getByText("Adicionar outro serviço"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: /Editar/ }));
     await screen.findByText("Editando Criar um site");
@@ -109,7 +109,7 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
     fireEvent.click(screen.getByText("Adicionar outro serviço"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Remover Criar um site" }));
     fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Remover" }));
@@ -124,7 +124,7 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
     fireEvent.click(screen.getByText("Continuar"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
 
@@ -139,7 +139,7 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
     fireEvent.click(screen.getByText("Continuar"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
     await screen.findByText("Confira seu projeto");
@@ -156,7 +156,7 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
     fireEvent.click(screen.getByText("Continuar"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
     await screen.findByText("Confira seu projeto");

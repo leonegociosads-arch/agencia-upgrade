@@ -87,7 +87,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     renderWithState(initialBuilderState);
     toggleMyUpgrade();
     fireEvent.click(within(panel()).getByText("Adicionar um serviço"));
-    expect(screen.getByText("Por onde você quer começar?")).toBeTruthy();
+    expect(screen.getByText("Selecione um serviço para montarmos a solução ideal para o seu momento.")).toBeTruthy();
   });
 
   it("TESTE 2 — um serviço configurado: aparece com o resumo correto", () => {
@@ -225,7 +225,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     expect(within(panel()).getByText(/Termine antes de finalizar o projeto/)).toBeTruthy();
 
     fireEvent.click(within(panel()).getByText("Descartar alterações"));
-    expect(screen.getByText("Por onde você quer começar?")).toBeTruthy();
+    expect(screen.getByText("Selecione um serviço para montarmos a solução ideal para o seu momento.")).toBeTruthy();
   });
 
   it("TESTE 15 — remover um serviço do meio preserva os demais", () => {
@@ -253,7 +253,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     renderWithState(confirmedEcommerceSite());
     toggleMyUpgrade();
     fireEvent.click(within(panel()).getByText("+ Adicionar outro serviço"));
-    expect(screen.getByText("Por onde você quer começar?")).toBeTruthy();
+    expect(screen.getByText("Selecione um serviço para montarmos a solução ideal para o seu momento.")).toBeTruthy();
     expect(within(panel()).getByText("Criar um site")).toBeTruthy();
   });
 });

@@ -120,7 +120,7 @@ describe("ProjectReview — integração (Etapa 11)", () => {
     fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Remover" }));
 
     expect(screen.queryByText("Confira seu projeto")).toBeNull();
-    expect(screen.getByText("Por onde você quer começar?")).toBeTruthy();
+    expect(screen.getByText("Selecione um serviço para montarmos a solução ideal para o seu momento.")).toBeTruthy();
   });
 
   it("Continuar avança para o estado provisório de contato", () => {
@@ -132,7 +132,7 @@ describe("ProjectReview — integração (Etapa 11)", () => {
   it("Voltar retorna ao Meu Upgrade / seletor, sem perder os serviços confirmados", () => {
     renderWithState(reviewingWithSite());
     fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
-    expect(screen.getByText("Por onde você quer começar?")).toBeTruthy();
+    expect(screen.getByText("Selecione um serviço para montarmos a solução ideal para o seu momento.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     // `data-testid` (Fase 19) — o cabeçalho do painel ganhou uma estrutura própria, então
     // `heading.closest("div")` deixou de alcançar o painel inteiro.

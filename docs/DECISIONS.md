@@ -1897,6 +1897,94 @@ Formato: `[Fase X] Decisão — justificativa`
     mudança em `HeroSection.module.css`/`HeroSection.tsx` nesta rodada (layout, tamanho, posição e
     quantidade de partículas continuam exatamente como no ajuste mobile 1).
 
+- **[BUILDER - Escolha o seu Upgrade] Camada visual/interativa nova para a tela de seleção de
+  serviço (WF-03) — cenário espacial cinematográfico, cards com a arte fornecida (PNGs reais,
+  nunca redesenhados), flutuação orgânica, tilt/hover, carrossel mobile. Nenhuma regra de negócio
+  alterada; desktop das OUTRAS telas do Builder continua 100% intocado.**
+  - **Análise prévia (pedido explícito do usuário antes de codificar)**: a tela existia em
+    `ServiceSelector.tsx`, renderizada por `BuilderShell.tsx` quando `state.activeService` é nulo
+    (`getSceneKey` → `"selector"`). Seleção de serviço = `startNewService`/`startEditingService`
+    (`BuilderContext.tsx`), `service_selected` disparado só para configuração NOVA
+    (`docs/ANALYTICS.md`). Cabeçalho de todo o Builder = `BuilderNavigation.tsx` (logo, som,
+    "Começar de novo", "Meu Upgrade"). Transição entre cenas = `SceneTransition.tsx` (crossfade
+    GSAP já existente, `markForward`/`markBackward`). GSAP (`^3.15.0`) e Lenis já instalados; nenhum
+    carrossel de terceiros presente — decidido usar CSS `scroll-snap` nativo em vez de instalar
+    embla/swiper (Seção 17: "não adicionar bibliotecas grandes sem necessidade").
+  - **Assets**: os 4 PNGs fornecidos (3 cards + 1 fundo espacial) salvos em
+    `public/builder/service-select/`. Achado durante o teste visual: o PNG de fundo fornecido tinha
+    uma interface de EXEMPLO "queimada" nos próprios pixels (logo, "ETAPA 1/4", barra de progresso,
+    "MENU") — visivelmente a composição do mockup inteiro, não um fundo isolado, contrariando a
+    instrução explícita "background... SEM interface". Recortada (`sharp`, script descartável) só a
+    faixa superior (~11.5% da altura) que continha essa UI de exemplo; o resto da imagem (o cenário
+    espacial em si) não foi redesenhado, só reenquadrado.
+  - **Componentização** (Seção 18 do briefing, nomes próximos aos sugeridos):
+    `ServiceSelectorBackground.tsx` (cenário + drift ambiental + camada de parallax),
+    `ServiceSelectorHeader.tsx` (logo + "ETAPA 1/4" + progresso + som + reset + botão de menu),
+    `ServiceSelectorCard.tsx` (um card: imagem + flutuação + tilt + hover + clique + acessibilidade),
+    `ServiceSelector.tsx` (orquestrador — mesmo arquivo/nome de antes, para `BuilderShell.tsx`
+    continuar importando sem mudança de path).
+  - **Cabeçalho só desta tela**: `BuilderShell.tsx` deixou de renderizar `<BuilderNavigation>`
+    quando `state.step === "choosing_service"` — `ServiceSelectorHeader` assume o lugar, recebendo
+    as MESMAS duas funções (`onToggleMyUpgrade`/`onResetSession`) que `BuilderNavigation` sempre
+    recebeu. O botão redondo de "menu" aciona o MESMO drawer do "Meu Upgrade" que já existia (não há
+    um segundo menu de verdade no Builder para abrir) — decisão explícita para não duplicar lógica.
+    "ETAPA 1/4" é só um rótulo estático desta cena (o Builder não tem um contador de 4 macro-fases
+    nas outras telas; inventar um agora mudaria a experiência delas, fora do pedido desta tarefa).
+  - **Fundo z-index bug real**: `.wrapper` do cenário usa `z-index: -1` para ficar atrás do
+    conteúdo — sem `.scene` declarar seu PRÓPRIO stacking context (`position: relative` sozinho não
+    cria um), esse `-1` escapava para o ancestral `.shell` (`BuilderShell.module.css`,
+    `background: var(--ds-color-bg)` preto sólido), deixando o cenário espacial invisível. Corrigido
+    com `.scene { position: relative; z-index: 0; }`.
+  - **Cards = imagem real, interação em cima** (Seção 19): cada card é um `<button>` com a imagem
+    (`next/image`, `object-fit: contain`, proporção 1:1 preservada integralmente — nunca cortada/
+    esticada) e um `<span>` visualmente oculto (nunca `display:none`) com o `label` do serviço, que
+    também é o `aria-label` do botão. O selo "Configurado" (funcionalidade já existente antes desta
+    reformulação) virou um `Badge` sobreposto, nunca desenhado na arte. Achado de acessibilidade: o
+    `aria-label` do card NUNCA deve conter a palavra "Editar" — o painel "Meu Upgrade"
+    (`MyUpgradeItem.tsx`) já usa "Editar" para seus próprios botões e, por ser uma seção persistente
+    (pode ficar aberta ao mesmo tempo que esta tela), duas fontes de "Editar ..." colidiam.
+  - **UM ÚNICO conjunto de cards no DOM** (achado real, não só de teste): a primeira versão
+    renderizava os 3 cards DUAS vezes (uma fileira desktop + uma fileira mobile, cada uma escondida
+    por CSS na outra ponta) — desperdiçava imagem/GSAP/listener em dobro de verdade (CSS
+    `display:none` não remove do DOM) e quebrava a unicidade do texto acessível de cada card
+    (`getByText` encontrava 2 ocorrências). Corrigido para `.cardsRow` único, que muda de
+    comportamento (flex central vs. carrossel com `scroll-snap`) só via `@media`, nunca duplicando
+    o conteúdo.
+  - **Flutuação idle**: `@keyframes` único, parametrizado por custom properties
+    (`--card-base-rotate/--card-float-y/--card-float-rot/--card-float-duration/--card-float-delay`),
+    valores por serviço exatamente os do briefing (SITE −2°/±8px/5.8s, TRÁFEGO 0°/±11px/6.5s, DESIGN
+    +2°/±7px/5.3s). Zerada globalmente sob `prefers-reduced-motion` (`styles/tokens.css`, regra já
+    existente) — nenhum tratamento extra necessário. Card em hover/foco troca para `.settled`
+    (`animation: none`, transiciona pro resting rotate) — só ELE, os outros dois continuam
+    flutuando (Seção 10: "flutuação DAQUELE card", singular); os outros só ganham `.dimmed`.
+  - **Tilt/hover/clique**: GSAP `quickTo` por card (rotateX/rotateY pela posição do cursor, teto de
+    10°, "sensação de profundidade" sem "efeito de cartão girando"), próprio (não reaproveita
+    `useTilt.ts`, já usado por outros cards do Builder/Home, porque precisa compor com `dimmed`
+    vindo do PAI — quais dos 3 cards recebem o quê depende da cena inteira). Fase A do clique
+    (compressão imediata) é `handlePointerDown`, síncrono, real.
+  - **Decisão importante revertida**: a primeira versão adiava a ação real (`startNewService`) em
+    ~420ms para dar tempo a uma sequência local "seleção em destaque → transição" (Fase B/C do
+    briefing) tocar antes. Quebrava DEZENAS de testes de fluxo já existentes
+    (`BuilderShell*.test.tsx`, `MyUpgrade.test.tsx`) que fazem `fireEvent.click` seguido de
+    asserção SÍNCRONA (sem `await`) — e mesmo se os testes fossem ajustados, o React troca
+    `ServiceSelector` por `QuestionRenderer` no MESMO commit da mudança de estado, então esse atraso
+    nunca chegaria a ser pintado num navegador de verdade (o "outgoing" do `SceneTransition` é um
+    remount fresco, sem o estado local do clique). Revertido para dispatch 100% síncrono, idêntico
+    ao original — a Fase C (avançar de cena) já é inteiramente coberta pelo crossfade que
+    `SceneTransition` sempre fez.
+  - **Testes ajustados (não a lógica)**: 22 ocorrências de `getByText("Por onde você quer
+    começar?")` (a headline antiga) em 4 arquivos de teste trocadas para o novo texto auxiliar
+    ("Selecione um serviço para montarmos a solução ideal para o seu momento.") — waypoint de "a
+    tela do seletor está visível", nunca a lógica do fluxo em si, que segue idêntica.
+  - **Verificação**: lint/typecheck/build/testes completos (630/630) limpos. Testado visualmente via
+    Playwright contra `next build` + `next start` (não só `next dev`, que mostrou flakiness
+    intermitente de hidratação/HMR do Turbopack em `/builder` E na Home — confirmado pré-existente,
+    não relacionado a esta mudança) — 5 execuções consecutivas sem nenhum erro de console/página.
+    Confirmado manualmente: clique real avança para a primeira pergunta (`QuestionRenderer`);
+    seleção por teclado (Tab + Enter) funciona; "Escolher outra área" retorna à cena cinematográfica
+    corretamente; a tela de pergunta seguinte usa `BuilderNavigation` normal, sem nenhum resquício
+    do tema espacial.
+
 ---
 
 *Decisões futuras devem ser adicionadas ao final de sua seção correspondente (ou em nova seção, se

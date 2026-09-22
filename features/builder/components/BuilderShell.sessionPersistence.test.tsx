@@ -65,7 +65,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     await screen.findByText(/adicionado ao seu Upgrade/);
 
     fireEvent.click(screen.getByText("Adicionar outro serviço"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByText("Atrair mais clientes"));
     await waitForPersistedSave();
     first.unmount();
@@ -88,7 +88,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     await screen.findByText(/adicionado ao seu Upgrade/);
 
     fireEvent.click(screen.getByText("Continuar"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: /Editar/ }));
     await screen.findByText("Editando Criar um site");
@@ -113,7 +113,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
     fireEvent.click(screen.getByText("Continuar"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
     await screen.findByText("Confira seu projeto");
@@ -143,7 +143,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
 
   it("nenhuma sessão salva: não mostra a mensagem de recuperação", async () => {
     renderBuilder();
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     expect(screen.queryByText("Seu progresso foi recuperado.")).toBeNull();
   });
 
@@ -157,7 +157,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     await waitForPersistedSave();
 
     fireEvent.click(screen.getByText("Começar de novo"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     expect(screen.queryByText("Meu Upgrade (1)")).toBeNull();
     await waitFor(() => {
       const raw = localStorage.getItem(BUILDER_SESSION_STORAGE_KEY);
@@ -173,7 +173,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
     fireEvent.click(screen.getByText("Continuar"));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
     await screen.findByText("Confira seu projeto");
@@ -193,7 +193,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     expect(await screen.findByText("Recebemos seu projeto.")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Iniciar novo projeto" }));
-    await screen.findByText("Por onde você quer começar?");
+    await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     await waitFor(() => {
       const raw = localStorage.getItem(BUILDER_SESSION_STORAGE_KEY);
       expect(raw === null || JSON.parse(raw).builder.step === "choosing_service").toBe(true);

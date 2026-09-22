@@ -1,0 +1,161 @@
+.bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-6) var(--ds-space-6) 0;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  font-family: var(--ds-font-display);
+  font-weight: var(--ds-font-weight-semibold);
+  font-size: var(--ds-font-size-body);
+  color: var(--ds-color-text-primary);
+  text-decoration: none;
+}
+
+.logoMark {
+  height: 22px;
+  width: auto;
+}
+
+.center {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+@media (min-width: 768px) {
+  .center {
+    display: flex;
+  }
+}
+
+.stepLabel {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-caption);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ds-color-text-secondary);
+}
+
+.progress {
+  display: flex;
+  gap: var(--ds-space-2);
+}
+
+.segment {
+  width: 40px;
+  height: 3px;
+  border-radius: var(--ds-radius-full);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.segmentActive {
+  background: var(--ds-color-accent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.soundToggle {
+  color: var(--ds-color-text-secondary);
+}
+
+.resetLink {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.resetLink:hover {
+  color: var(--ds-color-text-primary);
+}
+
+/* Só cabe ao lado do "MENU" a partir de uma tela um pouco maior — no mobile estreito, some (a
+ * ação continua acessível pelo botão redondo, que sozinho já é claro o bastante). */
+.menuLabel {
+  display: none;
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-caption);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ds-color-text-secondary);
+}
+
+@media (min-width: 480px) {
+  .menuLabel {
+    display: inline;
+  }
+}
+
+.menuButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-width) solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ds-color-text-primary);
+  cursor: pointer;
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    background-color var(--ds-duration-fast) var(--ds-easing-base),
+    transform var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.menuButton:hover {
+  border-color: var(--ds-color-accent);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menuButton:active {
+  transform: scale(0.94);
+}
+
+.menuButton:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.menuCount {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 4px;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-color-accent);
+  color: var(--ds-color-on-accent);
+  font-size: 0.6875rem;
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 18px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .bar {
+    padding: var(--ds-space-4) var(--ds-space-4) 0;
+  }
+}

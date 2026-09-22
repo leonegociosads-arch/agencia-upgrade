@@ -1,0 +1,52 @@
+.wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--ds-color-bg);
+}
+
+/* A imagem em si fica maior que o container (Seção 3: "sensação de profundidade... movimento
+ * ambiental muito lento") — sem essa folga, deslocar/escalar a imagem exporia uma borda vazia.
+ * `object-fit: cover` (via `next/image fill`) evita qualquer distorção; o "ajuste responsivo do
+ * enquadramento" pedido vem do próprio `object-position`, levemente deslocado para a direita, onde
+ * está o planeta principal da composição, em vez do centro geométrico da imagem. */
+.image {
+  object-fit: cover;
+  object-position: 62% 55%;
+}
+
+/* Camada externa — só existe para receber o parallax de mouse via JS (Seção 14), aplicado pelo
+ * componente pai num elemento DIFERENTE do que roda a animação CSS abaixo (ver comentário em
+ * `ServiceSelectorBackground.tsx`). */
+.parallaxLayer {
+  position: absolute;
+  inset: 0;
+}
+
+/* Movimento ambiental (Seção 3): pan + zoom EXTREMAMENTE lento e contínuo — 90s de ciclo, poucos
+ * pontos percentuais de deslocamento. Zerado globalmente sob `prefers-reduced-motion`
+ * (`styles/tokens.css`) — nenhum tratamento extra aqui. */
+.imageWrapper {
+  position: absolute;
+  inset: -4%;
+  animation: ambientDrift 90s ease-in-out infinite alternate;
+}
+
+@keyframes ambientDrift {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.035) translate3d(-1.2%, -0.6%, 0);
+  }
+}
+
+/* Véu escuro por cima do cenário (Seção 3: "ambiente atrás da interface, não um wallpaper simples")
+ * — garante contraste suficiente para o cabeçalho/título/cards em qualquer trecho da imagem,
+ * sem esconder a composição espacial. */
+.veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.15) 32%, rgba(0, 0, 0, 0.35) 78%, rgba(0, 0, 0, 0.75) 100%);
+}

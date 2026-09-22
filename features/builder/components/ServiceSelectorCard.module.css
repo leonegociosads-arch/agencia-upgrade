@@ -1,0 +1,132 @@
+/* Card da tela "Escolha o seu Upgrade" (WF-03, versão cinematográfica). Dois níveis de wrapper de
+ * propósito, para nunca disputarem a mesma propriedade `transform`:
+ *
+ * `.floatOuter` — flutuação ambiente contínua (puramente CSS, `@keyframes`), parametrizada por
+ * card via custom properties (`--card-base-rotate/--card-float-y/--card-float-rot/--card-float-
+ * duration/--card-float-delay`, definidas em `ServiceSelectorCard.tsx`). Zerada globalmente sob
+ * `prefers-reduced-motion` pela regra em `styles/tokens.css` (Seção "Acessibilidade") — nenhum
+ * tratamento extra aqui.
+ *
+ * `.tilt` (o próprio `<button>`) — reage a hover/foco/clique via classes controladas em JS
+ * (`ServiceSelectorCard.tsx`, GSAP `quickTo` para o tilt 3D pela posição do cursor). Nunca as duas
+ * camadas animam a mesma propriedade ao mesmo tempo.
+ */
+.floatOuter {
+  animation: cardFloat var(--card-float-duration, 6s) ease-in-out infinite;
+  animation-delay: var(--card-float-delay, 0s);
+  transform: rotate(var(--card-base-rotate, 0deg));
+  transition: transform 0.4s ease-out;
+  width: 100%;
+}
+
+@keyframes cardFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--card-base-rotate, 0deg));
+  }
+  50% {
+    transform: translateY(var(--card-float-y, -8px)) rotate(calc(var(--card-base-rotate, 0deg) + var(--card-float-rot, 0.5deg)));
+  }
+}
+
+/* Card ativo (hover/foco) ou selecionado: a flutuação PRÓPRIA deste card se assenta na rotação
+ * base, suavemente (Seção 10: "interromper/reduzir suavemente a flutuação DAQUELE card"). Os
+ * outros dois continuam flutuando normalmente — só ganham `.dimmed` (abaixo), nunca `.settled`. */
+.floatOuter.settled {
+  animation: none;
+  transform: rotate(var(--card-base-rotate, 0deg));
+}
+
+.tilt {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  will-change: transform;
+  /* Transição de "descanso" (sem GSAP rodando) — o próprio GSAP assume via `overwrite` assim que
+   * o ponteiro entra; isto só cobre o instante de montagem/saída do hover. */
+  transition:
+    transform var(--ds-duration-slow) var(--ds-easing-emphasized),
+    filter var(--ds-duration-slow) var(--ds-easing-emphasized),
+    opacity var(--ds-duration-slow) var(--ds-easing-emphasized);
+}
+
+.tilt:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 6px;
+  border-radius: var(--ds-radius-lg);
+}
+
+.tilt:disabled {
+  cursor: default;
+}
+
+/* Presença reduzida dos cards NÃO ativos, enquanto outro está em hover/selecionado (Seção 10.7 /
+ * Seção 11 Fase B) — nunca somem, só recuam (briefing: "reduzir discretamente"). */
+.tilt.dimmed {
+  opacity: 0.55;
+  filter: saturate(0.85) brightness(0.92);
+}
+
+/* Card em hover/foco (Seção 10) — brilho e contraste um pouco maiores; a aproximação/escala/tilt
+ * em si é aplicada via GSAP (posição do cursor), não aqui, para poder ficar proporcional a ONDE o
+ * cursor está sobre o card. */
+.tilt.active {
+  filter: brightness(1.08) contrast(1.04) drop-shadow(0 18px 30px rgba(0, 0, 0, 0.45));
+}
+
+/* Selecionado (Seção 11, Fase B/C) — destaque final antes da troca de cena; o pequeno avanço
+ * (Fase C: "card selecionado avança ligeiramente") entra via GSAP no clique, isto só garante que o
+ * estado final visual (caso a transição de cena demore a montar) já fique coerente. */
+.tilt.selected {
+  filter: brightness(1.12) contrast(1.05) drop-shadow(0 22px 34px rgba(45, 185, 88, 0.25));
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Indicador de "já configurado" (funcionalidade existente antes desta reformulação visual — o
+ * usuário precisa saber que reabrir este card volta a editar, não começa do zero). A arte do card
+ * em si nunca ganha esse selo desenhado nela (Seção 2: "não alterar a arte dos assets") — este
+ * badge é uma camada de interface por cima, exatamente como o resto da interação. */
+.badge {
+  position: absolute;
+  top: var(--ds-space-4);
+  right: var(--ds-space-4);
+  z-index: 1;
+}
+
+/* Só para leitores de tela/testes automatizados — o rótulo real do serviço nunca aparece
+ * visualmente (a arte do card já comunica isso), mas continua no DOM como texto de verdade, não só
+ * como `aria-label` (padrão "visually hidden", nunca `display:none`/`visibility:hidden`, que
+ * removeriam do texto acessível também). */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  /* Flutuação "ainda mais suave" no mobile (Seção 15) — mesma animação, amplitude/rotação
+   * reduzidas por fora (a própria `ServiceSelectorCard.tsx` já manda valores um pouco menores para
+   * mobile via as custom properties, isto aqui é uma segurança adicional puramente em CSS). */
+  .floatOuter {
+    animation-duration: calc(var(--card-float-duration, 6s) * 1.15);
+  }
+}
