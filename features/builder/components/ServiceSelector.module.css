@@ -96,27 +96,37 @@
 }
 
 @media (min-width: 900px) {
-  /* Grid de 3 colunas IGUAIS (pedido do usuário: "não posicionar manualmente cada card com valores
-   * aleatórios de left/margin/translate" + "distância SITE↔TRÁFEGO igual a TRÁFEGO↔DESIGN"). Com
-   * `flex: 1 1 300px` (versão anterior) as três larguras podiam divergir um pouco conforme o
-   * conteúdo/breakpoint, quebrando a simetria; `repeat(3, minmax(0, 1fr))` garante três colunas
-   * matematicamente idênticas, o que por si só já centraliza o Tráfego (coluna do meio) e iguala as
-   * duas distâncias — o `gap` fixo faz o resto. */
+  /* Flexbox (não grid) de propósito: com `display:grid` + `justify-items:center`, um `margin-inline`
+   * negativo no item era parcialmente CANCELADO pelo próprio algoritmo de centralização do grid (que
+   * calcula o espaço livre da faixa considerando a margem, então "puxar" o item só fazia o grid abrir
+   * mais espaço livre ao redor pra recentralizar) — testado visualmente, aumentar a margem negativa
+   * quase não mudava a distância real. Em flexbox, a margem desloca os itens adjacentes diretamente,
+   * sem essa compensação; a simetria (Tráfego no centro, distâncias iguais) continua garantida porque
+   * os 3 itens têm a MESMA largura fixa e a MESMA margem — `justify-content:center` só centraliza a
+   * linha inteira, nunca recalcula por item. */
   .cardsRow {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
     overflow-x: visible;
     scroll-snap-type: none;
     align-items: center;
-    justify-items: center;
-    gap: var(--ds-space-6);
+    justify-content: center;
+    gap: var(--ds-space-2);
     padding: 0;
     margin-inline: auto;
   }
 
+  /* Cada PNG tem uma margem transparente grande ao redor da peça real (~16% de cada lado, já
+   * recentrada em `ServiceSelectorCard.tsx`) — o "espaço em branco" entre os cards visualmente vem
+   * quase todo dela, não do `gap`. Puxar os slots pra mais perto via `margin-inline` negativo
+   * aproxima os cards de verdade sem encostar a arte real de um no outro (medido visualmente: a
+   * margem transparente de cada card é bem maior que a sobreposição aqui) e sem afetar o tamanho
+   * visual de cada card. Só é seguro porque o hover (`CONTENT_BOUNDS` em `ServiceSelectorCard.tsx`)
+   * já é restrito à peça real de cada card — mesmo as áreas invisíveis se sobrepondo, nunca ativa o
+   * card errado. */
   .cardSlot {
-    width: 100%;
-    max-width: 340px;
+    flex: 0 0 340px;
+    width: 340px;
+    margin-inline: -28px;
     scroll-snap-align: none;
   }
 

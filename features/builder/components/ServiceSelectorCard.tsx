@@ -36,14 +36,30 @@ const CONTENT_OFFSET_PERCENT: Record<ServiceId, number> = {
   design: 13.5,
 };
 
+// Mesma medição (`sharp .trim()`) usada para o recentro acima, agora convertida em retângulo de
+// conteúdo REAL (0-1, já considerando o `translateX` de recentragem) — usada só para o hover/tilt
+// (pedido do usuário: "só fique selecionado quando o mouse realmente estiver em cima dele"). O botão
+// inteiro continua clicável/focável no quadrado cheio (não mudou — "cartão inteiro clicável" segue
+// valendo para clique/teclado); isto aqui restringe apenas QUANDO o efeito visual de hover (escala,
+// elevação, tilt, destacar/apagar os outros) liga, para não acender ao passar pela margem
+// transparente do PNG ao redor da peça.
+const CONTENT_BOUNDS: Record<ServiceId, { left: number; right: number; top: number; bottom: number }> = {
+  site: { left: 0.16, right: 0.84, top: 0.065, bottom: 0.886 },
+  trafego: { left: 0.186, right: 0.812, top: 0.085, bottom: 0.904 },
+  design: { left: 0.181, right: 0.814, top: 0.083, bottom: 0.906 },
+};
+
 // Composição orgânica (Seção 8) + flutuação dessincronizada (Seção 9) — valores de referência do
 // próprio briefing, um objeto por serviço para nunca precisar de lógica condicional espalhada. No
 // mobile o próprio efeito GSAP abaixo reduz a AMPLITUDE (`--card-float-y`/rotação) em ~40%, nunca a
 // duração (a duração diferente entre cards já é o que evita "os três subindo/descendo juntos").
+// Durações reduzidas ~25% (pedido do usuário: "aumentar um pouco a velocidade" da flutuação),
+// mantendo a proporção entre os três cards (o que evita sincronismo continua sendo a duração
+// diferente entre eles, só o ritmo geral ficou um pouco mais rápido).
 const FLOAT_CONFIG: Record<ServiceId, { baseRotate: number; floatY: number; floatRot: number; duration: number; delay: number }> = {
-  site: { baseRotate: -2, floatY: -8, floatRot: 0.5, duration: 5.8, delay: 0 },
-  trafego: { baseRotate: 0, floatY: -11, floatRot: 0.35, duration: 6.5, delay: -1.8 },
-  design: { baseRotate: 2, floatY: -7, floatRot: 0.6, duration: 5.3, delay: -3.4 },
+  site: { baseRotate: -2, floatY: -8, floatRot: 0.5, duration: 4.3, delay: 0 },
+  trafego: { baseRotate: 0, floatY: -11, floatRot: 0.35, duration: 4.9, delay: -1.8 },
+  design: { baseRotate: 2, floatY: -7, floatRot: 0.6, duration: 4.0, delay: -3.4 },
 };
 
 interface ServiceSelectorCardProps {
@@ -133,47 +149,75 @@ export default function ServiceSelectorCard({ serviceId, label, configured, disa
     const quickRotateY = gsap.quickTo(el, "rotateY", { duration: 0.35, ease: "power2.out" });
     const quickScale = gsap.quickTo(el, "scale", { duration: 0.3, ease: "power2.out" });
     const quickY = gsap.quickTo(el, "y", { duration: 0.3, ease: "power2.out" });
+    const bounds = CONTENT_BOUNDS[serviceId];
+    // O botão continua sendo o quadrado INTEIRO (clique/foco não mudaram) — só o efeito visual de
+    // hover é que passa a ligar/desligar conforme o cursor cruza `bounds` (a peça real do PNG),
+    // rastreado aqui porque native `pointerenter`/`pointerleave` disparam pro quadrado inteiro.
+    let insideContent = false;
 
-    function handleMove(event: PointerEvent) {
-      const rect = el!.getBoundingClientRect();
-      const relativeX = (event.clientX - rect.left) / rect.width - 0.5;
-      const relativeY = (event.clientY - rect.top) / rect.height - 0.5;
-      // Amplitude pequena de propósito (Seção 10: "Não quero efeito de cartão girando"). 5deg de
-      // teto é suficiente para "sensação de profundidade" sem nunca parecer um cartão virando.
-      quickRotateY(relativeX * 10);
-      quickRotateX(-relativeY * 10);
-    }
-
-    function handleEnter() {
+    function activate() {
+      insideContent = true;
       onHoverChange(true);
       quickScale(1.06);
       // 8-12px pedidos pelo usuário para a elevação de hover (antes -6px, abaixo da faixa pedida).
       quickY(-10);
     }
 
-    function handleLeave() {
+    function deactivate() {
+      insideContent = false;
       onHoverChange(false);
       quickScale(1);
       quickY(0);
       gsap.to(el!, { rotateX: 0, rotateY: 0, duration: 0.4, ease: "power2.out" });
     }
 
+    function handleMove(event: PointerEvent) {
+      const rect = el!.getBoundingClientRect();
+      const fracX = (event.clientX - rect.left) / rect.width;
+      const fracY = (event.clientY - rect.top) / rect.height;
+      const withinContent = fracX >= bounds.left && fracX <= bounds.right && fracY >= bounds.top && fracY <= bounds.bottom;
+
+      if (withinContent && !insideContent) activate();
+      else if (!withinContent && insideContent) deactivate();
+
+      if (withinContent) {
+        // Amplitude pequena de propósito (Seção 10: "Não quero efeito de cartão girando"). 5deg de
+        // teto é suficiente para "sensação de profundidade" sem nunca parecer um cartão virando.
+        quickRotateY((fracX - 0.5) * 10);
+        quickRotateX(-(fracY - 0.5) * 10);
+      }
+    }
+
+    // Sempre que o cursor sai do quadrado inteiro, desativa (mesmo que `insideContent` já estivesse
+    // falso por ter cruzado a margem transparente antes de sair de verdade) — rede de segurança para
+    // nunca deixar o card "preso" ativo.
+    function handleLeave() {
+      if (insideContent) deactivate();
+    }
+
+    // Teclado não tem posição de cursor — foco sempre ativa o card inteiro, igual a antes.
+    function handleFocus() {
+      activate();
+    }
+
+    function handleBlur() {
+      deactivate();
+    }
+
     el.addEventListener("pointermove", handleMove);
-    el.addEventListener("pointerenter", handleEnter);
     el.addEventListener("pointerleave", handleLeave);
-    el.addEventListener("focus", handleEnter);
-    el.addEventListener("blur", handleLeave);
+    el.addEventListener("focus", handleFocus);
+    el.addEventListener("blur", handleBlur);
 
     return () => {
       el.removeEventListener("pointermove", handleMove);
-      el.removeEventListener("pointerenter", handleEnter);
       el.removeEventListener("pointerleave", handleLeave);
-      el.removeEventListener("focus", handleEnter);
-      el.removeEventListener("blur", handleLeave);
+      el.removeEventListener("focus", handleFocus);
+      el.removeEventListener("blur", handleBlur);
       gsap.set(el, { clearProps: "rotationX,rotationY,scale,y,transformPerspective" });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `onHoverChange` é estável o bastante (vem de um `useState` setter no pai); recriar por causa dela recriaria os listeners a cada hover.
-  }, [isFinePointer, reducedMotion]);
+  }, [isFinePointer, reducedMotion, serviceId]);
 
   // Resposta tátil imediata ao clique (Seção 11, Fase A) — compressão curta, na MESMA propriedade
   // que o tilt já controla (mesma razão documentada em `useTilt.ts`: um `transform` inline sempre
