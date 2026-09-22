@@ -19,9 +19,26 @@ const CARD_IMAGE: Record<ServiceId, string> = {
   design: "/builder/service-select/card-design.png",
 };
 
+// Achado ao medir os 3 PNGs (`sharp` `.trim()`, script descartável): a peça real NÃO está centrada
+// dentro do canvas transparente de 1080x1080 de cada arquivo — Site fica encostado na borda DIREITA
+// (346px de folga à esquerda, 0px à direita), Tráfego e Design encostados na ESQUERDA (12px/50px de
+// folga à esquerda, ~390/347px à direita). Com os 3 boxes do grid perfeitamente iguais (pedido do
+// usuário), isso sozinho já fazia a distância visual SITE↔TRÁFEGO parecer bem menor que TRÁFEGO↔
+// DESIGN, mesmo com os boxes matematicamente simétricos — o desequilíbrio estava dentro da própria
+// arte, não no layout. Corrigido recentrando cada imagem dentro de uma máscara com overflow:hidden
+// (`--card-content-offset`, aplicado como `translateX` em `ServiceSelectorCard.module.css`) — desloca
+// só QUAL PARTE do canvas fica visível, nunca redesenha/recorta a peça real (a folga que sobra é toda
+// transparente dos dois lados, a peça inteira permanece 100% visível, só deixa de ficar espremida
+// contra uma borda).
+const CONTENT_OFFSET_PERCENT: Record<ServiceId, number> = {
+  site: -16,
+  trafego: 17.5,
+  design: 13.5,
+};
+
 // Composição orgânica (Seção 8) + flutuação dessincronizada (Seção 9) — valores de referência do
-// próprio briefing, um objeto por serviço para nunca precisar de lógica condicional espalhada.
-// `mobile` reduz amplitude/rotação (Seção 15: "flutuação ainda mais suave no mobile"), nunca a
+// próprio briefing, um objeto por serviço para nunca precisar de lógica condicional espalhada. No
+// mobile o próprio efeito GSAP abaixo reduz a AMPLITUDE (`--card-float-y`/rotação) em ~40%, nunca a
 // duração (a duração diferente entre cards já é o que evita "os três subindo/descendo juntos").
 const FLOAT_CONFIG: Record<ServiceId, { baseRotate: number; floatY: number; floatRot: number; duration: number; delay: number }> = {
   site: { baseRotate: -2, floatY: -8, floatRot: 0.5, duration: 5.8, delay: 0 },
@@ -49,9 +66,58 @@ interface ServiceSelectorCardProps {
  */
 export default function ServiceSelectorCard({ serviceId, label, configured, disabled, active, dimmed, onHoverChange, onSelect }: ServiceSelectorCardProps) {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const floatOuterRef = useRef<HTMLDivElement | null>(null);
+  const floatTweenRef = useRef<gsap.core.Tween | null>(null);
   const isFinePointer = useFinePointer();
   const reducedMotion = useReducedMotion();
   const float = FLOAT_CONFIG[serviceId];
+
+  // Flutuação ambiente (pedido do usuário: migrar de `@keyframes` CSS para GSAP). Cada card tem seu
+  // próprio ritmo — duração e delay diferentes (`FLOAT_CONFIG`) evitam o "os três sobem/descem
+  // juntos" que pareceria artificial. `yoyo: true` + `repeat: -1` fazem exatamente o vaivém suave
+  // que `sine.inOut` produz (sem nenhum "salto" ao inverter, diferente de um `repeat` sem yoyo).
+  // Só o Tráfego recebe deslocamento horizontal (pedido explícito do usuário: "quase imperceptível",
+  // só neste card) — Site/Design flutuam só em Y + rotação mínima, em sentidos opostos (baseRotate
+  // negativo/positivo já resolve isso).
+  useEffect(() => {
+    const el = floatOuterRef.current;
+    if (!el || reducedMotion) return;
+
+    // No mobile a amplitude é menor (pedido: "flutuação ainda mais suave... para evitar sensação de
+    // travamento"), nunca a duração — a duração diferente é o que já evita sincronismo entre cards,
+    // reduzi-la também no mobile não ajudaria em nada.
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    const amplitude = isMobile ? 0.6 : 1;
+
+    gsap.set(el, { rotate: float.baseRotate, x: 0, y: 0 });
+    const tween = gsap.to(el, {
+      y: float.floatY * amplitude,
+      x: serviceId === "trafego" ? -6 * amplitude : 0,
+      rotate: float.baseRotate + float.floatRot,
+      duration: float.duration,
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: -1,
+      delay: Math.abs(float.delay) * 0.3,
+    });
+    floatTweenRef.current = tween;
+
+    return () => {
+      tween.kill();
+      floatTweenRef.current = null;
+      gsap.set(el, { clearProps: "transform" });
+    };
+  }, [reducedMotion, float, serviceId]);
+
+  // Hover/seleção "pausa" a flutuação em vez de zerá-la de volta à base (pedido: "o hover não pode
+  // cancelar bruscamente a animação de floating") — o card simplesmente congela onde já estava e
+  // retoma do mesmo ponto ao sair, nunca um salto de volta pra posição de repouso.
+  useEffect(() => {
+    const tween = floatTweenRef.current;
+    if (!tween) return;
+    if (active) tween.pause();
+    else tween.resume();
+  }, [active]);
 
   // Tilt 3D pela posição do cursor (Seção 10: "leve sensação 3D... MUITO controlada") + aproximar/
   // escalar no hover. Feito aqui (não via `useTilt`, já usado noutros cards do Builder) porque
@@ -81,7 +147,8 @@ export default function ServiceSelectorCard({ serviceId, label, configured, disa
     function handleEnter() {
       onHoverChange(true);
       quickScale(1.06);
-      quickY(-6);
+      // 8-12px pedidos pelo usuário para a elevação de hover (antes -6px, abaixo da faixa pedida).
+      quickY(-10);
     }
 
     function handleLeave() {
@@ -118,7 +185,8 @@ export default function ServiceSelectorCard({ serviceId, label, configured, disa
 
   return (
     <div
-      className={cx(styles.floatOuter, active && styles.settled)}
+      ref={floatOuterRef}
+      className={styles.floatOuter}
       style={
         {
           "--card-base-rotate": `${float.baseRotate}deg`,
@@ -151,7 +219,18 @@ export default function ServiceSelectorCard({ serviceId, label, configured, disa
             Configurado
           </Badge>
         )}
-        <Image src={CARD_IMAGE[serviceId]} alt="" width={1080} height={1080} className={styles.image} priority={serviceId === "site"} sizes="(max-width: 640px) 78vw, 26vw" />
+        <div className={styles.imageMask}>
+          <Image
+            src={CARD_IMAGE[serviceId]}
+            alt=""
+            width={1080}
+            height={1080}
+            className={styles.image}
+            style={{ transform: `translateX(${CONTENT_OFFSET_PERCENT[serviceId]}%)` }}
+            priority={serviceId === "site"}
+            sizes="(max-width: 640px) 78vw, 26vw"
+          />
+        </div>
       </button>
     </div>
   );

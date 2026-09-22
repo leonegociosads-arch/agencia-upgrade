@@ -1,40 +1,23 @@
 /* Card da tela "Escolha o seu Upgrade" (WF-03, versão cinematográfica). Dois níveis de wrapper de
  * propósito, para nunca disputarem a mesma propriedade `transform`:
  *
- * `.floatOuter` — flutuação ambiente contínua (puramente CSS, `@keyframes`), parametrizada por
- * card via custom properties (`--card-base-rotate/--card-float-y/--card-float-rot/--card-float-
- * duration/--card-float-delay`, definidas em `ServiceSelectorCard.tsx`). Zerada globalmente sob
- * `prefers-reduced-motion` pela regra em `styles/tokens.css` (Seção "Acessibilidade") — nenhum
- * tratamento extra aqui.
+ * `.floatOuter` — flutuação ambiente contínua, agora em GSAP (`ServiceSelectorCard.tsx`, pedido do
+ * usuário: "preferencialmente GSAP" em vez do `@keyframes` CSS anterior) — o próprio GSAP lê as
+ * mesmas custom properties (`--card-base-rotate/--card-float-y/--card-float-rot/--card-float-
+ * duration/--card-float-delay`, definidas ali) e escreve `transform` diretamente neste elemento via
+ * `gsap.to(..., {yoyo:true, repeat:-1})`. A regra `transform: rotate(var(--card-base-rotate))`
+ * abaixo é só o estado de REPOUSO (primeiro paint antes do efeito montar, e fallback sob
+ * `prefers-reduced-motion`, quando o efeito GSAP nem roda) — nunca uma transição rodando ao mesmo
+ * tempo que o GSAP anima (uma `transition: transform` concorrendo com um `tween` no mesmo frame
+ * produziria um lag/double-easing perceptível).
  *
  * `.tilt` (o próprio `<button>`) — reage a hover/foco/clique via classes controladas em JS
  * (`ServiceSelectorCard.tsx`, GSAP `quickTo` para o tilt 3D pela posição do cursor). Nunca as duas
  * camadas animam a mesma propriedade ao mesmo tempo.
  */
 .floatOuter {
-  animation: cardFloat var(--card-float-duration, 6s) ease-in-out infinite;
-  animation-delay: var(--card-float-delay, 0s);
   transform: rotate(var(--card-base-rotate, 0deg));
-  transition: transform 0.4s ease-out;
   width: 100%;
-}
-
-@keyframes cardFloat {
-  0%,
-  100% {
-    transform: translateY(0) rotate(var(--card-base-rotate, 0deg));
-  }
-  50% {
-    transform: translateY(var(--card-float-y, -8px)) rotate(calc(var(--card-base-rotate, 0deg) + var(--card-float-rot, 0.5deg)));
-  }
-}
-
-/* Card ativo (hover/foco) ou selecionado: a flutuação PRÓPRIA deste card se assenta na rotação
- * base, suavemente (Seção 10: "interromper/reduzir suavemente a flutuação DAQUELE card"). Os
- * outros dois continuam flutuando normalmente — só ganham `.dimmed` (abaixo), nunca `.settled`. */
-.floatOuter.settled {
-  animation: none;
-  transform: rotate(var(--card-base-rotate, 0deg));
 }
 
 .tilt {
@@ -87,6 +70,16 @@
   filter: brightness(1.12) contrast(1.05) drop-shadow(0 22px 34px rgba(45, 185, 88, 0.25));
 }
 
+/* Máscara de recentragem (ver comentário em `ServiceSelectorCard.tsx` sobre o offset de conteúdo
+ * medido em cada PNG). `overflow: hidden` fica AQUI, numa camada interna — nunca em `.tilt` (o
+ * `<button>`), porque um `overflow: hidden` no mesmo elemento que tem `filter: drop-shadow` (Seção
+ * `.tilt.active` abaixo) cortaria a própria sombra do glow de hover. */
+.imageMask {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
 .image {
   width: 100%;
   height: 100%;
@@ -122,11 +115,3 @@
   border: 0;
 }
 
-@media (max-width: 640px) {
-  /* Flutuação "ainda mais suave" no mobile (Seção 15) — mesma animação, amplitude/rotação
-   * reduzidas por fora (a própria `ServiceSelectorCard.tsx` já manda valores um pouco menores para
-   * mobile via as custom properties, isto aqui é uma segurança adicional puramente em CSS). */
-  .floatOuter {
-    animation-duration: calc(var(--card-float-duration, 6s) * 1.15);
-  }
-}

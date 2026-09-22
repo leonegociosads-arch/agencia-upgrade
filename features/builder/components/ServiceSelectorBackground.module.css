@@ -10,10 +10,16 @@
  * ambiental muito lento") — sem essa folga, deslocar/escalar a imagem exporia uma borda vazia.
  * `object-fit: cover` (via `next/image fill`) evita qualquer distorção; o "ajuste responsivo do
  * enquadramento" pedido vem do próprio `object-position`, levemente deslocado para a direita, onde
- * está o planeta principal da composição, em vez do centro geométrico da imagem. */
+ * está o planeta principal da composição, em vez do centro geométrico da imagem.
+ *
+ * `filter: brightness/saturate` — ajuste pedido pelo usuário ("background muito claro, verde em
+ * excesso"): reduz luminosidade e saturação do CENÁRIO por CSS, sem tocar no arquivo original (o
+ * PNG em si continua intocado em disco). Não é `grayscale`: ainda precisa dar pra enxergar
+ * planetas/estrelas "quando se olha com atenção", só sem competir com os cards por cima. */
 .image {
   object-fit: cover;
   object-position: 62% 55%;
+  filter: brightness(0.5) saturate(0.55);
 }
 
 /* Camada externa — só existe para receber o parallax de mouse via JS (Seção 14), aplicado pelo
@@ -44,9 +50,11 @@
 
 /* Véu escuro por cima do cenário (Seção 3: "ambiente atrás da interface, não um wallpaper simples")
  * — garante contraste suficiente para o cabeçalho/título/cards em qualquer trecho da imagem,
- * sem esconder a composição espacial. */
+ * sem esconder a composição espacial. Aprofundado (pedido do usuário: "predomínio visual preto e
+ * grafite muito escuro") — a faixa central, antes bem clara (0.15), virou grafite escuro (`#080a09`
+ * a 0.55) em vez de preto puro, pra ainda sobrar uma leitura de profundidade no meio da cena. */
 .veil {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.15) 32%, rgba(0, 0, 0, 0.35) 78%, rgba(0, 0, 0, 0.75) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(8, 10, 9, 0.55) 32%, rgba(0, 0, 0, 0.6) 78%, rgba(0, 0, 0, 0.9) 100%);
 }

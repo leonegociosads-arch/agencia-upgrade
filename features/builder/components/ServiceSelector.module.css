@@ -96,28 +96,36 @@
 }
 
 @media (min-width: 900px) {
+  /* Grid de 3 colunas IGUAIS (pedido do usuário: "não posicionar manualmente cada card com valores
+   * aleatórios de left/margin/translate" + "distância SITE↔TRÁFEGO igual a TRÁFEGO↔DESIGN"). Com
+   * `flex: 1 1 300px` (versão anterior) as três larguras podiam divergir um pouco conforme o
+   * conteúdo/breakpoint, quebrando a simetria; `repeat(3, minmax(0, 1fr))` garante três colunas
+   * matematicamente idênticas, o que por si só já centraliza o Tráfego (coluna do meio) e iguala as
+   * duas distâncias — o `gap` fixo faz o resto. */
   .cardsRow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     overflow-x: visible;
     scroll-snap-type: none;
     align-items: center;
-    justify-content: center;
+    justify-items: center;
     gap: var(--ds-space-6);
     padding: 0;
     margin-inline: auto;
   }
 
   .cardSlot {
-    width: auto;
-    flex: 1 1 300px;
+    width: 100%;
     max-width: 340px;
     scroll-snap-align: none;
   }
 
-  /* "O card central pode ficar alguns pixels mais alto ou mais próximo do usuário" (Seção 8) — só
-   * no layout de 3 colunas lado a lado; no carrossel mobile todo card passa pelo centro ao rolar,
-   * então esse deslocamento fixo não faz sentido lá. */
+  /* "O card central pode ficar alguns pixels mais alto ou mais próximo do usuário" (Seção 8) — via
+   * `transform` (não `margin-top`), de propósito: margin negativo alteraria a altura ocupada pela
+   * linha do grid e podia reintroduzir uma assimetria vertical entre as colunas; `transform` é
+   * puramente visual e nunca afeta o cálculo de layout das outras duas colunas. */
   .cardSlot:nth-child(2) {
-    margin-top: calc(var(--ds-space-6) * -1);
+    transform: translateY(calc(var(--ds-space-6) * -1));
   }
 }
 
