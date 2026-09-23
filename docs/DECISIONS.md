@@ -1985,6 +1985,55 @@ Formato: `[Fase X] Decisão — justificativa`
     corretamente; a tela de pergunta seguinte usa `BuilderNavigation` normal, sem nenhum resquício
     do tema espacial.
 
+- **[BUILDER - Carrossel circular mobile na tela "Escolha o seu Upgrade"]**
+  - **Pedido do usuário**: substituir SOMENTE a experiência mobile por um seletor circular
+    "estilo videogame" (1 card central em destaque, 2 laterais parcialmente atrás, gesto de swipe
+    circular/infinito, indicador "‹ ● ○ ○ ›"), preservando a versão desktop (fileira estática)
+    intocada.
+  - **Arquitetura**: novo componente `MobileServiceCarousel.tsx`/`.module.css`, reaproveitando
+    `ServiceSelectorCard` sem alterá-lo — a árvore virou `position-wrapper` (`.cardWrapper`, novo,
+    controlado por GSAP: x/escala/rotateY/opacidade/z-index do carrossel) → `floating-wrapper`
+    (`.floatOuter`, já existente DENTRO de `ServiceSelectorCard`, dono só da flutuação idle) →
+    card. As duas nunca disputam a mesma propriedade por estarem em elementos diferentes.
+  - **Modelo de posicionamento**: em vez de 3 estados discretos (centro/esquerda/direita), a
+    posição de cada card é uma função CONTÍNUA de um ângulo num "orbit" de 3 posições (seno/
+    cosseno) — necessário porque, durante um arrasto, o card saindo de um lado precisa atravessar
+    "atrás do centro" pra reaparecer do outro lado SEM nenhum salto/teleporte; com seno/cosseno
+    isso é automático (a 180°, `sin=0`, o card fica exatamente atrás do card da frente e some por
+    trás dele sozinho). Um mapeamento linear simples do cosseno não bastava: o valor de repouso a
+    ±120° saía bem abaixo da faixa pedida (~0.82–0.88 escala / ~0.65–0.80 opacidade) — resolvido
+    com uma curva (`Math.pow(front, 0.35)`) que preserva os extremos (0 nas costas, 1 na frente)
+    mas eleva esse ponto médio.
+  - **Gesto**: Pointer Events (não Touch Events) + `touch-action: pan-y` no container — MDN
+    confirma que `preventDefault()` num `pointermove` NÃO impede scroll nativo; só a propriedade
+    CSS `touch-action` de fato garante que um gesto vertical continue rolando a página, então o
+    `preventDefault()` no código é só defensivo. Um pequeno threshold (8px) decide a intenção
+    (horizontal vs. vertical) antes de capturar o ponteiro, e outro (48px) decide se o swipe
+    "completa" (troca de card) ou volta pro estado atual.
+  - **Clique**: tocar no card CENTRAL sempre dispara a ação real (`onSelect`, idêntica à do
+    desktop); tocar num card LATERAL só o recentraliza (muda `activeIndex`), nunca abre o serviço
+    direto — precisa de um segundo toque, já centralizado, pra selecionar (Seção "manter a lógica
+    de seleção semelhante a um videogame").
+  - **Renderização condicional, não CSS-only**: a primeira versão manteve a fileira desktop E o
+    carrossel sempre montados, um escondido via `@media`. Quebrou ~28 testes de fluxo do Builder
+    (`getByText`/`getByRole` encontrando 2 elementos com o mesmo rótulo acessível, já que jsdom não
+    aplica `display:none` de media query) — e essa ambiguidade seria real pra qualquer leitor de
+    tela que não respeitasse o CSS também. Corrigido com renderização condicional de verdade
+    (`useIsMobileViewport()`, só um dos dois monta por vez).
+  - **`window.innerWidth`, não `matchMedia`, para esse hook**: `vitest.setup.ts` já mocka
+    `window.matchMedia` globalmente pra SEMPRE `matches: true` (padrão determinístico pro
+    `useReducedMotion`/`useFinePointer` nos testes) — reusar `matchMedia` faria a checagem
+    mobile/desktop também sempre voltar `true`, trocando silenciosamente a árvore de TODOS os
+    testes do Builder pro carrossel novo. `window.innerWidth < 900` lê a largura de verdade (jsdom
+    default é 1024px = desktop), mesmo padrão já usado em `motionConfig.ts#getSceneDistance`.
+  - **Verificação**: lint/typecheck/build/testes completos (630/630) limpos. Testado visualmente e
+    funcionalmente via Playwright: swipe completo troca de card corretamente e de forma circular
+    (inclusive "dando a volta" pelo lado oposto), arraste acompanha parcialmente o dedo, setas
+    `‹`/`›` replicam o swipe, tocar num card lateral recentraliza sem navegar e um segundo toque
+    então seleciona, `prefers-reduced-motion` mantém o funcionamento idêntico (só sem easing), sem
+    overflow horizontal nem erro de console em 390×844/375×667, e o desktop (1440×900) permanece
+    pixel-a-pixel o mesmo de antes.
+
 ---
 
 *Decisões futuras devem ser adicionadas ao final de sua seção correspondente (ou em nova seção, se

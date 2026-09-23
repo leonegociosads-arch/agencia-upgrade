@@ -1,0 +1,96 @@
+/* `ServiceSelector.tsx` só monta este componente no mobile (`useIsMobileViewport()`) — o
+ * `display:none` acima de 900px aqui é só uma segurança a mais (ex.: se a viewport cruzar o
+ * breakpoint no meio de um resize antes do hook re-renderizar), nunca o mecanismo principal de
+ * esconder. */
+.root {
+  display: block;
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .root {
+    display: none;
+  }
+}
+
+/* `display:grid` com todos os cards na MESMA célula (`grid-area:1/1` abaixo) é o que permite os 3
+ * cards ficarem empilhados uns sobre os outros por padrão, sem nenhuma matemática manual de
+ * `position:absolute`/centralização — o GSAP só precisa deslocar/rotacionar/escalar cada um a partir
+ * dessa base comum. `overflow-x: hidden` (não o shorthand `overflow`) contém o vazamento horizontal
+ * dos cards laterais sem cortar brilho/sombra verticalmente (Seção "DIMENSIONAMENTO" do briefing).
+ * `touch-action: pan-y` é o que de fato garante que um gesto vertical continue rolando a página
+ * nativamente — o `preventDefault()` no JS sozinho NÃO impede scroll em pointer events, só esta
+ * propriedade CSS impede. */
+.viewport {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  overflow-x: hidden;
+  padding-block: var(--ds-space-3);
+  perspective: 1100px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.cardWrapper {
+  grid-area: 1 / 1;
+  width: min(68vw, 300px);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-4);
+  margin-top: var(--ds-space-2);
+}
+
+.arrowButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ds-radius-full);
+  border: 1px solid var(--ds-color-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ds-color-text-secondary);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.arrowButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.arrowButton:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Só indicativo — os círculos não são tocáveis (Seção "INDICAÇÃO VISUAL": "os três círculos
+ * representam os três serviços", só as setas precisam ser interativas), por isso `aria-hidden` no
+ * container inteiro em `MobileServiceCarousel.tsx`. */
+.dots {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ds-color-text-disabled);
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.dotActive {
+  background: var(--ds-color-text-primary);
+  transform: scale(1.4);
+}

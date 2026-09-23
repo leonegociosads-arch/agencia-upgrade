@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { SERVICE_IDS, SERVICES } from "../data/services";
 import { useBuilder } from "../state/BuilderContext";
@@ -13,8 +13,48 @@ import { cx } from "@/features/design-system/utils/cx";
 import ServiceSelectorBackground from "./ServiceSelectorBackground";
 import ServiceSelectorHeader from "./ServiceSelectorHeader";
 import ServiceSelectorCard from "./ServiceSelectorCard";
+import MobileServiceCarousel from "./MobileServiceCarousel";
 import type { ServiceId } from "../types";
 import styles from "./ServiceSelector.module.css";
+
+// Mesmo breakpoint das regras `@media (min-width: 900px)` em `ServiceSelector.module.css` e
+// `MobileServiceCarousel.module.css`.
+const MOBILE_BREAKPOINT_PX = 900;
+
+function subscribeMobileViewport(onChange: () => void) {
+  window.addEventListener("resize", onChange);
+  return () => window.removeEventListener("resize", onChange);
+}
+
+function getMobileViewportSnapshot(): boolean {
+  return window.innerWidth < MOBILE_BREAKPOINT_PX;
+}
+
+function getMobileViewportServerSnapshot(): boolean {
+  return false;
+}
+
+/**
+ * Decide entre a fileira estática de desktop e o carrossel circular de mobile. Renderização
+ * CONDICIONAL (não as duas ao mesmo tempo com uma escondida por CSS) de propósito: com as duas
+ * sempre no DOM, `getByText`/`getByRole` (produção E os ~28 testes de fluxo do Builder) passavam a
+ * achar 2 elementos com o mesmo rótulo acessível — jsdom não aplica `display:none` de media query,
+ * então essa ambiguidade também existiria de verdade pra qualquer leitor de tela que ignorasse CSS.
+ *
+ * `window.innerWidth` (não `matchMedia`) de propósito: `vitest.setup.ts` já mocka
+ * `window.matchMedia` globalmente para SEMPRE `matches: true` (necessário pro `useReducedMotion`/
+ * `useFinePointer` terem um padrão determinístico nos testes) — reusar `matchMedia` aqui faria esta
+ * verificação também sempre voltar `true` (mobile) em QUALQUER teste, trocando silenciosamente a
+ * árvore de todos os ~630 testes de fluxo do Builder pra este carrossel novo. `innerWidth` lê o
+ * valor de verdade (padrão do jsdom é 1024px — desktop), o mesmo padrão já usado em
+ * `motionConfig.ts#getSceneDistance`. `getServerSnapshot` fixo em `false` (mesmo padrão de
+ * `useFinePointer`/`useReducedMotion`) evita divergência entre o HTML do servidor e a primeira
+ * pintura do cliente — em compensação, um celular vê a fileira de desktop por um instante antes de
+ * trocar pro carrossel assim que o hook lê a largura real.
+ */
+function useIsMobileViewport(): boolean {
+  return useSyncExternalStore(subscribeMobileViewport, getMobileViewportSnapshot, getMobileViewportServerSnapshot);
+}
 
 export interface ServiceSelectorProps {
   onToggleMyUpgrade: () => void;
@@ -42,6 +82,7 @@ export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: S
   const { isTransitioning, markForward } = useSceneNavigation();
   const isFinePointer = useFinePointer();
   const reducedMotion = useReducedMotion();
+  const isMobileViewport = useIsMobileViewport();
 
   const [hoveredId, setHoveredId] = useState<ServiceId | null>(null);
 
@@ -153,13 +194,37 @@ export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: S
           </p>
         </div>
 
-        <div ref={cardsParallaxRef} className={styles.cardsRow}>
-          {SERVICE_IDS.map((serviceId) => (
-            <div key={serviceId} className={cx(styles.cardSlot, styles.entranceCard)}>
-              <ServiceSelectorCard {...cardProps(serviceId)} />
-            </div>
-          ))}
-        </div>
+        {/* Desktop (≥900px) — fileira estática de sempre, intocada (pedido do usuário: "a versão
+         * desktop já está correta e não deve ser alterada"). No mobile quem assume é o carrossel
+         * abaixo — só um dos dois é renderizado por vez (ver `useIsMobileViewport` no topo deste
+         * arquivo). */}
+        {isMobileViewport ? (
+          /* Mobile — seletor circular "estilo videogame" (pedido do usuário: cards cortados demais
+           * e sem gesto de navegação na fileira estática anterior). Reaproveita o MESMO
+           * `cardProps`/`handleSelect` do desktop — nenhuma lógica de seleção duplicada, só a
+           * apresentação/interação é diferente. */
+          <MobileServiceCarousel
+            locked={locked}
+            cards={SERVICE_IDS.map((serviceId) => {
+              const props = cardProps(serviceId);
+              return {
+                serviceId,
+                label: props.label,
+                configured: props.configured,
+                disabled: props.disabled,
+                onSelect: props.onSelect,
+              };
+            })}
+          />
+        ) : (
+          <div ref={cardsParallaxRef} className={styles.cardsRow}>
+            {SERVICE_IDS.map((serviceId) => (
+              <div key={serviceId} className={cx(styles.cardSlot, styles.entranceCard)}>
+                <ServiceSelectorCard {...cardProps(serviceId)} />
+              </div>
+            ))}
+          </div>
+        )}
 
         <button type="button" className={styles.secondaryLink} disabled title="Canal de contato — Etapa 9+">
           Não sabe exatamente do que precisa? Fale com a Upgrade

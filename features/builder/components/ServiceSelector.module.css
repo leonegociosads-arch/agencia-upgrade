@@ -67,46 +67,20 @@
   opacity: 0.55;
 }
 
-/* UM ÚNICO conjunto de 3 cards no DOM (nunca duplicado desktop/mobile) — o que muda entre os dois
- * é só o comportamento do CONTAINER (flex central vs. carrossel com scroll-snap), via media query.
- * Renderizar dois conjuntos separados (um escondido por CSS) desperdiçaria imagem/listener/GSAP em
- * dobro por nada, e quebraria a unicidade do texto acessível de cada card. */
-/* Mobile (pedido do usuário: "cards bem maiores" + "dá pra ver os três juntos, bem próximos, quase
- * inteiros ou inteiros ao mesmo tempo" — versão anterior era um carrossel de swipe com só 1 card
- * grande e 2 tirinhas de 14% espiando, o que ele achou pequeno demais). Virou uma composição de
- * "leque" estática (sem precisar arrastar): os 3 cards ficam bem maiores que antes, sobrepostos uns
- * nos outros (Tráfego por cima, no centro), sem carrossel/scroll-snap. Numa tela de ~390px de
- * largura não cabem matematicamente 3 cards "dobro de tamanho" cada um TOTALMENTE visível lado a
- * lado (mesmo só 1 card sozinho já não caberia inteiro nesse tamanho) — a troca feita foi: cards
- * francamente maiores, bem próximos (sobrepostos), Tráfego inteiro à mostra e Site/Design com uma
- * fatia generosa aparecendo por trás (não são mais tirinhas finas). */
+/* Esta fileira é SÓ do desktop agora (pedido do usuário: seletor circular dedicado no mobile, ver
+ * `MobileServiceCarousel.tsx`) — `ServiceSelector.tsx` só monta este elemento quando
+ * `useIsMobileViewport()` é `false` (nunca os dois ao mesmo tempo no DOM: duas árvores com o mesmo
+ * rótulo acessível ambiguizava `getByText`/`getByRole`, tanto nos testes quanto, de verdade, pra
+ * qualquer leitor de tela que não respeitasse `display:none` de media query). As regras dentro do
+ * media query `min-width:900px` logo abaixo continuam exatamente as mesmas de sempre — nada mudou
+ * pro desktop. */
 .cardsRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
   max-width: 1180px;
-  overflow: visible;
 }
 
 .cardSlot {
   flex: 0 0 auto;
-  width: 72vw;
-  max-width: 300px;
-}
-
-.cardSlot:nth-child(1) {
-  margin-right: -34vw;
-  z-index: 1;
-}
-
-.cardSlot:nth-child(2) {
-  z-index: 2;
-}
-
-.cardSlot:nth-child(3) {
-  margin-left: -34vw;
-  z-index: 1;
 }
 
 @media (min-width: 900px) {
@@ -144,23 +118,11 @@
     scroll-snap-align: none;
   }
 
-  /* `.cardSlot:nth-child(1)/(3)` (regra base, fora de media query — usada só no leque mobile acima)
-   * tem MAIS especificidade que o `.cardSlot` puro logo acima (classe + pseudo-classe vence classe
-   * sozinha), então sem este reset explícito o `margin-right/left: -34vw` e `z-index` do mobile
-   * vazariam pro desktop mesmo dentro deste breakpoint. Precisa repetir aqui com a MESMA
-   * especificidade (não basta reduzir a de cima) pra realmente sobrescrever. */
-  .cardSlot:nth-child(1),
-  .cardSlot:nth-child(3) {
-    margin-inline: -28px;
-    z-index: auto;
-  }
-
   /* "O card central pode ficar alguns pixels mais alto ou mais próximo do usuário" (Seção 8) — via
    * `transform` (não `margin-top`), de propósito: margin negativo alteraria a altura ocupada pela
    * linha do grid e podia reintroduzir uma assimetria vertical entre as colunas; `transform` é
    * puramente visual e nunca afeta o cálculo de layout das outras duas colunas. */
   .cardSlot:nth-child(2) {
-    z-index: auto;
     transform: translateY(calc(var(--ds-space-6) * -1));
   }
 }
