@@ -52,14 +52,17 @@ const CONTENT_BOUNDS: Record<ServiceId, { left: number; right: number; top: numb
 // Composição orgânica (Seção 8) + flutuação dessincronizada (Seção 9) — valores de referência do
 // próprio briefing, um objeto por serviço para nunca precisar de lógica condicional espalhada. No
 // mobile o próprio efeito GSAP abaixo reduz a AMPLITUDE (`--card-float-y`/rotação) em ~40%, nunca a
-// duração (a duração diferente entre cards já é o que evita "os três subindo/descendo juntos").
-// Durações reduzidas ~25% (pedido do usuário: "aumentar um pouco a velocidade" da flutuação),
-// mantendo a proporção entre os três cards (o que evita sincronismo continua sendo a duração
-// diferente entre eles, só o ritmo geral ficou um pouco mais rápido).
+// duração (a duração diferente entre cards já é o que evita "os três subindo/descendo juntos"). Este
+// componente é compartilhado por desktop (`ServiceSelector.tsx`) E mobile
+// (`MobileServiceCarousel.tsx`), então qualquer ajuste aqui afeta os dois automaticamente.
+// Segunda rodada de ajuste (pedido do usuário: "flutuar mais rápido e se movimentar um pouco a
+// mais", em cima da primeira redução de ~25% já aplicada) — duração ~25% menor de novo e
+// amplitude/rotação ~35-40% maiores, mantendo a proporção diferente entre os três cards (o que
+// evita sincronismo continua sendo a duração diferente entre eles).
 const FLOAT_CONFIG: Record<ServiceId, { baseRotate: number; floatY: number; floatRot: number; duration: number; delay: number }> = {
-  site: { baseRotate: -2, floatY: -8, floatRot: 0.5, duration: 4.3, delay: 0 },
-  trafego: { baseRotate: 0, floatY: -11, floatRot: 0.35, duration: 4.9, delay: -1.8 },
-  design: { baseRotate: 2, floatY: -7, floatRot: 0.6, duration: 4.0, delay: -3.4 },
+  site: { baseRotate: -2, floatY: -11, floatRot: 0.7, duration: 3.3, delay: 0 },
+  trafego: { baseRotate: 0, floatY: -15, floatRot: 0.5, duration: 3.7, delay: -1.8 },
+  design: { baseRotate: 2, floatY: -10, floatRot: 0.85, duration: 3.0, delay: -3.4 },
 };
 
 interface ServiceSelectorCardProps {
