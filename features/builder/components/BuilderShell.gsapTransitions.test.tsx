@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { BuilderProvider } from "../state/BuilderContext";
 import { LeadProvider } from "@/features/lead/state/LeadContext";
 import BuilderShell from "./BuilderShell";

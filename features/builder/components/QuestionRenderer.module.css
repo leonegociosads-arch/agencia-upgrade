@@ -7,6 +7,18 @@
   padding: var(--ds-space-8) var(--ds-space-4) var(--ds-space-16);
 }
 
+@media (max-width: 640px) {
+  /* Pedido do usuário: cada opção ocupando praticamente toda a largura da tela, com uma margem
+   * lateral pequena e consistente (referência: `calc(100vw - 28px)`, ou seja, ~14px de cada lado).
+   * O card em si já herda 100% da largura do `.wrapper` (ver `.assetOption`/`.option` abaixo), então
+   * é só o padding do wrapper que precisa mudar — nunca o desktop, que mantém os `--ds-space-4`
+   * (16px) de sempre via a regra base acima. */
+  .wrapper {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
 /* `position: relative` + `z-index` acima do Drawer "Meu Upgrade" (`BuilderShell.module.css`,
  * `.upgradeOverlay`/`.upgradePanel`, z-index 30) — Etapa 31 (Testes Funcionais): bug real
  * encontrado via E2E (nunca visível em teste unitário, que não calcula posição/sobreposição real).
@@ -80,7 +92,29 @@
 .options {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-3);
+  /* Aumentado de --ds-space-3 (12px) — pedido do usuário: "o brilho/neon dos assets precisa ter
+   * espaço para respirar, sem sobreposição perceptível" (Seção 2). Mais relevante agora que
+   * `visualScale` (`optionAssets.ts`) amplia visualmente algumas opções para igualar o tamanho de
+   * todas — sem este respiro extra, o glow ampliado de duas opções vizinhas poderia parecer que se
+   * tocam. */
+  gap: var(--ds-space-4);
+}
+
+/* Estado inicial da entrada da ETAPA GERAL 2 (Seção 9 do briefing: "evitar FOUC/flash visual") —
+ * aplicado via classe já presente no HTML da primeira pintura (`isFirstQuestionOfService`,
+ * calculado no render, nunca depende de um efeito rodar primeiro), então os cards NUNCA aparecem
+ * na posição final por uma fração de segundo antes de saltar pra esquerda para começar a animar: já
+ * nascem invisíveis/deslocados, e o GSAP (`QuestionRenderer.tsx`) assume dali pra frente com os
+ * MESMOS valores (-72px/opacity 0), sem nenhum salto perceptível na troca de CSS para JS.
+ * Só ativo quando o SO não pede motion reduzido — o gate em JS (`useReducedMotion`) lê o mesmo
+ * sinal do sistema operacional, então os dois nunca divergem (nunca um card fica preso invisível
+ * esperando um JS que decidiu não rodar). */
+@media (prefers-reduced-motion: no-preference) {
+  .optionsFirstEntry .assetOption,
+  .optionsFirstEntry .option {
+    opacity: 0;
+    transform: translateX(-72px);
+  }
 }
 
 .option {
@@ -93,11 +127,16 @@
   border-radius: var(--ds-radius-md);
   background: var(--ds-color-surface);
   cursor: pointer;
+  /* `transform` de propósito FORA desta lista — a microflutuação (Seção 3) agora escreve
+   * `transform` inline neste elemento continuamente (GSAP); uma `transition` de CSS na mesma
+   * propriedade tentaria suavizar cada atualização de frame do GSAP também, produzindo uma
+   * flutuação com atraso/travada em vez do movimento contínuo pretendido (mesma armadilha já
+   * documentada em `ServiceSelectorCard.module.css`/`.floatOuter`). O feedback de clique
+   * (`.option:active` abaixo) declara sua própria transição só para `transform`. */
   transition:
     border-color var(--ds-duration-fast) var(--ds-easing-base),
     background-color var(--ds-duration-fast) var(--ds-easing-base),
-    opacity var(--ds-duration-normal) var(--ds-easing-standard),
-    transform var(--ds-duration-fast) var(--ds-easing-base);
+    opacity var(--ds-duration-normal) var(--ds-easing-standard);
 }
 
 .option:hover,
@@ -122,10 +161,13 @@
   opacity: 0.7;
 }
 
-/* Resposta tátil ao clique (Motion Design, Nível 1) — mesma lógica do card do seletor de serviço. */
+/* Resposta tátil ao clique (Motion Design, Nível 1) — mesma lógica do card do seletor de serviço.
+ * Declara a própria `transition` (não herda da base, que não tem mais `transform` — comentário
+ * acima) porque este é o único caso em que uma transição de CSS para `transform` neste elemento é
+ * segura: dispara e termina rápido (não é contínua como a flutuação, então não há conflito). */
 .option:active {
   transform: scale(0.98);
-  transition-duration: var(--ds-duration-instant);
+  transition: transform var(--ds-duration-instant) var(--ds-easing-base);
 }
 
 /* "Outros cards perdem destaque" (Motion Design, Seção 7) — só entra depois que pelo menos uma
@@ -178,9 +220,11 @@
    * linha de texto em volta dela. */
   line-height: 0;
   border-radius: var(--ds-radius-md);
-  transition:
-    opacity var(--ds-duration-normal) var(--ds-easing-standard),
-    transform var(--ds-duration-fast) var(--ds-easing-base);
+  /* `transform` de propósito FORA desta lista — ver o comentário idêntico em `.option` acima: a
+   * microflutuação (Seção 3) e, na primeira pergunta, a entrada lateral (Seção 5) escrevem
+   * `transform` inline aqui continuamente/repetidamente via GSAP, e uma `transition` de CSS na
+   * mesma propriedade produziria uma animação com atraso em vez do movimento pretendido. */
+  transition: opacity var(--ds-duration-normal) var(--ds-easing-standard);
 }
 
 .assetOption:disabled {
@@ -194,10 +238,20 @@
 }
 
 /* Resposta tátil ao clique — mesma linguagem do cartão de texto, só mais sutil,
- * porque a arte já tem brilho/moldura próprios. */
+ * porque a arte já tem brilho/moldura próprios. Transição própria pelo mesmo motivo do
+ * `.option:active` acima (dispara e termina rápido — nunca contínua, então não conflita). */
 .assetOption:active:not(:disabled) {
   transform: scale(0.99);
-  transition-duration: var(--ds-duration-instant);
+  transition: transform var(--ds-duration-instant) var(--ds-easing-base);
+}
+
+/* Máscara de zoom óptico (`visualScale`) — ver comentário em `QuestionRenderer.tsx` sobre por que
+ * `overflow: hidden` vive AQUI, numa camada interna, e nunca no `.assetOption` (cortaria o próprio
+ * anel de foco, desenhado por fora da caixa). */
+.assetImageMask {
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
 }
 
 /* Preserva a proporção original do PNG em qualquer largura (nunca estica,
