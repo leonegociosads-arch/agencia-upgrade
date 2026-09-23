@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { getNextQuestion } from "../logic/flow";
+import { getOptionAsset } from "../data/optionAssets";
 import { getProgress } from "../logic/getProgress";
 import { getVisibleQuestions } from "../logic/getVisibleQuestions";
 import { validateAnswer } from "../logic/validateAnswer";
@@ -207,6 +209,8 @@ function QuestionOptions({ question, answers, onAnswer }: QuestionOptionsProps) 
           return (
             <OptionCard
               key={option.id}
+              question={question}
+              optionId={option.id}
               label={option.label}
               description={option.description}
               selected={selected}
@@ -245,6 +249,8 @@ function QuestionOptions({ question, answers, onAnswer }: QuestionOptionsProps) 
 }
 
 interface OptionCardProps {
+  question: Question;
+  optionId: string;
   label: string;
   description?: string;
   selected: boolean;
@@ -257,9 +263,69 @@ interface OptionCardProps {
  * Extraído para poder chamar `useTilt()` uma vez POR OPÇÃO — um Hook não pode viver dentro do
  * `.map()` do componente pai (mesmo motivo de `ServiceCard` em `ServiceSelector.tsx`). Prioridade
  * #1 do briefing Microinterações (Seção 60: "Builder cards" em primeiro lugar).
+ *
+ * Quando existe arte pronta para a opção (`optionAssets.ts`), o PNG É o card: moldura, ícone,
+ * título, descrição, seta e caixa de seleção já fazem parte da imagem, então nada disso é
+ * redesenhado por CSS/HTML por cima. O que continua vivendo aqui é só a camada interativa —
+ * o próprio `<button>`, com clique, teclado, foco, `aria-pressed` e o texto real da opção (visível
+ * apenas para leitores de tela, já que a imagem o mostra visualmente). O cartão de texto abaixo
+ * continua como está para qualquer opção que ainda não tenha arte.
  */
-function OptionCard({ label, description, selected, showCheck, disabled, onClick }: OptionCardProps) {
+function OptionCard({ question, optionId, label, description, selected, showCheck, disabled, onClick }: OptionCardProps) {
   const tiltRef = useTilt<HTMLButtonElement>(2.5);
+  const asset = getOptionAsset(question, optionId);
+
+  if (asset) {
+    return (
+      <button
+        ref={tiltRef}
+        type="button"
+        className={cx(styles.assetOption, selected && styles.assetOptionSelected)}
+        aria-pressed={showCheck ? selected : undefined}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        <Image
+          src={asset.src}
+          alt=""
+          width={asset.width}
+          height={asset.height}
+          className={styles.assetImage}
+          sizes="(max-width: 680px) 100vw, 640px"
+          // Só as opções da pergunta ATUAL existem no DOM — nenhuma arte de ramificação não
+          // visitada é baixada. Como são poucas e ficam no topo da tela, carregar já (em vez de
+          // esperar o observer do lazy) evita o card aparecer em branco na troca de pergunta.
+          loading="eager"
+        />
+        {/* Marca o check DENTRO da caixa que a própria arte já desenhou vazia, na cor que ela
+            usa (coordenadas medidas na imagem, ver `optionAssets.ts`) — nunca uma caixa nova. */}
+        {selected && asset.checkbox && (
+          <span
+            className={styles.assetCheck}
+            aria-hidden="true"
+            style={{
+              left: `${asset.checkbox.x * 100}%`,
+              top: `${asset.checkbox.y * 100}%`,
+              width: `${asset.checkbox.w * 100}%`,
+              height: `${asset.checkbox.h * 100}%`,
+              color: asset.checkbox.color,
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4.5 12.5 10 18 19.5 6.5" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        )}
+        {/* Mesmos dois spans do cartão de texto (rótulo + descrição), só que invisíveis: a arte já
+            mostra esse texto, mas ele precisa continuar existindo de verdade no DOM para leitores
+            de tela e para o nome acessível do botão continuar idêntico ao de antes. */}
+        <span className={styles.assetText}>
+          <span>{label}</span>
+          {description && <span>{description}</span>}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button

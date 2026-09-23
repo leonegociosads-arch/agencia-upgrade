@@ -160,6 +160,91 @@
   border-color: var(--ds-color-accent);
 }
 
+/* ---------------------------------------------------------------------------
+ * Opção com arte pronta (o PNG É o card — ver `optionAssets.ts`).
+ * Nada de borda, fundo, padding, moldura, seta ou caixa aqui: tudo isso já está
+ * desenhado dentro da imagem. Este bloco só cuida do que é COMPORTAMENTO do
+ * botão (área clicável, foco, estado desabilitado, resposta ao clique).
+ * ------------------------------------------------------------------------- */
+.assetOption {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  /* A imagem é `display:block`, mas sem isto o botão ainda reserva a folga de
+   * linha de texto em volta dela. */
+  line-height: 0;
+  border-radius: var(--ds-radius-md);
+  transition:
+    opacity var(--ds-duration-normal) var(--ds-easing-standard),
+    transform var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.assetOption:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.assetOption:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 4px;
+}
+
+/* Resposta tátil ao clique — mesma linguagem do cartão de texto, só mais sutil,
+ * porque a arte já tem brilho/moldura próprios. */
+.assetOption:active:not(:disabled) {
+  transform: scale(0.99);
+  transition-duration: var(--ds-duration-instant);
+}
+
+/* Preserva a proporção original do PNG em qualquer largura (nunca estica,
+ * nunca corta) — no mobile ocupa toda a largura disponível do container. */
+.assetImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* "Outros cards perdem destaque" (Motion Design, Seção 7) — mesmo comportamento
+ * que o cartão de texto já tinha na múltipla escolha. */
+.optionsHasSelection .assetOption:not(.assetOptionSelected) {
+  opacity: 0.55;
+}
+
+/* O check desenhado dentro da caixa que a arte já reserva. Posição/tamanho vêm
+ * inline (medidos na própria imagem), então aqui só sobra o alinhamento. */
+.assetCheck {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.assetCheck svg {
+  width: 66%;
+  height: 66%;
+  overflow: visible;
+}
+
+/* O texto real da opção continua no DOM (leitor de tela e nome acessível do
+ * botão), apenas invisível — a arte já o mostra. Nunca `display:none`, que o
+ * tiraria também da árvore de acessibilidade. */
+.assetText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .optionText {
   display: flex;
   flex-direction: column;

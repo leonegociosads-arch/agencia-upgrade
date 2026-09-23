@@ -98,10 +98,16 @@ describe("Builder — comportamento de motion/transição (Fase GSAP e Transiç�
     fireEvent.click(screen.getByText("Site Institucional"));
 
     const option = screen.getByRole("button", { name: /Somente apresentação e contato/ });
+    // A opção tem arte própria (PNG), onde a caixa de seleção já vem desenhada VAZIA: o estado
+    // marcado é o check que o componente desenha dentro dela (um `<svg>`), não mais o "✓" de
+    // texto do cartão antigo. A intenção do teste continua a mesma — seleção nunca depende só de
+    // cor: existe um indicador explícito que aparece no clique e some sem ele.
+    expect(option.querySelector("svg")).toBeNull();
+
     fireEvent.click(option);
 
     expect(option.getAttribute("aria-pressed")).toBe("true");
-    expect(within(option).getByText("✓")).toBeTruthy();
+    expect(option.querySelector("svg")).not.toBeNull();
   });
 
   it("9. Meu Upgrade abre e fecha", async () => {
