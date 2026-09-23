@@ -9,7 +9,15 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* `overflow-x` (não o shorthand `overflow`) de propósito: o carrossel mobile agora tem cards bem
+   * maiores que ultrapassam a viewport propositalmente (pedido do usuário) — isso precisa continuar
+   * cortado só na HORIZONTAL aqui (nunca gerando scroll horizontal do documento). Na vertical,
+   * `auto` é uma rede de segurança: se algum celular muito baixo não sobrar espaço pra tudo, a cena
+   * rola verticalmente em vez de cortar o topo/base do card ou o título (o que o usuário pediu
+   * explicitamente pra evitar) — no desktop isso não muda nada visível, porque o conteúdo de lá
+   * nunca chega a ultrapassar `min-height: 100dvh`. */
+  overflow-x: hidden;
+  overflow-y: auto;
   /* Compensa o `padding-bottom` do `.body` de `BuilderShell.module.css` — esta cena quer controlar
    * seu próprio respiro vertical de baixo, não herdar o das outras telas (texto/formulário). */
   margin-bottom: calc(var(--ds-space-8) * -1);
@@ -26,6 +34,16 @@
   gap: var(--ds-space-8);
   padding: var(--ds-space-10) var(--ds-space-4) var(--ds-space-12);
   text-align: center;
+}
+
+@media (max-width: 899px) {
+  /* Só no mobile (desktop mantém o espaçamento de sempre) — libera espaço vertical pros cards bem
+   * maiores do carrossel (pedido do usuário: "não cortar o card" / "não invadir o título"). */
+  .hero {
+    gap: var(--ds-space-4);
+    padding-top: var(--ds-space-6);
+    padding-bottom: var(--ds-space-6);
+  }
 }
 
 .headingBlock {

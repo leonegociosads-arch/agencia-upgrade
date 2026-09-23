@@ -27,15 +27,24 @@
   place-items: center;
   width: 100%;
   overflow-x: hidden;
-  padding-block: var(--ds-space-3);
-  perspective: 1100px;
+  padding-block: var(--ds-space-2);
+  /* Reduzido de 1100px (pedido do usuário: "aumente a sensação de profundidade com perspective e
+   * rotateY") — quanto menor o valor, mais pronunciada a distorção 3D percebida nas laterais. */
+  perspective: 850px;
   touch-action: pan-y;
   user-select: none;
 }
 
+/* Card central como "protagonista" (pedido do usuário: "aproximadamente 2x a presença visual
+ * atual", "80–90vw"). O aumento é só de LARGURA/container — a imagem em si nunca é esticada
+ * (`ServiceSelectorCard`/`.tilt` mantém `aspect-ratio:1/1`, então a altura acompanha
+ * proporcionalmente). Os laterais somem parcialmente por trás dele via `xPercent`/`scale` menores em
+ * `styleForAngle` (`MobileServiceCarousel.tsx`), nunca porque este wrapper mudou de tamanho entre
+ * eles — os 3 compartilham a MESMA largura base, só a posição/escala aplicada por cima é que
+ * diferencia centro de lateral. */
 .cardWrapper {
   grid-area: 1 / 1;
-  width: min(68vw, 300px);
+  width: min(85vw, 420px);
   transform-style: preserve-3d;
   will-change: transform;
 }

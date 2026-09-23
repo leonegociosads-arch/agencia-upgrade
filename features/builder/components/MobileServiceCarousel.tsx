@@ -39,19 +39,30 @@ function noop() {}
  *
  * `front` usa uma curva (`Math.pow(..., 0.35)`) em vez de um mapeamento linear do cosseno — sem ela,
  * o valor de repouso a ±120° (onde os cards laterais realmente ficam parados) sairia bem mais baixo
- * do que os ~0.82–0.88 de escala / ~0.65–0.80 de opacidade pedidos; a curva "puxa" esse ponto médio
+ * do que os ~0.78–0.85 de escala / ~0.60–0.75 de opacidade pedidos; a curva "puxa" esse ponto médio
  * pra cima mantendo os extremos (0 nas costas, 1 na frente) exatos.
+ *
+ * Constantes recalibradas (pedido do usuário: "cards muito maiores" + "muito mais atrás do
+ * principal") — `xPercent` caiu de 60 pra ~43 (com o card em si bem maior agora, o mesmo
+ * deslocamento percentual de antes deixava os laterais abertos demais; 43 foi calculado pra deixar
+ * só ~35% de cada lateral (na escala de repouso ~0.83) pra fora do card central, dentro da faixa
+ * 30–40% pedida). `SCALE_BACK`/`OPACITY_BACK` (valores nas "costas", ângulo 180°) desceram bastante
+ * (0.7→0.55 / não-linear→0.18) e o `rotateY` subiu (11°→18°) só pra reforçar a profundidade — a
+ * escala/opacidade de REPOUSO das laterais (±120°) continuam dentro do pedido porque a curva
+ * (acima) já achata a maior parte dessa queda antes de chegar no meio do caminho.
  */
 function styleForAngle(angle: number) {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
   const front = Math.pow((cos + 1) / 2, 0.35);
+  const SCALE_BACK = 0.55;
+  const OPACITY_BACK = 0.18;
   return {
-    xPercent: sin * 60,
-    scale: 0.7 + front * 0.3,
-    opacity: 0.45 + front * 0.55,
-    rotateY: -sin * 11,
-    zIndex: Math.round(front * 100) + 1,
+    xPercent: sin * 43,
+    scale: SCALE_BACK + front * (1 - SCALE_BACK),
+    opacity: OPACITY_BACK + front * (1 - OPACITY_BACK),
+    rotateY: -sin * 18,
+    zIndex: Math.round(front * 8) + 2,
   };
 }
 
