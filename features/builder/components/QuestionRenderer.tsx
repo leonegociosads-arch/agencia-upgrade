@@ -451,7 +451,12 @@ function OptionCard({ question, optionId, label, description, selected, showChec
         disabled={disabled}
         onClick={onClick}
       >
-        <span className={styles.hudBorder} aria-hidden="true">
+        {/* SEM `aria-hidden` aqui nem em `.hudInner`: ao contrário do cartão em PNG (`.assetOption`
+            acima), aqui o rótulo/descrição são texto de verdade, não uma arte com um texto oculto
+            duplicado por baixo — escondê-los da árvore de acessibilidade deixaria o botão sem
+            nome acessível nenhum. Só os elementos puramente decorativos (a caixa vazia da
+            ilustração e os dois brilhos do canto) ganham `aria-hidden`. */}
+        <span className={styles.hudBorder}>
           <span className={styles.hudInner}>
             {/* Espaço reservado para a ilustração — de propósito VAZIO nesta rodada de teste (o
                 usuário vai recortar e enviar a arte separadamente depois de aprovar a moldura). */}
@@ -461,6 +466,11 @@ function OptionCard({ question, optionId, label, description, selected, showChec
               {description && <span className={styles.hudDescription}>{description}</span>}
             </span>
           </span>
+          {/* Os dois pontos de brilho mais intenso da referência — nos vértices dos chanfros da
+              direita, onde as duas facetas do corte se encontram (ver `QuestionRenderer.module.css`
+              sobre as coordenadas medidas pixel a pixel na imagem enviada). */}
+          <span className={styles.hudFlare} style={{ top: "20.1%", left: "97.22%" }} aria-hidden="true" />
+          <span className={styles.hudFlare} style={{ top: "79.9%", left: "97.22%" }} aria-hidden="true" />
         </span>
       </button>
     );

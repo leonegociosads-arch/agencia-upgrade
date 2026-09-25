@@ -330,15 +330,32 @@
   cursor: pointer;
   border-radius: var(--ds-radius-md);
   transition: opacity var(--ds-duration-normal) var(--ds-easing-standard);
-  /* Tamanho do corte de cada canto — os dois cantos da esquerda ficam quase retos (corte bem
-   * pequeno, só pra tirar o esquadro perfeito), os dois da direita ganham o corte grande "estilo
-   * HUD" da referência. Espessura da linha neon e cor/brilho também centralizados aqui — um único
-   * lugar pra ajustar o visual inteiro deste botão de teste. */
-  --hud-notch-s: 7px;
-  --hud-notch-l: 26px;
-  --hud-border: 2px;
+  /* Silhueta chanfrada em 12 pontos (3 por canto: onde a reta acaba, o vértice do dobramento, onde
+   * a próxima reta começa) — medida pixel a pixel na imagem de referência que o usuário enviou
+   * (script de análise de pixels, não estimativa visual), num canvas de 1080×199 (mesmo tamanho
+   * das artes já usadas pelas outras perguntas) e convertida para porcentagem. Os dois cantos da
+   * esquerda dobram pouco (quase uma diagonal simples); os da direita dobram bem mais e o vértice
+   * fica puxado pra fora, em direção à quina reta original — é esse puxão que cria o "bico" bem
+   * mais saliente e brilhante que a referência tem só do lado direito. Guardado num único custom
+   * property pra `.hudBorder` (a moldura) e `.hudInner` (o preenchimento, por dentro da moldura)
+   * usarem exatamente o mesmo desenho. */
+  --hud-clip: polygon(
+    1.57% 25.13%,
+    2.78% 12.56%,
+    4.63% 4.52%,
+    91.2% 8.54%,
+    97.22% 20.1%,
+    97.96% 34.17%,
+    97.96% 65.83%,
+    97.22% 79.9%,
+    91.2% 91.46%,
+    4.63% 95.48%,
+    2.78% 87.44%,
+    1.57% 74.87%
+  );
+  --hud-border: 3px;
   --hud-accent: #2f9dff;
-  --hud-glow: rgba(47, 157, 255, 0.55);
+  --hud-glow: rgba(47, 157, 255, 0.65);
 }
 
 .hudOption:disabled {
@@ -361,20 +378,12 @@
 }
 
 .hudBorder {
+  position: relative;
   display: block;
   padding: var(--hud-border);
-  background: linear-gradient(135deg, #8fd0ff 0%, var(--hud-accent) 45%, #1568c4 100%);
-  clip-path: polygon(
-    0 var(--hud-notch-s),
-    var(--hud-notch-s) 0,
-    calc(100% - var(--hud-notch-l)) 0,
-    100% var(--hud-notch-l),
-    100% calc(100% - var(--hud-notch-l)),
-    calc(100% - var(--hud-notch-l)) 100%,
-    var(--hud-notch-s) 100%,
-    0 calc(100% - var(--hud-notch-s))
-  );
-  filter: drop-shadow(0 0 10px var(--hud-glow)) drop-shadow(0 0 2px var(--hud-glow));
+  background: var(--hud-accent);
+  clip-path: var(--hud-clip);
+  filter: drop-shadow(0 0 3px var(--hud-glow)) drop-shadow(0 0 9px var(--hud-glow));
 }
 
 .hudInner {
@@ -383,20 +392,28 @@
   gap: var(--ds-space-4);
   padding: var(--ds-space-4) var(--ds-space-5, 20px);
   background: radial-gradient(120% 160% at 0% 0%, #10233d 0%, #071527 45%, #030a15 100%);
-  clip-path: polygon(
-    0 var(--hud-notch-s),
-    var(--hud-notch-s) 0,
-    calc(100% - var(--hud-notch-l)) 0,
-    100% var(--hud-notch-l),
-    100% calc(100% - var(--hud-notch-l)),
-    calc(100% - var(--hud-notch-l)) 100%,
-    var(--hud-notch-s) 100%,
-    0 calc(100% - var(--hud-notch-s))
-  );
+  clip-path: var(--hud-clip);
 }
 
 .hudOptionSelected .hudBorder {
-  filter: drop-shadow(0 0 16px var(--hud-glow)) drop-shadow(0 0 4px var(--hud-glow));
+  filter: drop-shadow(0 0 4px var(--hud-glow)) drop-shadow(0 0 14px var(--hud-glow));
+}
+
+/* Os dois pontos de brilho concentrado da referência — bem mais claros/brancos que o resto da
+ * linha, exatamente nos vértices onde as duas facetas do chanfro da DIREITA se encontram (a
+ * "reta fina" descrita pelo usuário fica só no `.hudBorder` acima; aqui é só o reforço nos dois
+ * pontos que, na imagem, saltam aos olhos). Posicionado via `top`/`left` inline (mesmas
+ * coordenadas do `--hud-clip`), com `transform: translate(-50%,-50%)` pra centralizar o brilho
+ * EM CIMA do vértice, não a partir do canto do próprio elemento. */
+.hudFlare {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #eaf6ff 0%, var(--hud-accent) 45%, rgba(47, 157, 255, 0) 75%);
+  filter: blur(2px) drop-shadow(0 0 7px #bfe6ff);
+  pointer-events: none;
 }
 
 /* Espaço reservado para a ilustração — vazio de propósito nesta rodada (ver comentário em
