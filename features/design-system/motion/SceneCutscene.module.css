@@ -86,3 +86,14 @@
   height: 0;
   visibility: hidden;
 }
+
+/* Canvas das partículas da logo: acima da cortina e da geometria, recortado em JS para só desenhar
+ * dentro da massa preta. */
+.particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  pointer-events: none;
+}

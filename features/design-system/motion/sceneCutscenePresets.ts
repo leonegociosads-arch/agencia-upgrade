@@ -22,8 +22,8 @@ const BASE_PRESET: SceneCutscenePreset = {
   accent: "#2db958",
   base: "#000000",
   coverDuration: 0.75,
-  hold: 0.15,
-  revealDuration: 0.75,
+  hold: 0.3,
+  revealDuration: 0.8,
   ease: "power3.inOut",
 };
 

@@ -17,6 +17,7 @@ import { useReducedMotion } from "./useReducedMotion";
 import { useScrollLock } from "./useScrollLock";
 import { SCENE_CUTSCENE_PRESETS, type SceneCutscenePresetName } from "./sceneCutscenePresets";
 import { CUTSCENE_PEAKS, peakPolygon } from "./sceneCutsceneGeometry";
+import { ParticleLogo, type ParticleClip } from "./particleLogo";
 import styles from "./SceneCutscene.module.css";
 
 export interface SceneCutsceneCoveredInfo {
@@ -72,6 +73,13 @@ function subscribeNothing() {
   return noop;
 }
 
+const LOGO_SRC = "/assets/cutscene/upgrade-logo.png";
+const FRONT_APEX_Y = CUTSCENE_PEAKS.find((peak) => peak.id === "front")?.apexY ?? 0;
+/** A logo começa a se formar com 25% do fechamento andado e termina junto com ele. */
+const FORM_START = 0.25;
+/** A logo termina de ser recolhida com 80% da abertura andada. */
+const DISPERSE_SHARE = 0.8;
+
 /** O desenho inteiro (picos + massa preta), idêntico nas duas peças. */
 function CutsceneShape() {
   return (
@@ -111,6 +119,8 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
   const closingRef = useRef<HTMLDivElement | null>(null);
   const openingRef = useRef<HTMLDivElement | null>(null);
   const probeRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [particleLogo] = useState(() => new ParticleLogo(LOGO_SRC));
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const settleCallRef = useRef<gsap.core.Tween | null>(null);
   const resumeCallRef = useRef<gsap.core.Tween | null>(null);
@@ -120,6 +130,26 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   useScrollLock(isPlaying);
+
+  // Prepara o mapa de partículas antes do primeiro clique (busca + decode + getImageData em tempo
+  // ocioso) e refaz os destinos quando a viewport muda.
+  useEffect(() => {
+    if (reducedMotion) return;
+    const prepare = () => {
+      particleLogo.prepare(window.innerWidth, window.innerHeight);
+      particleLogo.resizeCanvas();
+    };
+    const idle = window.requestIdleCallback ?? ((callback: () => void) => window.setTimeout(callback, 200));
+    const cancelIdle = window.cancelIdleCallback ?? window.clearTimeout;
+    const handle = idle(() => {
+      particleLogo.preload().then(prepare);
+    });
+    window.addEventListener("resize", prepare);
+    return () => {
+      cancelIdle(handle);
+      window.removeEventListener("resize", prepare);
+    };
+  }, [particleLogo, reducedMotion]);
 
   const flushRevealQueue = useCallback(() => {
     revealPendingRef.current = false;
@@ -163,6 +193,29 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
         gsap.set([closing, opening], { y: V * 2, visibility: "hidden" });
         gsap.set(cover, { visibility: "hidden" });
       };
+
+      // Partículas só aparecem dentro da massa preta: sobem junto com o preto no fechamento, ficam
+      // livres no blackout e são recolhidas junto com o preto na abertura.
+      let stage: "closing" | "black" | "opening" = "closing";
+      const M = S - P;
+      // O preto sobe até a ponta do pico da frente (bordas nas laterais, ponta no centro); 3px de
+      // folga para ficar dentro do filete de acento.
+      const peakRise = (1 - FRONT_APEX_Y) * P - 3;
+      const getClip = (): ParticleClip => {
+        if (stage === "black") return { top: 0, bottom: V, topPeak: 0, bottomPeak: 0 };
+        if (stage === "closing") {
+          const yc = Number(gsap.getProperty(closing, "y"));
+          return { top: yc + P, bottom: V, topPeak: peakRise, bottomPeak: 0 };
+        }
+        const yo = Number(gsap.getProperty(opening, "y"));
+        return { top: 0, bottom: yo + M, topPeak: 0, bottomPeak: peakRise };
+      };
+      const canvas = canvasRef.current;
+      const withLogo = particleLogo.ready && canvas !== null;
+      if (withLogo) {
+        particleLogo.prepare(root.clientWidth, V);
+        particleLogo.start(canvas, getClip);
+      }
       reset();
 
       const timeline = gsap.timeline({
@@ -170,6 +223,7 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
         defaults: { ease: config.ease, force3D: true },
         onComplete: () => {
           reset();
+          particleLogo.stop();
           delete root.dataset.active;
           timelineRef.current = null;
           playingRef.current = false;
@@ -183,11 +237,19 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
       // cobrir a viewport (picos já acima da borda de cima).
       timeline.set(closing, { y: V, visibility: "visible" });
       timeline.to(closing, { y: -P - 2, duration: config.coverDuration * scale });
+      if (withLogo) {
+        timeline.to(
+          particleLogo.state,
+          { form: 1, duration: config.coverDuration * (1 - FORM_START) * scale, ease: "none" },
+          config.coverDuration * FORM_START * scale,
+        );
+      }
 
       // BLACKOUT — a cortina assume no mesmo frame em que a massa cobre tudo; o desenho some. Só
       // preto na tela; a troca de conteúdo acontece aqui.
       timeline.addLabel("covered");
       timeline.call(() => {
+        stage = "black";
         gsap.set(cover, { visibility: "visible" });
         gsap.set(closing, { visibility: "hidden" });
         // `flushSync` garante que a cena nova já está no DOM antes da abertura começar.
@@ -206,12 +268,22 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
       // com a cortina) e sobe até os picos invertidos passarem da borda de cima.
       const openAt = timeline.duration() + config.hold * scale;
       timeline.set(opening, { y: -2, visibility: "visible" }, openAt);
+      timeline.call(() => {
+        stage = "opening";
+      }, undefined, openAt);
       timeline.set(cover, { visibility: "hidden" }, openAt);
       timeline.to(opening, { y: -S, duration: config.revealDuration * scale }, openAt);
+      if (withLogo) {
+        timeline.to(
+          particleLogo.state,
+          { disperse: 1, duration: config.revealDuration * DISPERSE_SHARE * scale, ease: "none" },
+          openAt,
+        );
+      }
 
       return true;
     },
-    [reducedMotion, flushRevealQueue],
+    [reducedMotion, flushRevealQueue, particleLogo],
   );
 
   const whenRevealed = useCallback((callback: () => void) => {
@@ -231,11 +303,12 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
       timelineRef.current?.kill();
       settleCallRef.current?.kill();
       resumeCallRef.current?.kill();
+      particleLogo.stop();
       queue.clear();
       playingRef.current = false;
       revealPendingRef.current = false;
     };
-  }, []);
+  }, [particleLogo]);
 
   const value = useMemo(() => ({ play, isPlaying, whenRevealed }), [play, isPlaying, whenRevealed]);
 
@@ -256,6 +329,9 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
                 <CutsceneShape />
               </div>
             </div>
+            {/* Partículas da logo: acima da geometria, mas recortadas a cada frame para só aparecer
+             * dentro da massa preta. */}
+            <canvas ref={canvasRef} className={styles.particles} />
             {/* Sonda invisível só para medir a altura da faixa dos picos (`--peak-h`) em px. */}
             <div ref={probeRef} className={styles.probe} />
           </div>,
