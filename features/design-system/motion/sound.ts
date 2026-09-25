@@ -136,7 +136,7 @@ export function playSound(event: SoundEvent): void {
 export type SoundEffectFile = "reset";
 
 const FILE_EFFECTS: Record<SoundEffectFile, { src: string; gain: number }> = {
-  reset: { src: "/audio/fahhh.mp3", gain: 0.4 },
+  reset: { src: "/audio/fahhh.mp3", gain: 0.2 },
 };
 
 const fileData = new Map<SoundEffectFile, Promise<ArrayBuffer | null>>();
