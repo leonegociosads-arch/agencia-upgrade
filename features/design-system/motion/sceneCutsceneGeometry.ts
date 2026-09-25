@@ -31,21 +31,21 @@ const LATERAL_OFFSET = 23.4;
 
 const LATERAL_RINGS: CutsceneRing[] = [
   { color: "base", inset: 0 },
-  { color: "accent", inset: 0.0135 },
-  { color: "base", inset: 0.082 },
+  { color: "accent", inset: 0.00675 },
+  { color: "base", inset: 0.041 },
 ];
 
-/** Ordem = ordem de pintura (primeiro fica atrás). Contornos e faixas com metade da espessura da
+/** Ordem = ordem de pintura (primeiro fica atrás). Contornos e faixas com um quarto da espessura da
  * referência (pedido do usuário: mais leve/elegante) — inclusive a faixa do pico central, cuja
  * ponta desceu para ficar a meio caminho da ponta do pico da frente. */
 export const CUTSCENE_PEAKS: CutscenePeak[] = [
   {
     id: "back-center",
     apexX: 50,
-    apexY: 0.0845,
+    apexY: 0.12675,
     rings: [
       { color: "base", inset: 0 },
-      { color: "accent", inset: 0.006 },
+      { color: "accent", inset: 0.003 },
     ],
   },
   { id: "left", apexX: 50 - LATERAL_OFFSET, apexY: 0.182, rings: LATERAL_RINGS },
@@ -56,7 +56,7 @@ export const CUTSCENE_PEAKS: CutscenePeak[] = [
     apexY: 0.169,
     rings: [
       { color: "accent", inset: 0 },
-      { color: "base", inset: 0.005 },
+      { color: "base", inset: 0.0025 },
     ],
   },
 ];
