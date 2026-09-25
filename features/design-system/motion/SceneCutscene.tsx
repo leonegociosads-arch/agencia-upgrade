@@ -16,7 +16,7 @@ import gsap from "gsap";
 import { useReducedMotion } from "./useReducedMotion";
 import { useScrollLock } from "./useScrollLock";
 import { SCENE_CUTSCENE_PRESETS, type SceneCutscenePresetName } from "./sceneCutscenePresets";
-import { CUTSCENE_GEOMETRY, trianglePolygon, type SceneCutsceneVariant } from "./sceneCutsceneGeometry";
+import { CUTSCENE_PEAKS, peakPolygon } from "./sceneCutsceneGeometry";
 import styles from "./SceneCutscene.module.css";
 
 export interface SceneCutsceneCoveredInfo {
@@ -27,10 +27,14 @@ export interface SceneCutsceneCoveredInfo {
 
 export interface PlaySceneCutsceneOptions {
   preset?: SceneCutscenePresetName;
-  /** Chamado com a viewport 100% coberta — é aqui que a troca de estado/tela acontece. */
+  /** Cor de acento explícita (sobrepõe a do preset). */
+  accent?: string;
+  /** Chamado com a viewport 100% preta — é aqui que a troca de estado/tela acontece. */
   onCovered: (info: SceneCutsceneCoveredInfo) => void;
-  /** Espera antes das camadas começarem a subir (ex.: feedback de clique do card). */
+  /** Espera antes do desenho começar a subir (ex.: feedback de clique do card). */
   delay?: number;
+  /** Duração total aproximada (s) do fechamento + preto + abertura; padrão vem do preset. */
+  duration?: number;
 }
 
 interface SceneCutsceneContextValue {
@@ -68,24 +72,34 @@ function subscribeNothing() {
   return noop;
 }
 
-const PHASES = ["closing", "opening"] as const;
-const POSITIONS = ["left", "center", "right"] as const;
-type Phase = (typeof PHASES)[number];
-type Position = (typeof POSITIONS)[number];
-
-function nodeKey(phase: Phase, position: Position) {
-  return `${phase}-${position}`;
+/** O desenho inteiro (picos + massa preta), idêntico nas duas peças. */
+function CutsceneShape() {
+  return (
+    <>
+      <div className={styles.mass} />
+      {CUTSCENE_PEAKS.map((peak) => (
+        <div key={peak.id}>
+          {peak.rings.map((ring, index) => (
+            <div
+              key={ring.inset}
+              className={`${styles.ring} ${styles[ring.color]}`}
+              style={{ clipPath: peakPolygon(peak, ring.inset, index === peak.rings.length - 1) }}
+            />
+          ))}
+        </div>
+      ))}
+    </>
+  );
 }
 
 /**
- * Cutscene de troca de cena: uma formação de três triângulos ▲ sobe na frente de uma cortina preta
- * até cobrir a tela, a troca de conteúdo acontece SÓ com a viewport totalmente preta
- * (`onCovered`), e uma segunda formação ▼ sai junto com a cortina revelando a cena nova
- * (coreografia em `sceneCutsceneGeometry.ts`). Genérica de propósito — não sabe nada do Builder:
- * quem chama passa a callback de troca e um preset (`sceneCutscenePresets.ts`).
+ * Cutscene de troca de cena. Um único desenho geométrico (três picos sobre uma massa preta) sobe
+ * como UMA peça de baixo para cima até a massa cobrir a tela; nesse instante a cortina preta
+ * assume, a troca de conteúdo acontece (`onCovered`), e depois de um respiro o mesmo desenho,
+ * espelhado verticalmente, sobe revelando a cena nova. Genérica: não sabe nada do Builder.
  *
- * Com `prefers-reduced-motion`, nenhuma camada aparece: `onCovered` roda na hora, síncrono (o mesmo
- * contrato síncrono do clique que as suítes de fluxo do Builder já verificam).
+ * Com `prefers-reduced-motion`, nada aparece: `onCovered` roda na hora, síncrono (o mesmo contrato
+ * síncrono do clique que as suítes de fluxo do Builder verificam).
  */
 export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
   const reducedMotion = useReducedMotion();
@@ -94,9 +108,9 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const coverRef = useRef<HTMLDivElement | null>(null);
-  const groupRefs = useRef<Record<Phase, HTMLDivElement | null>>({ closing: null, opening: null });
-  const triangleRefs = useRef(new Map<string, HTMLDivElement | null>());
-  const [variant, setVariant] = useState<SceneCutsceneVariant>("peaks");
+  const closingRef = useRef<HTMLDivElement | null>(null);
+  const openingRef = useRef<HTMLDivElement | null>(null);
+  const probeRef = useRef<HTMLDivElement | null>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const settleCallRef = useRef<gsap.core.Tween | null>(null);
   const resumeCallRef = useRef<gsap.core.Tween | null>(null);
@@ -115,59 +129,47 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const play = useCallback(
-    ({ preset = "default", onCovered, delay = 0 }: PlaySceneCutsceneOptions) => {
+    ({ preset = "default", accent, onCovered, delay = 0, duration }: PlaySceneCutsceneOptions) => {
       if (playingRef.current) return false;
-
-      const config = SCENE_CUTSCENE_PRESETS[preset];
-      // Geometria diferente da que está montada: troca antes de medir/animar (raro — hoje só há uma).
-      if (!reducedMotion && config.variant !== variant) flushSync(() => setVariant(config.variant));
 
       const root = rootRef.current;
       const cover = coverRef.current;
-      const closingGroup = groupRefs.current.closing;
-      const openingGroup = groupRefs.current.opening;
-      const nodes = (phase: Phase, positions: readonly Position[]) =>
-        positions.map((position) => triangleRefs.current.get(nodeKey(phase, position)) ?? null);
-      const all = PHASES.flatMap((phase) => nodes(phase, POSITIONS));
-      if (reducedMotion || !root || !cover || !closingGroup || !openingGroup || all.some((node) => !node)) {
+      const closing = closingRef.current;
+      const opening = openingRef.current;
+      const probe = probeRef.current;
+      if (reducedMotion || !root || !cover || !closing || !opening || !probe) {
         onCovered({ hidden: false });
         return true;
       }
-      const geometry = CUTSCENE_GEOMETRY[config.variant];
-      const triangles = all as HTMLDivElement[];
-      const closingCenter = nodes("closing", ["center"]) as HTMLDivElement[];
-      const closingLaterals = nodes("closing", ["left", "right"]) as HTMLDivElement[];
-      const openingCenter = nodes("opening", ["center"]) as HTMLDivElement[];
-      const openingLaterals = nodes("opening", ["left", "right"]) as HTMLDivElement[];
-      const moving = [cover, ...triangles];
+
+      const config = SCENE_CUTSCENE_PRESETS[preset];
+      const total = config.coverDuration + config.hold + config.revealDuration;
+      const scale = duration ? duration / total : 1;
 
       playingRef.current = true;
       revealPendingRef.current = true;
       setIsPlaying(true);
 
-      root.style.setProperty("--transition-accent", config.accent);
+      root.style.setProperty("--transition-accent", accent ?? config.accent);
       root.style.setProperty("--transition-base", config.base);
       root.dataset.active = "true";
 
-      // V = altura da viewport, H = altura do triângulo. Fechamento: triângulos ▲ nascem com a ponta
-      // na borda de baixo e terminam com a base na borda de cima; a cortina vem colada na base dos
-      // laterais. Abertura: triângulos ▼ nascem com a base colada na borda de baixo da cortina e
-      // terminam com a ponta na borda de cima, a cortina saindo junto com os laterais.
+      // V = viewport; P = altura da faixa dos picos (a massa começa em P dentro da peça);
+      // S = altura da peça inteira (P + massa com a altura da viewport).
       const V = root.clientHeight;
-      const H = closingCenter[0].offsetHeight;
-      const offscreen = V * 2;
-      gsap.set(cover, { y: V + H });
-      gsap.set(triangles, { y: V });
-      gsap.set(closingGroup, { visibility: "visible" });
-      gsap.set(openingGroup, { visibility: "hidden" });
+      const P = probe.offsetTop;
+      const S = closing.offsetHeight;
+      const reset = () => {
+        gsap.set([closing, opening], { y: V * 2, visibility: "hidden" });
+        gsap.set(cover, { visibility: "hidden" });
+      };
+      reset();
 
-      const t = (seconds: number) => seconds * config.speed;
       const timeline = gsap.timeline({
         delay,
         defaults: { ease: config.ease, force3D: true },
         onComplete: () => {
-          gsap.set(moving, { y: offscreen });
-          gsap.set([closingGroup, openingGroup], { visibility: "hidden" });
+          reset();
           delete root.dataset.active;
           timelineRef.current = null;
           playingRef.current = false;
@@ -177,15 +179,17 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
       });
       timelineRef.current = timeline;
 
-      // FECHAMENTO — o central puxa a formação; esquerdo + direito (e a cortina) juntos logo depois.
-      const { closing, opening } = geometry;
-      timeline.to(closingCenter, { y: -H, duration: t(closing.center.duration) }, t(closing.center.delay));
-      timeline.to(closingLaterals, { y: -H, duration: t(closing.laterals.duration) }, t(closing.laterals.delay));
-      timeline.to(cover, { y: 0, duration: t(closing.laterals.duration) }, t(closing.laterals.delay));
+      // FECHAMENTO — o desenho inteiro sobe: ponta entrando pela borda de baixo até a massa preta
+      // cobrir a viewport (picos já acima da borda de cima).
+      timeline.set(closing, { y: V, visibility: "visible" });
+      timeline.to(closing, { y: -P - 2, duration: config.coverDuration * scale });
 
-      // BLACKOUT — só a cortina na tela; a troca de conteúdo acontece aqui.
+      // BLACKOUT — a cortina assume no mesmo frame em que a massa cobre tudo; o desenho some. Só
+      // preto na tela; a troca de conteúdo acontece aqui.
+      timeline.addLabel("covered");
       timeline.call(() => {
-        gsap.set(closingGroup, { visibility: "hidden" });
+        gsap.set(cover, { visibility: "visible" });
+        gsap.set(closing, { visibility: "hidden" });
         // `flushSync` garante que a cena nova já está no DOM antes da abertura começar.
         try {
           flushSync(() => onCovered({ hidden: true }));
@@ -198,16 +202,16 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
         resumeCallRef.current = gsap.delayedCall(0, () => timeline.resume());
       });
 
-      // ABERTURA — espelho temporal: esquerdo + direito (e a cortina) primeiro, central logo depois.
-      const openAt = timeline.duration() + t(config.hold);
-      timeline.set(openingGroup, { visibility: "visible" }, openAt);
-      timeline.to(openingLaterals, { y: -H, duration: t(opening.laterals.duration) }, openAt + t(opening.laterals.delay));
-      timeline.to(cover, { y: -(V + H), duration: t(opening.laterals.duration) }, openAt + t(opening.laterals.delay));
-      timeline.to(openingCenter, { y: -H, duration: t(opening.center.duration) }, openAt + t(opening.center.delay));
+      // ABERTURA — o mesmo desenho invertido: começa com a massa cobrindo a tela (troca invisível
+      // com a cortina) e sobe até os picos invertidos passarem da borda de cima.
+      const openAt = timeline.duration() + config.hold * scale;
+      timeline.set(opening, { y: -2, visibility: "visible" }, openAt);
+      timeline.set(cover, { visibility: "hidden" }, openAt);
+      timeline.to(opening, { y: -S, duration: config.revealDuration * scale }, openAt);
 
       return true;
     },
-    [reducedMotion, variant, flushRevealQueue],
+    [reducedMotion, flushRevealQueue],
   );
 
   const whenRevealed = useCallback((callback: () => void) => {
@@ -242,37 +246,18 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
         createPortal(
           <div ref={rootRef} className={styles.root} aria-hidden="true">
             <div ref={coverRef} className={styles.cover} />
-            {PHASES.map((phase) => (
-              <div
-                key={phase}
-                ref={(element) => {
-                  groupRefs.current[phase] = element;
-                }}
-                className={styles.group}
-              >
-                {POSITIONS.map((position) => {
-                  const key = nodeKey(phase, position);
-                  const { rings } = CUTSCENE_GEOMETRY[variant];
-                  return (
-                    <div
-                      key={position}
-                      ref={(element) => {
-                        triangleRefs.current.set(key, element);
-                      }}
-                      className={`${styles.triangle} ${styles[position]} ${position === "center" ? styles.front : ""}`}
-                    >
-                      {(position === "center" ? rings.center : rings.lateral).map((ring) => (
-                        <div
-                          key={ring.inset}
-                          className={`${styles.ring} ${styles[ring.color]}`}
-                          style={{ clipPath: trianglePolygon(ring.inset, phase === "closing" ? "up" : "down") }}
-                        />
-                      ))}
-                    </div>
-                  );
-                })}
+            <div ref={closingRef} className={styles.shape}>
+              <div className={styles.flip}>
+                <CutsceneShape />
               </div>
-            ))}
+            </div>
+            <div ref={openingRef} className={`${styles.shape} ${styles.inverted}`}>
+              <div className={styles.flip}>
+                <CutsceneShape />
+              </div>
+            </div>
+            {/* Sonda invisível só para medir a altura da faixa dos picos (`--peak-h`) em px. */}
+            <div ref={probeRef} className={styles.probe} />
           </div>,
           document.body,
         )}

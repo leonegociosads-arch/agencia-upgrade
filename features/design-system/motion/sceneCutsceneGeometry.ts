@@ -1,74 +1,86 @@
 /**
- * Geometria e coreografia da cutscene (`SceneCutscene.tsx`).
- *
- * Dois grupos DOM independentes, com a mesma geometria (tamanho/distância em CSS:
- * `--triangle-width`, `--triangle-height`, `--triangle-offset`):
- * - `closing`: três triângulos apontando PARA CIMA (esquerdo, central, direito) — fecham a tela;
- * - `opening`: os mesmos três, apontando PARA BAIXO — abrem a tela.
- * O `blackCover` anda colado na base dos laterais (mesmo tempo que eles), então os triângulos
- * aparecem na borda da cortina preta. Só `y` é animado; X/tamanho nunca mudam.
- *
- * A abertura é o espelho temporal do fechamento: no fechamento o central sai na frente e os
- * laterais vêm juntos logo depois; na abertura os laterais saem juntos primeiro e o central logo
- * depois.
+ * Geometria da cutscene (`SceneCutscene.tsx`) — reconstrução da referência "três picos" como UMA
+ * peça. Coordenadas medidas no PNG de referência (1080px de largura) e normalizadas:
+ * - x em % da largura da peça (`--scene-width`), sempre simétrico em torno de 50%;
+ * - y em fração da altura da faixa de picos (`--peak-h`), 0 = ponta mais alta, 1 = linha de base
+ *   onde a massa preta começa.
+ * Todas as diagonais têm a mesma inclinação (`SLOPE`) — é isso que faz as camadas lerem como um
+ * único desenho. A peça inteira se move como um bloco; nada aqui é animado individualmente.
  */
 export type CutsceneColor = "accent" | "base";
 
 export interface CutsceneRing {
   color: CutsceneColor;
-  /** Fração da altura do triângulo — anel desenhado como triângulo semelhante encolhido em
-   * direção à base, então o contorno tem espessura uniforme nas duas laterais inclinadas. */
+  /** Deslocamento vertical do contorno para dentro, em fração de `--peak-h`. */
   inset: number;
 }
 
-export interface CutsceneTiming {
-  delay: number;
-  duration: number;
-}
-
-export interface CutsceneGeometry {
+export interface CutscenePeak {
+  id: string;
+  apexX: number;
+  /** Altura da ponta, em fração de `--peak-h` a partir do topo. */
+  apexY: number;
   /** Do anel externo (contorno) para o interno (preenchimento). */
-  rings: { center: CutsceneRing[]; lateral: CutsceneRing[] };
-  closing: { center: CutsceneTiming; laterals: CutsceneTiming };
-  opening: { laterals: CutsceneTiming; center: CutsceneTiming };
+  rings: CutsceneRing[];
 }
 
-const PEAKS: CutsceneGeometry = {
-  rings: {
-    center: [
+/** Queda em fração de `--peak-h` para cada 1% de largura (referência: 0.831 em 50%). */
+const SLOPE = 0.831 / 50;
+/** Distância de cada pico lateral até o eixo central, em % da largura (média espelhada). */
+const LATERAL_OFFSET = 23.4;
+
+const LATERAL_RINGS: CutsceneRing[] = [
+  { color: "base", inset: 0 },
+  { color: "accent", inset: 0.027 },
+  { color: "base", inset: 0.164 },
+];
+
+/** Ordem = ordem de pintura (primeiro fica atrás). */
+export const CUTSCENE_PEAKS: CutscenePeak[] = [
+  {
+    id: "back-center",
+    apexX: 50,
+    apexY: 0,
+    rings: [
       { color: "base", inset: 0 },
-      { color: "accent", inset: 0.03 },
-    ],
-    lateral: [
-      { color: "base", inset: 0 },
-      { color: "accent", inset: 0.025 },
-      { color: "base", inset: 0.18 },
+      { color: "accent", inset: 0.012 },
     ],
   },
-  // Stagger de 40ms com durações quase iguais: o central fica no máximo ~meio triângulo à frente
-  // (atrás, na abertura) — sempre sobreposto aos laterais, nunca "descolado" da formação.
-  closing: {
-    center: { delay: 0, duration: 0.7 },
-    laterals: { delay: 0.04, duration: 0.71 },
+  { id: "left", apexX: 50 - LATERAL_OFFSET, apexY: 0.182, rings: LATERAL_RINGS },
+  { id: "right", apexX: 50 + LATERAL_OFFSET, apexY: 0.182, rings: LATERAL_RINGS },
+  {
+    id: "front",
+    apexX: 50,
+    apexY: 0.169,
+    rings: [
+      { color: "accent", inset: 0 },
+      { color: "base", inset: 0.01 },
+    ],
   },
-  opening: {
-    laterals: { delay: 0, duration: 0.71 },
-    center: { delay: 0.04, duration: 0.7 },
-  },
-};
+];
 
-export const CUTSCENE_GEOMETRY = { peaks: PEAKS } satisfies Record<string, CutsceneGeometry>;
+const y = (fraction: number) => `calc(var(--peak-h) * ${Number(fraction.toFixed(4))})`;
+const x = (percent: number) => `${Number(percent.toFixed(3))}%`;
 
-export type SceneCutsceneVariant = keyof typeof CUTSCENE_GEOMETRY;
-
-export type TriangleDirection = "up" | "down";
-
-const pct = (value: number) => `${Number(value.toFixed(3))}%`;
-
-/** Triângulo (ou anel interno dele) ocupando a caixa inteira: ponta no centro, base na borda. */
-export function trianglePolygon(inset: number, direction: TriangleDirection): string {
-  const half = 50 * (1 - inset);
-  const tip = direction === "up" ? inset * 100 : 100 - inset * 100;
-  const base = direction === "up" ? 100 : 0;
-  return `polygon(50% ${pct(tip)}, ${pct(50 + half)} ${pct(base)}, ${pct(50 - half)} ${pct(base)})`;
+/**
+ * Região abaixo da silhueta do pico (ponta + duas diagonais), até a linha de base. O anel mais
+ * interno (`isFill`) desce 2px para dentro da massa, cobrindo por inteiro a borda de baixo dos
+ * anéis de trás — sem nenhum filete de cor aparecendo na linha de base.
+ */
+export function peakPolygon(peak: CutscenePeak, inset: number, isFill: boolean): string {
+  const apexY = peak.apexY + inset;
+  const reach = (1 - apexY) / SLOPE;
+  const leftX = peak.apexX - reach;
+  const rightX = peak.apexX + reach;
+  const left: [number, number] = leftX < 0 ? [0, apexY + SLOPE * peak.apexX] : [leftX, 1];
+  const right: [number, number] = rightX > 100 ? [100, apexY + SLOPE * (100 - peak.apexX)] : [rightX, 1];
+  const bottom = isFill ? "calc(var(--peak-h) + 2px)" : "var(--peak-h)";
+  const points = [
+    `${x(left[0])} ${y(left[1])}`,
+    `${x(peak.apexX)} ${y(apexY)}`,
+    `${x(right[0])} ${y(right[1])}`,
+    `${x(right[0])} ${bottom}`,
+    `${x(left[0])} ${bottom}`,
+  ];
+  return `polygon(${points.join(", ")})`;
 }

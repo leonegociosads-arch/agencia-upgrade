@@ -1,9 +1,6 @@
-import type { SceneCutsceneVariant } from "./sceneCutsceneGeometry";
-
 /**
- * Presets da cutscene de troca de cena (`SceneCutscene.tsx`). O motor (uma única timeline GSAP) é
- * sempre o mesmo — cada preset muda só cores, geometria (`variant`, em `sceneCutsceneGeometry.ts`)
- * e velocidade. Novo preset = nova entrada aqui, nunca uma timeline nova.
+ * Presets da cutscene de troca de cena (`SceneCutscene.tsx`). O motor (uma única timeline GSAP) e a
+ * geometria (`sceneCutsceneGeometry.ts`) são sempre os mesmos — cada preset muda só cor e tempos.
  *
  * Cores de acento: verde da Upgrade para Site; roxo e azul medidos direto das artes dos cards de
  * "Escolha o seu Upgrade" (`public/builder/service-select/card-trafego.png` / `card-design.png`,
@@ -12,21 +9,22 @@ import type { SceneCutsceneVariant } from "./sceneCutsceneGeometry";
 export interface SceneCutscenePreset {
   accent: string;
   base: string;
-  variant: SceneCutsceneVariant;
-  /** Multiplica todos os tempos da geometria (1 = normal, <1 = mais rápido). */
-  speed: number;
-  /** Respiro com a tela 100% coberta, logo depois da troca de conteúdo. */
+  /** Passagem do desenho de fechamento (ponta entra embaixo → massa preta cobre a tela). */
+  coverDuration: number;
+  /** Preto absoluto depois da troca de conteúdo. */
   hold: number;
+  /** Passagem do desenho invertido de abertura. */
+  revealDuration: number;
   ease: string;
 }
 
 const BASE_PRESET: SceneCutscenePreset = {
   accent: "#2db958",
   base: "#000000",
-  variant: "peaks",
-  speed: 1,
-  hold: 0.1,
-  ease: "power2.inOut",
+  coverDuration: 0.75,
+  hold: 0.15,
+  revealDuration: 0.75,
+  ease: "power3.inOut",
 };
 
 export const SCENE_CUTSCENE_PRESETS = {

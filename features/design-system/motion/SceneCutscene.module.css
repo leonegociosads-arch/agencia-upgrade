@@ -1,16 +1,15 @@
-/* Cutscene de troca de cena — tudo preso à VIEWPORT (portal no `body`). Os dois grupos de
- * triângulos (fechamento ▲ / abertura ▼) usam exatamente as mesmas variáveis de geometria. Só
- * `transform` (y) é animado; as formas vêm de clip-path estático. */
+/* Cutscene de troca de cena — tudo preso à VIEWPORT (portal no `body`, `position: fixed`), nunca ao
+ * container do Builder. Duas peças com o mesmo desenho (fechamento e abertura, esta espelhada com
+ * `scaleY(-1)`) e uma cortina preta de tela cheia. Só o `y` de cada peça inteira é animado. */
 .root {
-  /* Unidade: acompanha a largura, com piso pela altura para os picos não ficarem rasos em telas
-   * verticais estreitas. */
-  --u: max(1vw, 0.8vh);
-  --triangle-width: 60%;
-  --triangle-height: calc(var(--u) * 19);
-  --triangle-offset: 25%;
+  /* Overscan lateral: o desenho passa um pouco das bordas para nunca abrir fresta. */
+  --scene-width: calc(100vw + 8px);
+  /* Altura da faixa dos picos (referência: 225px em 1080px de largura ≈ 21vw). */
+  --peak-h: clamp(140px, 21vw, 320px);
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  /* Conteúdo normal fica abaixo de 1000; a cutscene fica acima de tudo. */
+  z-index: 9000;
   pointer-events: none;
   overflow: hidden;
   visibility: hidden;
@@ -22,52 +21,49 @@
   pointer-events: auto;
 }
 
-/* Empilhamento (nenhum grupo cria contexto próprio): cortina 1 < laterais 3 < central 4 — os
- * triângulos passam sempre por cima da cortina. Estado inicial fora da tela (sem FOUC). */
+/* Cortina: garante o blackout absoluto no instante da troca. */
 .cover {
   position: absolute;
-  left: -3px;
-  right: -3px;
-  top: -3px;
-  height: calc(100% + 6px);
-  z-index: 1;
+  inset: -2px;
+  z-index: 0;
   background-color: var(--transition-base);
-  transform: translate3d(0, 200vh, 0);
-  will-change: transform;
-}
-
-.group {
-  position: absolute;
-  inset: 0;
   visibility: hidden;
 }
 
-.triangle {
+/* Uma peça = faixa dos picos + massa preta da altura da viewport. Centrada no eixo, com estado
+ * inicial fora da tela antes do primeiro frame (sem FOUC). */
+.shape {
   position: absolute;
   top: 0;
-  width: var(--triangle-width);
+  left: 50%;
+  width: var(--scene-width);
+  margin-left: calc(var(--scene-width) / -2);
+  height: calc(var(--peak-h) + 100vh + 4px);
+  height: calc(var(--peak-h) + 100dvh + 4px);
+  z-index: 10;
   transform: translate3d(0, 200vh, 0);
   will-change: transform;
   backface-visibility: hidden;
-  height: var(--triangle-height);
-  z-index: 3;
+  visibility: hidden;
 }
 
-.triangle.front {
-  z-index: 4;
+.flip {
+  position: absolute;
+  inset: 0;
 }
 
-/* Mesma distância para os dois lados do central. */
-.left {
-  left: calc(50% - var(--triangle-offset) - var(--triangle-width) / 2);
+/* Abertura: exatamente o mesmo desenho, espelhado verticalmente (massa em cima, picos embaixo). */
+.inverted .flip {
+  transform: scaleY(-1);
 }
 
-.center {
-  left: calc(50% - var(--triangle-width) / 2);
-}
-
-.right {
-  left: calc(50% + var(--triangle-offset) - var(--triangle-width) / 2);
+.mass {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--peak-h);
+  bottom: 0;
+  background-color: var(--transition-base);
 }
 
 .ring {
@@ -81,4 +77,12 @@
 
 .base {
   background-color: var(--transition-base);
+}
+
+.probe {
+  position: absolute;
+  top: var(--peak-h);
+  width: 0;
+  height: 0;
+  visibility: hidden;
 }
