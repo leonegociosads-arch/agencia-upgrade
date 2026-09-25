@@ -309,6 +309,130 @@
   border: 0;
 }
 
+/* ---------------------------------------------------------------------------
+ * TESTE VISUAL — botão "HUD" com moldura chanfrada e brilho neon (pedido do usuário, referência
+ * enviada por imagem), usado só na primeira pergunta do caminho Design/Social Media
+ * (`HUD_TEST_QUESTION_ID` em `QuestionRenderer.tsx`). Três camadas, de fora para dentro:
+ * `.hudOption` (o `<button>` em si, sem `clip-path` — o anel de foco precisa continuar um
+ * retângulo normal, mesmo motivo já documentado em `.assetImageMask` acima) → `.hudBorder` (o
+ * contorno neon: preenchido com a cor de destaque, recortado no formato chanfrado, com o brilho
+ * ao redor vindo de `filter: drop-shadow`, que — diferente de `box-shadow` — acompanha o RECORTE,
+ * não o retângulo cheio) → `.hudInner` (o preenchimento escuro, recortado no mesmo formato por
+ * dentro da "moldura", criando a linha neon pela sobra de `--hud-border` entre as duas camadas).
+ * ------------------------------------------------------------------------- */
+.hudOption {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--ds-radius-md);
+  transition: opacity var(--ds-duration-normal) var(--ds-easing-standard);
+  /* Tamanho do corte de cada canto — os dois cantos da esquerda ficam quase retos (corte bem
+   * pequeno, só pra tirar o esquadro perfeito), os dois da direita ganham o corte grande "estilo
+   * HUD" da referência. Espessura da linha neon e cor/brilho também centralizados aqui — um único
+   * lugar pra ajustar o visual inteiro deste botão de teste. */
+  --hud-notch-s: 7px;
+  --hud-notch-l: 26px;
+  --hud-border: 2px;
+  --hud-accent: #2f9dff;
+  --hud-glow: rgba(47, 157, 255, 0.55);
+}
+
+.hudOption:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.hudOption:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 4px;
+}
+
+.hudOption:active:not(:disabled) .hudBorder {
+  transform: scale(0.99);
+  transition: transform var(--ds-duration-instant) var(--ds-easing-base);
+}
+
+.optionsHasSelection .hudOption:not(.hudOptionSelected) {
+  opacity: 0.55;
+}
+
+.hudBorder {
+  display: block;
+  padding: var(--hud-border);
+  background: linear-gradient(135deg, #8fd0ff 0%, var(--hud-accent) 45%, #1568c4 100%);
+  clip-path: polygon(
+    0 var(--hud-notch-s),
+    var(--hud-notch-s) 0,
+    calc(100% - var(--hud-notch-l)) 0,
+    100% var(--hud-notch-l),
+    100% calc(100% - var(--hud-notch-l)),
+    calc(100% - var(--hud-notch-l)) 100%,
+    var(--hud-notch-s) 100%,
+    0 calc(100% - var(--hud-notch-s))
+  );
+  filter: drop-shadow(0 0 10px var(--hud-glow)) drop-shadow(0 0 2px var(--hud-glow));
+}
+
+.hudInner {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4) var(--ds-space-5, 20px);
+  background: radial-gradient(120% 160% at 0% 0%, #10233d 0%, #071527 45%, #030a15 100%);
+  clip-path: polygon(
+    0 var(--hud-notch-s),
+    var(--hud-notch-s) 0,
+    calc(100% - var(--hud-notch-l)) 0,
+    100% var(--hud-notch-l),
+    100% calc(100% - var(--hud-notch-l)),
+    calc(100% - var(--hud-notch-l)) 100%,
+    var(--hud-notch-s) 100%,
+    0 calc(100% - var(--hud-notch-s))
+  );
+}
+
+.hudOptionSelected .hudBorder {
+  filter: drop-shadow(0 0 16px var(--hud-glow)) drop-shadow(0 0 4px var(--hud-glow));
+}
+
+/* Espaço reservado para a ilustração — vazio de propósito nesta rodada (ver comentário em
+ * `QuestionRenderer.tsx`). Só uma caixa com cantos levemente arredondados e uma borda sutil pra já
+ * sugerir onde a arte futura vai encaixar. */
+.hudIconSlot {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--ds-radius-md);
+  background: linear-gradient(160deg, rgba(143, 208, 255, 0.14), rgba(3, 10, 21, 0.4));
+  border: 1px solid rgba(143, 208, 255, 0.35);
+}
+
+.hudBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  min-width: 0;
+}
+
+.hudLabel {
+  font-family: var(--ds-font-body);
+  font-weight: var(--ds-font-weight-bold);
+  font-size: 1.05rem;
+  color: #f4f9ff;
+  text-align: left;
+}
+
+.hudDescription {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
+  color: #9dc4ea;
+  text-align: left;
+}
+
 .optionText {
   display: flex;
   flex-direction: column;
