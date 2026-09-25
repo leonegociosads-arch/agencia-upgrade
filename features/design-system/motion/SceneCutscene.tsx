@@ -16,6 +16,7 @@ import gsap from "gsap";
 import { useReducedMotion } from "./useReducedMotion";
 import { useScrollLock } from "./useScrollLock";
 import { SCENE_CUTSCENE_PRESETS, type SceneCutscenePresetName } from "./sceneCutscenePresets";
+import { CUTSCENE_GEOMETRY, piecePolygon, type SceneCutsceneVariant } from "./sceneCutsceneGeometry";
 import styles from "./SceneCutscene.module.css";
 
 export interface SceneCutsceneCoveredInfo {
@@ -68,9 +69,10 @@ function subscribeNothing() {
 }
 
 /**
- * Cutscene de troca de cena ("layered vertical wipe"): duas camadas de tela cheia sobem de baixo
- * para cima, a troca de conteúdo acontece SÓ com a viewport totalmente coberta (`onCovered`), e as
- * camadas continuam subindo revelando a cena nova. Genérica de propósito — não sabe nada do Builder:
+ * Cutscene de troca de cena ("layered vertical wipe"): placas geométricas de tela cheia
+ * (`sceneCutsceneGeometry.ts`) sobem de baixo para cima com velocidades levemente diferentes, a
+ * troca de conteúdo acontece SÓ com a viewport totalmente coberta (`onCovered`), e as placas
+ * continuam subindo revelando a cena nova. Genérica de propósito — não sabe nada do Builder:
  * quem chama passa a callback de troca e um preset (`sceneCutscenePresets.ts`).
  *
  * Com `prefers-reduced-motion`, nenhuma camada aparece: `onCovered` roda na hora, síncrono (o mesmo
@@ -82,10 +84,11 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
   const isClient = useSyncExternalStore(subscribeNothing, () => true, () => false);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const accentRef = useRef<HTMLDivElement | null>(null);
-  const baseRef = useRef<HTMLDivElement | null>(null);
+  const pieceRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [variant, setVariant] = useState<SceneCutsceneVariant>("peaks");
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const settleCallRef = useRef<gsap.core.Tween | null>(null);
+  const resumeCallRef = useRef<gsap.core.Tween | null>(null);
   const playingRef = useRef(false);
   const revealPendingRef = useRef(false);
   const revealQueueRef = useRef(new Set<() => void>());
@@ -104,30 +107,32 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
     ({ preset = "default", onCovered, delay = 0 }: PlaySceneCutsceneOptions) => {
       if (playingRef.current) return false;
 
+      const config = SCENE_CUTSCENE_PRESETS[preset];
+      // Geometria diferente da que está montada: troca antes de medir/animar (raro — hoje só há uma).
+      if (!reducedMotion && config.variant !== variant) flushSync(() => setVariant(config.variant));
+
       const root = rootRef.current;
-      const accent = accentRef.current;
-      const base = baseRef.current;
-      if (reducedMotion || !root || !accent || !base) {
+      const geometry = CUTSCENE_GEOMETRY[config.variant];
+      const pieces = geometry.pieces.map((_, index) => pieceRefs.current[index]);
+      if (reducedMotion || !root || pieces.some((piece) => !piece)) {
         onCovered({ hidden: false });
         return true;
       }
+      const elements = pieces as HTMLDivElement[];
 
-      const config = SCENE_CUTSCENE_PRESETS[preset];
       playingRef.current = true;
       revealPendingRef.current = true;
       setIsPlaying(true);
 
-      root.style.setProperty("--cutscene-accent", config.accent);
-      root.style.setProperty("--cutscene-base", config.base);
-      root.dataset.variant = config.variant;
+      root.style.setProperty("--transition-accent", config.accent);
+      root.style.setProperty("--transition-base", config.base);
       root.dataset.active = "true";
 
-      const layers = [accent, base];
       const timeline = gsap.timeline({
         delay,
         defaults: { ease: config.ease, force3D: true },
         onComplete: () => {
-          gsap.set(layers, { yPercent: 100 });
+          gsap.set(elements, { yPercent: 100 });
           delete root.dataset.active;
           timelineRef.current = null;
           playingRef.current = false;
@@ -137,26 +142,36 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
       });
       timelineRef.current = timeline;
 
-      timeline
-        .set(layers, { y: 0, yPercent: 100 })
-        // Cobrir: acento na frente, base logo atrás (sobreposta) — a base é quem cobre por inteiro.
-        .to(accent, { yPercent: 0, duration: config.coverDuration }, 0)
-        .to(base, { yPercent: 0, duration: config.coverDuration }, config.layerOffset)
-        .call(() => {
-          // `flushSync` garante que a cena nova já está no DOM antes da cortina voltar a andar.
-          try {
-            flushSync(() => onCovered({ hidden: true }));
-          } catch (error) {
-            console.error(error);
-          }
-        })
-        // Revelar: base sai primeiro, acento por último — o acento só aparece como faixa nas bordas.
-        .to(base, { yPercent: -100, duration: config.revealDuration }, `+=${config.hold}`)
-        .to(accent, { yPercent: -100, duration: config.revealDuration }, `<+=${config.layerOffset}`);
+      // Cobrir: cada placa com seu tempo (profundidade), todas convergindo juntas na cobertura.
+      timeline.set(elements, { y: 0, yPercent: 100 });
+      geometry.pieces.forEach((piece, index) => {
+        timeline.to(elements[index], { yPercent: 0, duration: piece.cover.duration * config.speed }, piece.cover.delay * config.speed);
+      });
+      timeline.call(() => {
+        // `flushSync` garante que a cena nova já está no DOM antes das placas voltarem a andar.
+        try {
+          flushSync(() => onCovered({ hidden: true }));
+        } catch (error) {
+          console.error(error);
+        }
+        // Montar a cena nova pode travar a thread por alguns frames; pausar e retomar no próximo
+        // tick faz a revelação começar do ponto certo em vez de "pular" o tempo perdido.
+        timeline.pause();
+        resumeCallRef.current = gsap.delayedCall(0, () => timeline.resume());
+      });
+      // Revelar: continuam subindo, agora com a borda espelhada de baixo passando pela tela.
+      const revealStart = timeline.duration() + config.hold;
+      geometry.pieces.forEach((piece, index) => {
+        timeline.to(
+          elements[index],
+          { yPercent: -100, duration: piece.reveal.duration * config.speed },
+          revealStart + piece.reveal.delay * config.speed,
+        );
+      });
 
       return true;
     },
-    [reducedMotion, flushRevealQueue],
+    [reducedMotion, variant, flushRevealQueue],
   );
 
   const whenRevealed = useCallback((callback: () => void) => {
@@ -175,6 +190,7 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
     return () => {
       timelineRef.current?.kill();
       settleCallRef.current?.kill();
+      resumeCallRef.current?.kill();
       queue.clear();
       playingRef.current = false;
       revealPendingRef.current = false;
@@ -188,12 +204,31 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
       {children}
       {isClient &&
         createPortal(
-          <div ref={rootRef} className={styles.root} data-variant="default" aria-hidden="true">
-            <div ref={accentRef} className={`${styles.layer} ${styles.layerAccent}`} />
-            <div ref={baseRef} className={`${styles.layer} ${styles.layerBase}`}>
-              <span className={`${styles.edgeLine} ${styles.edgeLineTop}`} />
-              <span className={`${styles.edgeLine} ${styles.edgeLineBottom}`} />
-            </div>
+          <div ref={rootRef} className={styles.root} aria-hidden="true">
+            {CUTSCENE_GEOMETRY[variant].pieces.map((piece, index) => (
+              <div
+                key={piece.id}
+                ref={(element) => {
+                  pieceRefs.current[index] = element;
+                }}
+                className={styles.piece}
+                style={{ clipPath: piecePolygon(piece, 0) }}
+              >
+                {piece.rings.map((ring) => (
+                  <div
+                    key={ring.inset}
+                    className={`${styles.ring} ${styles[ring.color]}`}
+                    style={{ clipPath: piecePolygon(piece, ring.inset) }}
+                  />
+                ))}
+                {piece.bodyLines && (
+                  <>
+                    <span className={`${styles.bodyLine} ${styles.bodyLineTop}`} />
+                    <span className={`${styles.bodyLine} ${styles.bodyLineBottom}`} />
+                  </>
+                )}
+              </div>
+            ))}
           </div>,
           document.body,
         )}
