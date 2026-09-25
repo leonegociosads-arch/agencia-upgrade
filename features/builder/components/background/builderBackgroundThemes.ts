@@ -76,7 +76,7 @@ export interface NucleusLayer {
 
 export const NUCLEUS_CONFIG = {
   /** Quantidade total de partículas por largura de tela. */
-  density: { mobile: 130, tablet: 190, desktop: 260 },
+  density: { mobile: 500, tablet: 750, desktop: 1000 },
   /** Fração da distância centro→borda percorrida por segundo (antes da aceleração perto do núcleo). */
   speed: 0.085,
   /** Rotação leve do fluxo (rad/s) — dá sensação de redemoinho sem virar espiral. */
