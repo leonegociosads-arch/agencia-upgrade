@@ -47,7 +47,7 @@
   background-repeat: repeat;
   opacity: 0.075;
   will-change: transform;
-  animation: drift 48s linear infinite;
+  animation: drift 24s linear infinite;
 }
 
 /* Um ciclo = deslocamento de exatamente 2 tiles para a direita e 1 para cima: o quadro final é
