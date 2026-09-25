@@ -169,26 +169,57 @@ function startBuffer(context: AudioContext, effect: SoundEffectFile, buffer: Aud
   source.start();
 }
 
+/** Decodifica uma vez e guarda — reaproveitado por `primeSoundEffect` e `playSoundEffect`. */
+function decodeEffect(context: AudioContext, effect: SoundEffectFile): Promise<AudioBuffer | null> {
+  const ready = decoded.get(effect);
+  if (ready) return Promise.resolve(ready);
+  preloadSoundEffect(effect);
+  return (fileData.get(effect) ?? Promise.resolve(null))
+    .then((data) => (data ? context.decodeAudioData(data.slice(0)) : null))
+    .then((buffer) => {
+      if (buffer) decoded.set(effect, buffer);
+      return buffer;
+    })
+    .catch(() => null);
+}
+
+/**
+ * Chamar no INÍCIO do handler de clique, antes de qualquer `window.confirm`. No celular (iOS
+ * principalmente) o diálogo nativo consome o gesto do usuário: sem isto, o AudioContext continua
+ * suspenso, o som fica "agendado" e só sai no PRÓXIMO toque (ex.: ao escolher um caminho). Aqui,
+ * ainda dentro do gesto, o contexto é destravado (buffer silencioso) e o arquivo já é decodificado.
+ */
+export function primeSoundEffect(effect: SoundEffectFile): void {
+  if (!isSoundEnabled()) return;
+  const context = getAudioContext();
+  if (!context) return;
+  if (context.state !== "running") void context.resume().catch(() => {});
+  try {
+    const silent = context.createBufferSource();
+    silent.buffer = context.createBuffer(1, 1, 22050);
+    silent.connect(context.destination);
+    silent.start(0);
+  } catch {
+    // Sem suporte — segue sem destravar.
+  }
+  void decodeEffect(context, effect);
+}
+
+/** Tempo máximo entre o clique e o som sair; passou disso, o som é descartado (nunca toca atrasado
+ * num toque seguinte). */
+const MAX_EFFECT_DELAY_MS = 400;
+
 /** Toca o efeito (sem esperar — quem chama segue na hora). Respeita o mute global. */
 export function playSoundEffect(effect: SoundEffectFile): void {
   if (!isSoundEnabled()) return;
   const context = getAudioContext();
   if (!context) return;
-  if (context.state === "suspended") void context.resume();
+  const requestedAt = performance.now();
+  const resumed = context.state === "running" ? Promise.resolve() : context.resume().catch(() => {});
 
-  const ready = decoded.get(effect);
-  if (ready) {
-    startBuffer(context, effect, ready);
-    return;
-  }
-  preloadSoundEffect(effect);
-  void fileData
-    .get(effect)
-    ?.then((data) => (data ? context.decodeAudioData(data.slice(0)) : null))
-    .then((buffer) => {
-      if (!buffer) return;
-      decoded.set(effect, buffer);
-      startBuffer(context, effect, buffer);
-    })
-    .catch(() => {});
+  void Promise.all([resumed, decodeEffect(context, effect)]).then(([, buffer]) => {
+    if (!buffer || context.state !== "running") return;
+    if (performance.now() - requestedAt > MAX_EFFECT_DELAY_MS) return;
+    startBuffer(context, effect, buffer);
+  });
 }

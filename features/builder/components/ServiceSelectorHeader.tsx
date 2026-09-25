@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import SoundToggle from "@/features/design-system/components/SoundToggle";
-import { playSoundEffect } from "@/features/design-system/motion/sound";
+import { playSoundEffect, primeSoundEffect } from "@/features/design-system/motion/sound";
 import { cx } from "@/features/design-system/utils/cx";
 import styles from "./ServiceSelectorHeader.module.css";
 
@@ -30,6 +30,8 @@ const CURRENT_STEP = 1;
  */
 export default function ServiceSelectorHeader({ configuredCount, hasSomethingToReset, onToggleMyUpgrade, onResetSession }: ServiceSelectorHeaderProps) {
   function handleResetClick() {
+    // Destrava o áudio ainda dentro do toque — o confirm nativo consome o gesto no celular.
+    primeSoundEffect("reset");
     if (window.confirm("Começar um novo projeto? Isso vai apagar o progresso atual.")) {
       playSoundEffect("reset");
       onResetSession();
