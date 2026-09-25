@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useBuilder } from "../state/BuilderContext";
 import SoundToggle from "@/features/design-system/components/SoundToggle";
+import { playSoundEffect } from "@/features/design-system/motion/sound";
 import styles from "./BuilderNavigation.module.css";
 
 interface BuilderNavigationProps {
@@ -24,6 +25,7 @@ export default function BuilderNavigation({ onToggleMyUpgrade, onResetSession }:
 
   function handleResetClick() {
     if (window.confirm("Começar um novo projeto? Isso vai apagar o progresso atual.")) {
+      playSoundEffect("reset");
       onResetSession();
     }
   }

@@ -128,3 +128,67 @@ export function playSound(event: SoundEvent): void {
   if (!isSoundEnabled()) return;
   playTone(TONES[event]);
 }
+
+/**
+ * Efeitos gravados (arquivo), para os poucos casos que pedem um som específico. Mesmo mute
+ * (`isSoundEnabled`) e mesmo `AudioContext` dos tons sintetizados — nenhum sistema paralelo.
+ */
+export type SoundEffectFile = "reset";
+
+const FILE_EFFECTS: Record<SoundEffectFile, { src: string; gain: number }> = {
+  reset: { src: "/audio/fahhh.mp3", gain: 0.4 },
+};
+
+const fileData = new Map<SoundEffectFile, Promise<ArrayBuffer | null>>();
+const decoded = new Map<SoundEffectFile, AudioBuffer>();
+const playingSources = new Map<SoundEffectFile, AudioBufferSourceNode>();
+
+/** Baixa o arquivo com antecedência (sem criar AudioContext) — o primeiro clique não espera rede. */
+export function preloadSoundEffect(effect: SoundEffectFile): void {
+  if (typeof window === "undefined" || typeof fetch !== "function" || fileData.has(effect)) return;
+  fileData.set(
+    effect,
+    fetch(FILE_EFFECTS[effect].src)
+      .then((response) => (response.ok ? response.arrayBuffer() : null))
+      .catch(() => null),
+  );
+}
+
+function startBuffer(context: AudioContext, effect: SoundEffectFile, buffer: AudioBuffer): void {
+  // Clique repetido: interrompe a execução anterior e recomeça do início (nunca sobrepõe).
+  playingSources.get(effect)?.stop();
+  const source = context.createBufferSource();
+  const gainNode = context.createGain();
+  gainNode.gain.value = FILE_EFFECTS[effect].gain;
+  source.buffer = buffer;
+  source.connect(gainNode).connect(context.destination);
+  source.onended = () => {
+    if (playingSources.get(effect) === source) playingSources.delete(effect);
+  };
+  playingSources.set(effect, source);
+  source.start();
+}
+
+/** Toca o efeito (sem esperar — quem chama segue na hora). Respeita o mute global. */
+export function playSoundEffect(effect: SoundEffectFile): void {
+  if (!isSoundEnabled()) return;
+  const context = getAudioContext();
+  if (!context) return;
+  if (context.state === "suspended") void context.resume();
+
+  const ready = decoded.get(effect);
+  if (ready) {
+    startBuffer(context, effect, ready);
+    return;
+  }
+  preloadSoundEffect(effect);
+  void fileData
+    .get(effect)
+    ?.then((data) => (data ? context.decodeAudioData(data.slice(0)) : null))
+    .then((buffer) => {
+      if (!buffer) return;
+      decoded.set(effect, buffer);
+      startBuffer(context, effect, buffer);
+    })
+    .catch(() => {});
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useBuilder } from "../state/BuilderContext";
 import { useBuilderSessionPersistence } from "../state/useBuilderSessionPersistence";
 import { getSceneKey } from "../logic/getSceneKey";
@@ -8,7 +8,7 @@ import SceneTransition from "@/features/design-system/motion/SceneTransition";
 import { SceneCutsceneProvider } from "@/features/design-system/motion/SceneCutscene";
 import Drawer from "@/features/design-system/motion/Drawer";
 import { useScrollLock } from "@/features/design-system/motion/useScrollLock";
-import { playSound } from "@/features/design-system/motion/sound";
+import { playSound, preloadSoundEffect } from "@/features/design-system/motion/sound";
 import BuilderNavigation from "./BuilderNavigation";
 import BuilderMovingBackground from "./BuilderMovingBackground";
 import ServiceSelector from "./ServiceSelector";
@@ -52,6 +52,11 @@ export default function BuilderShell() {
   // nunca tem uma instância ativa). Precisa vir antes do `return` antecipado de `isHydrating`
   // logo abaixo (regra dos Hooks: sempre chamado, nunca condicional).
   useScrollLock(showMyUpgrade && canShowMyUpgradePanel);
+
+  // Efeito do "Começar de novo" já baixado antes do primeiro clique.
+  useEffect(() => {
+    preloadSoundEffect("reset");
+  }, []);
 
   // Estado curto de hidratação (Fase 14) — evita mostrar o seletor vazio por um instante antes de
   // trocar para uma sessão restaurada (docs/SESSION-PERSISTENCE.md, "Hidratação"). A checagem real
