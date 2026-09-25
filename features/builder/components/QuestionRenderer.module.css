@@ -260,6 +260,9 @@
   display: block;
   width: 100%;
   height: auto;
+  /* As artes vêm muito saturadas/luminosas (neon forte); tom um pouco mais contido para não
+   * gritar mais que o conteúdo. Filtro estático — nunca animado. */
+  filter: saturate(0.78) brightness(0.86);
 }
 
 /* "Outros cards perdem destaque" (Motion Design, Seção 7) — mesmo comportamento

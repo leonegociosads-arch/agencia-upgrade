@@ -21,9 +21,9 @@ export interface SceneCutscenePreset {
 const BASE_PRESET: SceneCutscenePreset = {
   accent: "#2db958",
   base: "#000000",
-  coverDuration: 0.75,
-  hold: 0.3,
-  revealDuration: 0.8,
+  coverDuration: 0.6,
+  hold: 0.22,
+  revealDuration: 0.58,
   ease: "power3.inOut",
 };
 
