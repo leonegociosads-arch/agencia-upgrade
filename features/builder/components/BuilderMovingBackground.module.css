@@ -1,0 +1,75 @@
+/* Fundo infinito das telas de pergunta. Fica atrás de tudo (`z-index: -1` no contexto raiz, acima
+ * só do fundo do `body`) e nunca recebe clique. */
+.background {
+  /* Tile seamless: largura inteira em px por faixa de tela; altura = largura × √3 arredondada
+   * (proporção exata do tile hexagonal). Números inteiros evitam fresta de subpixel na repetição. */
+  --tile-w: 60px;
+  --tile-h: 104px;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: #050706;
+}
+
+@media (min-width: 768px) {
+  .background {
+    --tile-w: 72px;
+    --tile-h: 125px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .background {
+    --tile-w: 84px;
+    --tile-h: 145px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .background {
+    --tile-w: 96px;
+    --tile-h: 166px;
+  }
+}
+
+/* Superfície maior que a viewport: sobra de 2 tiles na horizontal e 1 na vertical, exatamente o
+ * percurso de um ciclo da animação — nenhuma borda aparece em nenhum momento. */
+.pattern {
+  position: absolute;
+  top: 0;
+  left: calc(var(--tile-w) * -2);
+  width: calc(100% + var(--tile-w) * 2);
+  height: calc(100% + var(--tile-h));
+  background-image: url("/assets/builder/background/hex-tile.svg");
+  background-size: var(--tile-w) var(--tile-h);
+  background-repeat: repeat;
+  opacity: 0.075;
+  will-change: transform;
+  animation: drift 48s linear infinite;
+}
+
+/* Um ciclo = deslocamento de exatamente 2 tiles para a direita e 1 para cima: o quadro final é
+ * idêntico ao inicial, então o loop é contínuo, numa única direção (sem vaivém). */
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(calc(var(--tile-w) * 2), calc(var(--tile-h) * -1), 0);
+  }
+}
+
+/* Suaviza o padrão atrás do conteúdo (centro) e o deixa mais presente nas bordas. */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 45%, rgba(5, 7, 6, 0.7) 0%, rgba(5, 7, 6, 0.25) 60%, rgba(5, 7, 6, 0) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pattern {
+    animation: none;
+  }
+}

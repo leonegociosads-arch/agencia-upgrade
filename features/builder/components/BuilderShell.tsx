@@ -10,6 +10,7 @@ import Drawer from "@/features/design-system/motion/Drawer";
 import { useScrollLock } from "@/features/design-system/motion/useScrollLock";
 import { playSound } from "@/features/design-system/motion/sound";
 import BuilderNavigation from "./BuilderNavigation";
+import BuilderMovingBackground from "./BuilderMovingBackground";
 import ServiceSelector from "./ServiceSelector";
 import QuestionRenderer from "./QuestionRenderer";
 import ServiceComplete from "./ServiceComplete";
@@ -100,10 +101,14 @@ export default function BuilderShell() {
   // lógica nova: `ServiceSelectorHeader` recebe as MESMAS duas funções (`onToggleMyUpgrade`/
   // `onResetSession`) que `BuilderNavigation` sempre recebeu, só muda quem desenha o botão.
   const isChoosingService = state.step === "choosing_service";
+  // Fundo infinito só nas telas de pergunta; montado aqui (fora do SceneTransition) para seguir
+  // andando entre uma pergunta e outra, e já estar pronto quando a cutscene revela a tela.
+  const isQuestionScreen = state.step === "configuring" && state.activeService !== null;
 
   return (
     <SceneCutsceneProvider>
-      <div className={styles.shell}>
+      <div className={isQuestionScreen ? `${styles.shell} ${styles.shellTransparent}` : styles.shell}>
+        {isQuestionScreen && <BuilderMovingBackground theme={state.activeService ?? undefined} />}
         {!isChoosingService && <BuilderNavigation onToggleMyUpgrade={handleToggleMyUpgrade} onResetSession={resetSession} />}
 
         {justRestored && <div className={styles.restoredBanner}>Seu progresso foi recuperado.</div>}

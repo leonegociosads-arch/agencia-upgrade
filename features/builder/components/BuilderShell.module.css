@@ -6,6 +6,11 @@
   background: var(--ds-color-bg);
 }
 
+/* Telas de pergunta: o fundo vem do `BuilderMovingBackground` (fixo, atrás do conteúdo). */
+.shellTransparent {
+  background: transparent;
+}
+
 .body {
   flex: 1;
   padding-bottom: var(--ds-space-8);
