@@ -37,7 +37,7 @@ const LATERAL_RINGS: CutsceneRing[] = [
 
 /** Ordem = ordem de pintura (primeiro fica atrás). Contornos e faixas com um quarto da espessura da
  * referência (pedido do usuário: mais leve/elegante) — inclusive a faixa do pico central, cuja
- * ponta desceu para ficar a meio caminho da ponta do pico da frente. */
+ * ponta desceu na mesma proporção em direção à do pico da frente. */
 export const CUTSCENE_PEAKS: CutscenePeak[] = [
   {
     id: "back-center",
