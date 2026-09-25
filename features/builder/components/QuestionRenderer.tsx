@@ -391,21 +391,36 @@ interface OptionCardProps {
  * continua como está para qualquer opção que ainda não tenha arte.
  */
 /**
- * A posição da caixa de seleção (`asset.checkbox`) foi medida no PNG original, sem zoom. `scale()`
- * amplia a imagem em torno do próprio centro (50%/50%, o `transform-origin` padrão do CSS) — então,
- * com `visualScale` diferente de 1, a caixa real passa a ficar num ponto DIFERENTE em relação ao
- * botão (que nunca muda de tamanho, só o conteúdo dentro dele "zoom"). Sem este ajuste, o check
- * marcado aparecia longe da caixa vazia em qualquer opção ampliada (bug real, pego no teste
- * visual). Mesma fórmula de "distância ao centro × escala" usada para qualquer zoom em torno do
- * centro.
+ * A posição da caixa de seleção (`asset.checkbox`) foi medida no PNG original, sem zoom. A máscara
+ * (`.assetImageMask`) agora cresce em ALTURA junto com o zoom (`aspectRatio` calculado em
+ * `maskAspectRatio` abaixo) exatamente o suficiente para caber a imagem ampliada inteira — corrige
+ * o corte no topo/rodapé que existia quando a máscara ficava com a altura da imagem SEM zoom
+ * (bug real relatado pelo usuário: "as imagens... estão sendo cortadas da parte de cima e a parte
+ * de baixo"). Só a LARGURA continua menor que a imagem ampliada (a margem transparente lateral que
+ * o zoom existe para recortar).
+ *
+ * Por isso o eixo vertical do check (`y`/`h`) usa a fração medida no PNG original sem nenhum
+ * ajuste: como a altura da máscara cresce na MESMA proporção que a imagem, a imagem passa a
+ * preencher a máscara verticalmente de ponta a ponta (sem sobra, sem corte), então uma fração
+ * vertical do PNG original já é, também, a fração vertical correta dentro da máscara. Já o eixo
+ * horizontal (`x`/`w`) continua com a fórmula de "distância ao centro × escala": a máscara
+ * permanece mais estreita que a imagem ampliada nesse eixo (o recorte lateral pretendido), então a
+ * posição horizontal real muda em relação ao centro do botão exatamente como antes.
  */
 function scaledCheckboxRect(checkbox: NonNullable<OptionAsset["checkbox"]>, scale: number) {
   return {
     x: 0.5 + (checkbox.x - 0.5) * scale,
-    y: 0.5 + (checkbox.y - 0.5) * scale,
+    y: checkbox.y,
     w: checkbox.w * scale,
-    h: checkbox.h * scale,
+    h: checkbox.h,
   };
+}
+
+/** Proporção (largura/altura) da máscara de zoom — largura igual à do PNG original (é ela quem
+ * define o recorte lateral pretendido) e altura já multiplicada pelo `visualScale`, para a máscara
+ * crescer junto com o zoom e nunca cortar a imagem ampliada por cima/por baixo. */
+function maskAspectRatio(asset: OptionAsset): string {
+  return `${asset.width} / ${asset.height * asset.visualScale}`;
 }
 
 function OptionCard({ question, optionId, label, description, selected, showCheck, disabled, onClick }: OptionCardProps) {
@@ -429,7 +444,7 @@ function OptionCard({ question, optionId, label, description, selected, showChec
             `overflow: hidden` no mesmo elemento do `:focus-visible` cortaria o próprio anel de
             foco, que é desenhado por fora da caixa (mesmo cuidado já tomado em
             `ServiceSelectorCard.module.css`/`.imageMask`). */}
-        <span className={styles.assetImageMask}>
+        <span className={styles.assetImageMask} style={{ aspectRatio: maskAspectRatio(asset) }}>
           <Image
             src={asset.src}
             alt=""

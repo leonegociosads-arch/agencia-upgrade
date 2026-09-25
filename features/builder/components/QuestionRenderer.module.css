@@ -247,9 +247,16 @@
 
 /* Máscara de zoom óptico (`visualScale`) — ver comentário em `QuestionRenderer.tsx` sobre por que
  * `overflow: hidden` vive AQUI, numa camada interna, e nunca no `.assetOption` (cortaria o próprio
- * anel de foco, desenhado por fora da caixa). */
+ * anel de foco, desenhado por fora da caixa). A altura real vem do `aspect-ratio` inline
+ * (`maskAspectRatio`, já multiplicado pelo `visualScale`) — por isso a imagem (que continua com seu
+ * próprio tamanho natural, sem zoom, até o `transform: scale()` entrar) precisa ficar CENTRALIZADA
+ * aqui: assim seu centro coincide com o centro da máscara (já maior), e o `scale()` em torno do
+ * próprio centro passa a preencher a máscara certinho, de ponta a ponta, sem sobrar corte em cima
+ * nem embaixo. */
 .assetImageMask {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   border-radius: inherit;
 }
