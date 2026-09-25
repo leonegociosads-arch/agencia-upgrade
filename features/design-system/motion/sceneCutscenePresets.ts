@@ -22,11 +22,11 @@ export interface SceneCutscenePreset {
 
 const BASE_PRESET: SceneCutscenePreset = {
   accent: "#2db958",
-  base: "#050606",
+  base: "#000000",
   variant: "peaks",
   speed: 1,
-  hold: 0.06,
-  ease: "power3.inOut",
+  hold: 0.1,
+  ease: "power2.inOut",
 };
 
 export const SCENE_CUTSCENE_PRESETS = {

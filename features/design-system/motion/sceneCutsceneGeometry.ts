@@ -1,27 +1,23 @@
 /**
- * Geometria da cutscene (`SceneCutscene.tsx`) — três picos (esquerdo, central, direito) do MESMO
- * tamanho, espelhados em relação ao centro, mais uma quarta placa (`blackCover`) puramente preta e
- * sem pico (retângulo) que garante o blackout de verdade.
+ * Geometria e coreografia da cutscene (`SceneCutscene.tsx`).
  *
- * Empilhamento: a ordem deste array É a ordem de pintura no DOM (nenhum `z-index` explícito
- * necessário) — `left`/`right` primeiro (atrás), `center` depois (na frente dos dois, mesmo
- * tamanho, só prioridade de camada), `blackCover` por último (sempre no topo). Enquanto o
- * `blackCover` ainda cobre um trecho da tela, QUALQUER contorno/faixa de acento dos três picos
- * embaixo dele fica oculto ali — é isso que garante "tela 100% preta, sem linha residual" durante
- * o blackout, sem depender de nenhum elemento decorativo próprio para essa fase.
+ * Dois grupos DOM independentes, com a mesma geometria (tamanho/distância em CSS:
+ * `--triangle-width`, `--triangle-height`, `--triangle-offset`):
+ * - `closing`: três triângulos apontando PARA CIMA (esquerdo, central, direito) — fecham a tela;
+ * - `opening`: os mesmos três, apontando PARA BAIXO — abrem a tela.
+ * O `blackCover` anda colado na base dos laterais (mesmo tempo que eles), então os triângulos
+ * aparecem na borda da cortina preta. Só `y` é animado; X/tamanho nunca mudam.
  *
- * Cada peça é uma PLACA da altura da viewport: pico em cima (borda de ataque ao cobrir) e o mesmo
- * pico espelhado embaixo (borda de saída ao revelar) — por ter corpo inteiro, nenhuma defasagem de
- * tempo entre peças abre fresta.
- *
- * Unidades: x em % da largura; alturas em `--u` (unidade relativa à viewport, ver CSS), medidas a
- * partir da borda do corpo da placa. Contorno = anéis aninhados, cada um com o pico deslocado
- * `inset` para dentro (mesma inclinação, então a espessura fica uniforme nos lados inclinados).
+ * A abertura é o espelho temporal do fechamento: no fechamento o central sai na frente e os
+ * laterais vêm juntos logo depois; na abertura os laterais saem juntos primeiro e o central logo
+ * depois.
  */
 export type CutsceneColor = "accent" | "base";
 
 export interface CutsceneRing {
   color: CutsceneColor;
+  /** Fração da altura do triângulo — anel desenhado como triângulo semelhante encolhido em
+   * direção à base, então o contorno tem espessura uniforme nas duas laterais inclinadas. */
   inset: number;
 }
 
@@ -30,130 +26,49 @@ export interface CutsceneTiming {
   duration: number;
 }
 
-export interface CutscenePiece {
-  id: string;
-  apexX: number;
-  apexH: number;
-  halfWidth: number;
-  /** Do anel externo (contorno) para o interno (preenchimento). */
-  rings: CutsceneRing[];
-  cover: CutsceneTiming;
-  reveal: CutsceneTiming;
-}
-
 export interface CutsceneGeometry {
-  /** Altura da faixa acima/abaixo do corpo onde vivem os picos, em `--u`. */
-  cap: number;
-  /** Ordem = ordem de pintura (primeiro fica atrás; `blackCover` por último = sempre no topo). */
-  pieces: CutscenePiece[];
+  /** Do anel externo (contorno) para o interno (preenchimento). */
+  rings: { center: CutsceneRing[]; lateral: CutsceneRing[] };
+  closing: { center: CutsceneTiming; laterals: CutsceneTiming };
+  opening: { laterals: CutsceneTiming; center: CutsceneTiming };
 }
 
-// Mesmo apexH/halfWidth nos três picos (só o `blackCover` é achatado, apexH: 0 — vira um retângulo
-// simples, sem geometria própria, pela mesma função `piecePolygon`). `left`/`right` espelhados de
-// verdade: mesmo deslocamento (25) para cada lado do centro (50), mesmos rings.
-// `halfWidth` deliberadamente PEQUENO comparado ao `PEAK_OFFSET` (só uma sobra de ~10-15% pra cada
-// lado) — com um `halfWidth` grande (a versão anterior, 55, quase o dobro do offset) o pico
-// CENTRAL, sendo pintado por cima, cobria a largura inteira dos dois laterais por baixo dele e os
-// apagava da composição inteira (não só na região de sobreposição pretendida) — os três "picos"
-// visíveis colapsavam num só. Com os três do mesmo tamanho e uma sobreposição rasa nas bordas
-// internas, o central só fica na frente ONDE de fato se cruzam, exatamente como a referência.
-const PEAK_OFFSET = 25;
-const PEAK_APEX_H = 19;
-const PEAK_HALF_WIDTH = 30;
-const LATERAL_RINGS: CutsceneRing[] = [
-  { color: "base", inset: 0 },
-  { color: "accent", inset: 0.42 },
-  { color: "base", inset: 3.4 },
-];
-
-// Cobrir: central mais rápida (chega primeiro), direita intermediária, esquerda mais lenta —
-// diferenças de 30-70ms, convergindo para a composição completa. `blackCover` só começa a subir
-// depois que os três picos já estão bem adiantados e termina DEPOIS de todos — é essa folga que
-// garante blackout sólido assim que ele chega, sem nenhum picos de cor escapando.
-// Revelar: espelhado — `blackCover` sai PRIMEIRO (a tela já está preta pelos próprios picos, nada
-// muda ainda), só depois os picos saem (central mais rápida de novo) revelando a cena nova com a
-// mesma respiração de cor que a entrada teve, agora ao contrário.
 const PEAKS: CutsceneGeometry = {
-  // Precisa ficar acima do maior `apexH` (19) com folga — mesmo valor do `--cap` fixo em
-  // `SceneCutscene.module.css` (a folha não lê este campo; mantido igual só para não confundir).
-  cap: 23,
-  pieces: [
-    {
-      id: "left",
-      apexX: 50 - PEAK_OFFSET,
-      apexH: PEAK_APEX_H,
-      halfWidth: PEAK_HALF_WIDTH,
-      rings: LATERAL_RINGS,
-      cover: { delay: 0.07, duration: 0.52 },
-      reveal: { delay: 0.14, duration: 0.5 },
-    },
-    {
-      id: "right",
-      apexX: 50 + PEAK_OFFSET,
-      apexH: PEAK_APEX_H,
-      halfWidth: PEAK_HALF_WIDTH,
-      rings: LATERAL_RINGS,
-      cover: { delay: 0.035, duration: 0.5 },
-      reveal: { delay: 0.09, duration: 0.48 },
-    },
-    {
-      id: "center",
-      apexX: 50,
-      apexH: PEAK_APEX_H,
-      halfWidth: PEAK_HALF_WIDTH,
-      rings: [
-        { color: "accent", inset: 0 },
-        { color: "base", inset: 0.32 },
-      ],
-      cover: { delay: 0, duration: 0.48 },
-      reveal: { delay: 0.05, duration: 0.46 },
-    },
-    {
-      id: "black-cover",
-      apexX: 50,
-      apexH: 0,
-      halfWidth: 50,
-      rings: [{ color: "base", inset: 0 }],
-      cover: { delay: 0.11, duration: 0.5 },
-      reveal: { delay: 0, duration: 0.42 },
-    },
-  ],
+  rings: {
+    center: [
+      { color: "base", inset: 0 },
+      { color: "accent", inset: 0.03 },
+    ],
+    lateral: [
+      { color: "base", inset: 0 },
+      { color: "accent", inset: 0.025 },
+      { color: "base", inset: 0.18 },
+    ],
+  },
+  // Stagger de 40ms com durações quase iguais: o central fica no máximo ~meio triângulo à frente
+  // (atrás, na abertura) — sempre sobreposto aos laterais, nunca "descolado" da formação.
+  closing: {
+    center: { delay: 0, duration: 0.7 },
+    laterals: { delay: 0.04, duration: 0.71 },
+  },
+  opening: {
+    laterals: { delay: 0, duration: 0.71 },
+    center: { delay: 0.04, duration: 0.7 },
+  },
 };
 
 export const CUTSCENE_GEOMETRY = { peaks: PEAKS } satisfies Record<string, CutsceneGeometry>;
 
 export type SceneCutsceneVariant = keyof typeof CUTSCENE_GEOMETRY;
 
-const u = (value: number) => `${value.toFixed(2)} * var(--u)`;
+export type TriangleDirection = "up" | "down";
 
-/**
- * Polígono da placa: pico no topo, corpo, e o mesmo pico espelhado embaixo. `inset` (anéis do
- * contorno) só encurta a PONTA do pico — os quatro pontos do lado plano (`h: 0`) ficam sempre na
- * mesma borda (`cap` exato), nos anéis todos. Isso é o que faz o contorno/faixa de acento aparecer
- * só perto da ponta do pico, tracejando a lateral inclinada — se o lado plano também deslizasse com
- * o `inset` (como numa primeira versão), cada anel formava um retângulo concêntrico próprio, e a
- * cor do meio (`accent`) ficava permanentemente exposta como uma FAIXA HORIZONTAL colada na borda
- * plana do palco inteiro — visível sempre que esse palco estivesse em repouso cobrindo a tela,
- * inclusive durante o blackout (a "linha residual" que não podia aparecer).
- */
-export function piecePolygon(piece: CutscenePiece, inset: number): string {
-  const left = piece.apexX - piece.halfWidth;
-  const right = piece.apexX + piece.halfWidth;
-  const flatTop = `var(--cap)`;
-  const flatBottom = `calc(100% - var(--cap))`;
-  const apexTop = `calc(var(--cap) - ${u(piece.apexH - inset)})`;
-  const apexBottom = `calc(100% - var(--cap) + ${u(piece.apexH - inset)})`;
-  const points = [
-    [`0%`, flatTop],
-    [`${left}%`, flatTop],
-    [`${piece.apexX}%`, apexTop],
-    [`${right}%`, flatTop],
-    [`100%`, flatTop],
-    [`100%`, flatBottom],
-    [`${right}%`, flatBottom],
-    [`${piece.apexX}%`, apexBottom],
-    [`${left}%`, flatBottom],
-    [`0%`, flatBottom],
-  ];
-  return `polygon(${points.map(([x, y]) => `${x} ${y}`).join(", ")})`;
+const pct = (value: number) => `${Number(value.toFixed(3))}%`;
+
+/** Triângulo (ou anel interno dele) ocupando a caixa inteira: ponta no centro, base na borda. */
+export function trianglePolygon(inset: number, direction: TriangleDirection): string {
+  const half = 50 * (1 - inset);
+  const tip = direction === "up" ? inset * 100 : 100 - inset * 100;
+  const base = direction === "up" ? 100 : 0;
+  return `polygon(50% ${pct(tip)}, ${pct(50 + half)} ${pct(base)}, ${pct(50 - half)} ${pct(base)})`;
 }

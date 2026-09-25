@@ -1,11 +1,13 @@
-/* Cutscene de troca de cena — placas presas à VIEWPORT (portal no `body`). As formas vêm de
- * `sceneCutsceneGeometry.ts` (clip-path inline, nunca animado); aqui só vivem unidades, cores e o
- * estado inicial. Só `transform` se move. */
+/* Cutscene de troca de cena — tudo preso à VIEWPORT (portal no `body`). Os dois grupos de
+ * triângulos (fechamento ▲ / abertura ▼) usam exatamente as mesmas variáveis de geometria. Só
+ * `transform` (y) é animado; as formas vêm de clip-path estático. */
 .root {
-  /* Unidade da geometria: acompanha a largura, com um piso pela altura para os picos não ficarem
-   * rasos demais em telas verticais estreitas. */
+  /* Unidade: acompanha a largura, com piso pela altura para os picos não ficarem rasos em telas
+   * verticais estreitas. */
   --u: max(1vw, 0.8vh);
-  --cap: calc(var(--u) * 23);
+  --triangle-width: 60%;
+  --triangle-height: calc(var(--u) * 19);
+  --triangle-offset: 25%;
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -20,19 +22,52 @@
   pointer-events: auto;
 }
 
-/* Placa: corpo da altura da viewport + faixa dos picos em cima e embaixo. Overscan lateral e
- * vertical de alguns px contra frestas de subpixel (Safari iOS). */
-.piece {
+/* Empilhamento (nenhum grupo cria contexto próprio): cortina 1 < laterais 3 < central 4 — os
+ * triângulos passam sempre por cima da cortina. Estado inicial fora da tela (sem FOUC). */
+.cover {
   position: absolute;
   left: -3px;
   right: -3px;
-  top: calc(var(--cap) * -1 - 2px);
-  height: calc(100vh + var(--cap) * 2 + 4px);
-  height: calc(100dvh + var(--cap) * 2 + 4px);
-  /* Estado inicial antes do primeiro frame (sem FOUC): totalmente abaixo da viewport. */
-  transform: translate3d(0, 100%, 0);
+  top: -3px;
+  height: calc(100% + 6px);
+  z-index: 1;
+  background-color: var(--transition-base);
+  transform: translate3d(0, 200vh, 0);
+  will-change: transform;
+}
+
+.group {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+
+.triangle {
+  position: absolute;
+  top: 0;
+  width: var(--triangle-width);
+  transform: translate3d(0, 200vh, 0);
   will-change: transform;
   backface-visibility: hidden;
+  height: var(--triangle-height);
+  z-index: 3;
+}
+
+.triangle.front {
+  z-index: 4;
+}
+
+/* Mesma distância para os dois lados do central. */
+.left {
+  left: calc(50% - var(--triangle-offset) - var(--triangle-width) / 2);
+}
+
+.center {
+  left: calc(50% - var(--triangle-width) / 2);
+}
+
+.right {
+  left: calc(50% + var(--triangle-offset) - var(--triangle-width) / 2);
 }
 
 .ring {
