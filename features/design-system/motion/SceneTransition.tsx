@@ -6,7 +6,7 @@ import { useReducedMotion } from "./useReducedMotion";
 import { DURATION, EASE, getSceneDistance } from "./motionConfig";
 import styles from "./SceneTransition.module.css";
 
-export type SceneDirection = "forward" | "backward";
+export type SceneDirection = "forward" | "backward" | "instant";
 
 interface SceneNavigationContextValue {
   /** Uma transição de cena está em andamento agora — quem chama deve bloquear novos avanços. */
@@ -14,12 +14,15 @@ interface SceneNavigationContextValue {
   /** Chamar ANTES de disparar a ação que muda o estado (Seção 4: estado primeiro, motion depois). */
   markForward: () => void;
   markBackward: () => void;
+  /** A troca já acontece escondida (ex.: atrás de `SceneCutscene`) — pula o crossfade. */
+  markInstant: () => void;
 }
 
 const SceneNavigationContext = createContext<SceneNavigationContextValue>({
   isTransitioning: false,
   markForward: () => {},
   markBackward: () => {},
+  markInstant: () => {},
 });
 
 /**
@@ -110,7 +113,7 @@ export default function SceneTransition({ sceneKey, children }: SceneTransitionP
     // `gsap.context` (Seção 35 do briefing) — cleanup automático se o componente desmontar (ou o
     // Strict Mode do React re-executar o efeito em desenvolvimento, Seção 37) no meio da animação.
     const ctx = gsap.context(() => {
-      if (reducedMotion) {
+      if (reducedMotion || activeDirectionRef.current === "instant") {
         gsap.set([outgoingEl, incomingEl], { clearProps: "all" });
         finish();
         return;
@@ -148,6 +151,9 @@ export default function SceneTransition({ sceneKey, children }: SceneTransitionP
         },
         markBackward: () => {
           directionRef.current = "backward";
+        },
+        markInstant: () => {
+          directionRef.current = "instant";
         },
       }}
     >

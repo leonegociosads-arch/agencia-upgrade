@@ -7,6 +7,8 @@ import { useBuilder } from "../state/BuilderContext";
 import { trackEvent } from "@/lib/analytics/trackEvent";
 import { playSound } from "@/features/design-system/motion/sound";
 import { useSceneNavigation } from "@/features/design-system/motion/SceneTransition";
+import { useSceneCutscene } from "@/features/design-system/motion/SceneCutscene";
+import type { SceneCutscenePresetName } from "@/features/design-system/motion/sceneCutscenePresets";
 import { useFinePointer } from "@/features/design-system/motion/pointerCapability";
 import { useReducedMotion } from "@/features/design-system/motion/useReducedMotion";
 import { cx } from "@/features/design-system/utils/cx";
@@ -20,6 +22,15 @@ import styles from "./ServiceSelector.module.css";
 // Mesmo breakpoint das regras `@media (min-width: 900px)` em `ServiceSelector.module.css` e
 // `MobileServiceCarousel.module.css`.
 const MOBILE_BREAKPOINT_PX = 900;
+
+const CUTSCENE_PRESET: Record<ServiceId, SceneCutscenePresetName> = {
+  site: "site",
+  trafego: "traffic",
+  design: "design",
+};
+
+// Duração total do "apertar" do card antes da cortina começar a subir.
+const PRESS_FEEDBACK_S = 0.1;
 
 function subscribeMobileViewport(onChange: () => void) {
   window.addEventListener("resize", onChange);
@@ -67,19 +78,16 @@ export interface ServiceSelectorProps {
  * categorias, nunca uma quarta — o link para quem chega indeciso é secundário e sai do Builder
  * (docs/USER-FLOW.md, Seção 12), sem abrir pergunta nenhuma.
  *
- * Nenhuma regra de negócio nova e nenhuma mudança de TIMING da ação real: a decisão entre
- * `startNewService`/`startEditingService`, o evento `service_selected` (só para configuração NOVA)
- * e a ordem de chamadas (som -> `markForward` -> ação) continuam idênticos e SÍNCRONOS, exatamente
- * como antes desta reformulação visual — dezenas de testes de fluxo (`BuilderShell*.test.tsx`,
- * `MyUpgrade.test.tsx`) fazem `fireEvent.click` seguido de asserção imediata (sem `await`), então
- * atrasar esse disparo (ex.: para dar tempo de uma animação local de "seleção" tocar antes) quebraria
- * o contrato síncrono que essas suítes já verificam. A resposta visual ao clique (Seção 11, Fase A)
- * continua real e imediata (`handlePointerDown`, abaixo, ainda GSAP/síncrono); a "Fase C" (avançar
- * para a próxima cena) já é inteiramente coberta pelo crossfade que `SceneTransition` sempre fez.
+ * Nenhuma regra de negócio nova: a decisão entre `startNewService`/`startEditingService` e o evento
+ * `service_selected` (só para configuração NOVA) continuam idênticos. Com movimento ativo, essa ação
+ * roda dentro de `onCovered` da `SceneCutscene` — só quando a cortina cobre a viewport inteira.
+ * Com reduced motion (o padrão das suítes de teste) a cutscene não toca e a ação continua SÍNCRONA
+ * no clique, o contrato que `BuilderShell*.test.tsx`/`MyUpgrade.test.tsx` verificam.
  */
 export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: ServiceSelectorProps) {
   const { state, startNewService, startEditingService } = useBuilder();
-  const { isTransitioning, markForward } = useSceneNavigation();
+  const { isTransitioning, markForward, markInstant } = useSceneNavigation();
+  const { play: playCutscene, isPlaying: isCutscenePlaying } = useSceneCutscene();
   const isFinePointer = useFinePointer();
   const reducedMotion = useReducedMotion();
   const isMobileViewport = useIsMobileViewport();
@@ -90,7 +98,7 @@ export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: S
   const backgroundParallaxRef = useRef<HTMLDivElement | null>(null);
   const cardsParallaxRef = useRef<HTMLDivElement | null>(null);
 
-  const locked = isTransitioning;
+  const locked = isTransitioning || isCutscenePlaying;
   const configuredCount = Object.keys(state.confirmedServices).length;
   const hasSomethingToReset = configuredCount > 0 || state.step !== "choosing_service";
 
@@ -139,18 +147,43 @@ export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: S
     return () => scene.removeEventListener("pointermove", handleMove);
   }, [isFinePointer, reducedMotion]);
 
+  // A escolha fica registrada no clique (fechada nesta callback); a troca de tela em si só roda
+  // quando a cutscene cobre a viewport inteira. Com reduced motion, `onCovered` roda na hora.
   function handleSelect(serviceId: ServiceId, configured: boolean) {
     if (locked) return;
+    const started = playCutscene({
+      preset: CUTSCENE_PRESET[serviceId],
+      delay: reducedMotion ? 0 : PRESS_FEEDBACK_S,
+      onCovered: ({ hidden }) => {
+        if (hidden) markInstant();
+        else markForward();
+        if (configured) {
+          startEditingService(serviceId);
+          return;
+        }
+        // `service_selected` (Fase 17): só para uma configuração NOVA — reabrir um serviço já
+        // configurado é edição, não "seleção" (docs/ANALYTICS.md, Seção "Eventos").
+        trackEvent("service_selected", { serviceId });
+        startNewService(serviceId);
+      },
+    });
+    if (!started) return;
     playSound("card_select");
-    markForward();
-    if (configured) {
-      startEditingService(serviceId);
-      return;
-    }
-    // `service_selected` (Fase 17): só para uma configuração NOVA — reabrir um serviço já
-    // configurado é edição, não "seleção" (docs/ANALYTICS.md, Seção "Eventos").
-    trackEvent("service_selected", { serviceId });
-    startNewService(serviceId);
+    pulseCard(serviceId);
+  }
+
+  // Feedback de "selecionei esta fase" antes da cortina: compressão curta no invólucro do card
+  // (`scale` do `.floatOuter` é livre — a flutuação só usa y/rotate ali, o hover usa o botão).
+  function pulseCard(serviceId: ServiceId) {
+    if (reducedMotion) return;
+    const button = sceneRef.current?.querySelector<HTMLElement>(`button[aria-label="${SERVICES[serviceId].label}"]`);
+    const target = button?.parentElement;
+    if (!target) return;
+    gsap.fromTo(
+      target,
+      { scale: 1 },
+      { scale: 0.97, duration: PRESS_FEEDBACK_S / 2, ease: "power2.out", yoyo: true, repeat: 1 },
+    );
   }
 
   function cardProps(serviceId: ServiceId) {

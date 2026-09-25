@@ -1,0 +1,95 @@
+/* Cutscene de troca de cena — duas camadas presas à VIEWPORT (renderizadas via portal no `body`,
+ * nunca dentro do container do Builder). Cada camada é mais alta que a viewport por `--edge` em
+ * cima e embaixo: é nessas faixas que vive a geometria "de interface de jogo" (clip-path). Com
+ * `yPercent: 0` a área sólida do meio cobre exatamente a viewport — os recortes nunca deixam uma
+ * fresta. Futuro SVG/máscara de borda entra nessas mesmas faixas. */
+.root {
+  --edge: clamp(36px, 7vh, 80px);
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.root[data-active="true"] {
+  visibility: visible;
+  /* Bloqueia cliques/toques durante a cutscene (o lock de estado já impede ação dupla; isto
+   * impede até o hover/tap visual por trás da cortina). */
+  pointer-events: auto;
+}
+
+.layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--edge) * -1);
+  height: calc(100vh + var(--edge) * 2);
+  height: calc(100dvh + var(--edge) * 2);
+  /* Estado inicial antes do primeiro frame (sem FOUC): totalmente abaixo da viewport. */
+  transform: translate3d(0, 100%, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.layerAccent {
+  background: linear-gradient(180deg, var(--cutscene-accent), color-mix(in srgb, var(--cutscene-accent) 62%, #000));
+}
+
+.layerBase {
+  background-color: var(--cutscene-base);
+  /* Scanline discreta — textura de "tela de jogo" sem imagem nenhuma. */
+  background-image:
+    radial-gradient(120% 60% at 50% 50%, color-mix(in srgb, var(--cutscene-accent) 10%, transparent), transparent 70%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 4px);
+}
+
+/* Geometria "default": acento com cantos chanfrados; base com uma aba deslocada em cima (à
+ * esquerda) e embaixo (à direita), espelhadas — a borda de ataque e a de saída são diferentes,
+ * o que dá sentido de direção ao movimento. */
+.root[data-variant="default"] .layerAccent {
+  clip-path: polygon(
+    0 calc(var(--edge) * 0.5),
+    6% 0,
+    94% 0,
+    100% calc(var(--edge) * 0.5),
+    100% calc(100% - var(--edge) * 0.5),
+    94% 100%,
+    6% 100%,
+    0 calc(100% - var(--edge) * 0.5)
+  );
+}
+
+.root[data-variant="default"] .layerBase {
+  clip-path: polygon(
+    0 0,
+    30% 0,
+    34% calc(var(--edge) * 0.6),
+    100% calc(var(--edge) * 0.6),
+    100% 100%,
+    70% 100%,
+    66% calc(100% - var(--edge) * 0.6),
+    0 calc(100% - var(--edge) * 0.6)
+  );
+}
+
+/* Filete de acento acompanhando a borda da camada base (já cortado pelo mesmo clip-path). */
+.edgeLine {
+  position: absolute;
+  height: 2px;
+  background: var(--cutscene-accent);
+  box-shadow: 0 0 14px 1px var(--cutscene-accent);
+}
+
+.root[data-variant="default"] .edgeLineTop {
+  top: calc(var(--edge) * 0.6);
+  left: 34%;
+  right: 0;
+}
+
+.root[data-variant="default"] .edgeLineBottom {
+  top: calc(100% - var(--edge) * 0.6 - 2px);
+  left: 0;
+  right: 34%;
+}

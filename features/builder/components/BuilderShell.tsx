@@ -5,6 +5,7 @@ import { useBuilder } from "../state/BuilderContext";
 import { useBuilderSessionPersistence } from "../state/useBuilderSessionPersistence";
 import { getSceneKey } from "../logic/getSceneKey";
 import SceneTransition from "@/features/design-system/motion/SceneTransition";
+import { SceneCutsceneProvider } from "@/features/design-system/motion/SceneCutscene";
 import Drawer from "@/features/design-system/motion/Drawer";
 import { useScrollLock } from "@/features/design-system/motion/useScrollLock";
 import { playSound } from "@/features/design-system/motion/sound";
@@ -101,30 +102,32 @@ export default function BuilderShell() {
   const isChoosingService = state.step === "choosing_service";
 
   return (
-    <div className={styles.shell}>
-      {!isChoosingService && <BuilderNavigation onToggleMyUpgrade={handleToggleMyUpgrade} onResetSession={resetSession} />}
+    <SceneCutsceneProvider>
+      <div className={styles.shell}>
+        {!isChoosingService && <BuilderNavigation onToggleMyUpgrade={handleToggleMyUpgrade} onResetSession={resetSession} />}
 
-      {justRestored && <div className={styles.restoredBanner}>Seu progresso foi recuperado.</div>}
+        {justRestored && <div className={styles.restoredBanner}>Seu progresso foi recuperado.</div>}
 
-      <div className={styles.body}>
-        {/* Drawer (desktop: painel lateral; mobile: bottom sheet — só CSS, `BuilderShell.module.css`
-         * decide via media query) — Fase 19, Seção 12; abertura/fechamento animados via GSAP desde
-         * a Fase GSAP e Transições (`Drawer`, Seção 24-25). Fecha pelo "×" ou por Esc — não mais
-         * clicando no fundo escurecido (Etapa 31: `.upgradeOverlay` virou `pointer-events: none`
-         * para não bloquear a interação com a tela por baixo, já que este painel é uma seção
-         * persistente, não um modal — ver o comentário em `BuilderShell.module.css`). Sem
-         * `overlayProps.onClick` porque um elemento com `pointer-events: none` nunca recebe clique. */}
-        <Drawer
-          open={showMyUpgrade && canShowMyUpgradePanel}
-          overlayClassName={styles.upgradeOverlay}
-          panelClassName={styles.upgradePanel}
-          onClose={closeMyUpgrade}
-        >
-          <MyUpgrade onClose={closeMyUpgrade} />
-        </Drawer>
+        <div className={styles.body}>
+          {/* Drawer (desktop: painel lateral; mobile: bottom sheet — só CSS, `BuilderShell.module.css`
+           * decide via media query) — Fase 19, Seção 12; abertura/fechamento animados via GSAP desde
+           * a Fase GSAP e Transições (`Drawer`, Seção 24-25). Fecha pelo "×" ou por Esc — não mais
+           * clicando no fundo escurecido (Etapa 31: `.upgradeOverlay` virou `pointer-events: none`
+           * para não bloquear a interação com a tela por baixo, já que este painel é uma seção
+           * persistente, não um modal — ver o comentário em `BuilderShell.module.css`). Sem
+           * `overlayProps.onClick` porque um elemento com `pointer-events: none` nunca recebe clique. */}
+          <Drawer
+            open={showMyUpgrade && canShowMyUpgradePanel}
+            overlayClassName={styles.upgradeOverlay}
+            panelClassName={styles.upgradePanel}
+            onClose={closeMyUpgrade}
+          >
+            <MyUpgrade onClose={closeMyUpgrade} />
+          </Drawer>
 
-        <SceneTransition sceneKey={getSceneKey(state)}>{content}</SceneTransition>
+          <SceneTransition sceneKey={getSceneKey(state)}>{content}</SceneTransition>
+        </div>
       </div>
-    </div>
+    </SceneCutsceneProvider>
   );
 }

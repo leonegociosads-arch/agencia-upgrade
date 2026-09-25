@@ -20,6 +20,7 @@ import { playSound } from "@/features/design-system/motion/sound";
 import { useSceneNavigation } from "@/features/design-system/motion/SceneTransition";
 import { useTilt } from "@/features/design-system/motion/useTilt";
 import { useReducedMotion } from "@/features/design-system/motion/useReducedMotion";
+import { useSceneCutscene } from "@/features/design-system/motion/SceneCutscene";
 import { useEnabledPulse } from "@/features/design-system/motion/useEnabledPulse";
 import { cx } from "@/features/design-system/utils/cx";
 import type { AnswerValue, Question, ServiceId } from "../types";
@@ -261,6 +262,7 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
   const { isTransitioning, markForward } = useSceneNavigation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const reducedMotion = useReducedMotion();
+  const { whenRevealed } = useSceneCutscene();
 
   function toggleMulti(optionId: string) {
     setPending((prev) => (prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId]));
@@ -286,28 +288,34 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
     }
 
     let floatCleanup: (() => void) | undefined;
-    const entryTween = isFirstQuestionOfService
-      ? animateFirstQuestionEntry(cards, () => {
-          // Duas limpezas, nesta ordem exata: primeiro tira a classe que aplica o `opacity: 0`
-          // inicial (Seção 9) — ela precisa sumir assim que a entrada assenta, senão ficaria
-          // reivindicando `opacity` de novo depois do próximo passo. Só então devolve `opacity`
-          // para o CSS normal (`clearProps`) — sem isto, o `opacity: 1` que o GSAP deixou inline
-          // (sempre vence uma regra de classe) impediria para sempre o
-          // `.assetOption:disabled { opacity: 0.7 }` de fazer efeito nesta pergunta.
-          container.classList.remove(styles.optionsFirstEntry);
-          gsap.set(cards, { clearProps: "opacity" });
-          floatCleanup = startOptionFloat(cards);
-        })
-      : undefined;
-    if (!isFirstQuestionOfService) {
-      floatCleanup = startOptionFloat(cards);
-    }
+    let entryTween: gsap.core.Tween | undefined;
+    // Se esta cena chegou por trás de uma cutscene (`SceneCutscene`), espera a cortina terminar de
+    // revelar antes de qualquer movimento — cortina, depois entrada, depois flutuação. Os cards
+    // continuam escondidos pelo `.optionsFirstEntry` enquanto isso (sem flash).
+    const cancelWait = whenRevealed(() => {
+      if (!isFirstQuestionOfService) {
+        floatCleanup = startOptionFloat(cards);
+        return;
+      }
+      entryTween = animateFirstQuestionEntry(cards, () => {
+        // Duas limpezas, nesta ordem exata: primeiro tira a classe que aplica o `opacity: 0`
+        // inicial (Seção 9) — ela precisa sumir assim que a entrada assenta, senão ficaria
+        // reivindicando `opacity` de novo depois do próximo passo. Só então devolve `opacity`
+        // para o CSS normal (`clearProps`) — sem isto, o `opacity: 1` que o GSAP deixou inline
+        // (sempre vence uma regra de classe) impediria para sempre o
+        // `.assetOption:disabled { opacity: 0.7 }` de fazer efeito nesta pergunta.
+        container.classList.remove(styles.optionsFirstEntry);
+        gsap.set(cards, { clearProps: "opacity" });
+        floatCleanup = startOptionFloat(cards);
+      });
+    });
 
     return () => {
+      cancelWait();
       entryTween?.kill();
       floatCleanup?.();
     };
-  }, [isFirstQuestionOfService, reducedMotion]);
+  }, [isFirstQuestionOfService, reducedMotion, whenRevealed]);
 
   return (
     <>
