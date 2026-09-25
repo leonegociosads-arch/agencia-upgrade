@@ -11,6 +11,8 @@ import { useScrollLock } from "@/features/design-system/motion/useScrollLock";
 import { playSound, preloadSoundEffect } from "@/features/design-system/motion/sound";
 import BuilderNavigation from "./BuilderNavigation";
 import BuilderMovingBackground from "./BuilderMovingBackground";
+import ParticleNucleusBackground from "./ParticleNucleusBackground";
+import { getProgress } from "../logic/getProgress";
 import ServiceSelector from "./ServiceSelector";
 import QuestionRenderer from "./QuestionRenderer";
 import ServiceComplete from "./ServiceComplete";
@@ -109,11 +111,15 @@ export default function BuilderShell() {
   // Fundo infinito só nas telas de pergunta; montado aqui (fora do SceneTransition) para seguir
   // andando entre uma pergunta e outra, e já estar pronto quando a cutscene revela a tela.
   const isQuestionScreen = state.step === "configuring" && state.activeService !== null;
+  // Terceira etapa = segunda pergunta do caminho (etapa 1 = escolha do caminho, etapa 2 = primeira
+  // pergunta) — mesmo cálculo do "2 de N" da barra de progresso.
+  const isThirdStep = isQuestionScreen && state.activeService !== null && getProgress(state.activeService, state.serviceDraft).current === 1;
 
   return (
     <SceneCutsceneProvider>
       <div className={isQuestionScreen ? `${styles.shell} ${styles.shellTransparent}` : styles.shell}>
         {isQuestionScreen && <BuilderMovingBackground theme={state.activeService ?? undefined} />}
+        {isQuestionScreen && <ParticleNucleusBackground active={isThirdStep} theme={state.activeService ?? undefined} />}
         {!isChoosingService && <BuilderNavigation onToggleMyUpgrade={handleToggleMyUpgrade} onResetSession={resetSession} />}
 
         {justRestored && <div className={styles.restoredBanner}>Seu progresso foi recuperado.</div>}

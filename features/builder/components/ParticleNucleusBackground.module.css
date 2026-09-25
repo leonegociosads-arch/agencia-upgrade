@@ -1,0 +1,20 @@
+/* Fundo fixo atrás de todo o conteúdo (mesma camada do fundo hexagonal, pintado por cima dele
+ * quando ativo) — nunca recebe clique. */
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+
+.root[data-active="true"] {
+  opacity: 1;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
