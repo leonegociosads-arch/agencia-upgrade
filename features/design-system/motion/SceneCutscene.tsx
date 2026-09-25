@@ -221,12 +221,6 @@ export function SceneCutsceneProvider({ children }: { children: ReactNode }) {
                     style={{ clipPath: piecePolygon(piece, ring.inset) }}
                   />
                 ))}
-                {piece.bodyLines && (
-                  <>
-                    <span className={`${styles.bodyLine} ${styles.bodyLineTop}`} />
-                    <span className={`${styles.bodyLine} ${styles.bodyLineBottom}`} />
-                  </>
-                )}
               </div>
             ))}
           </div>,

@@ -47,20 +47,3 @@
 .base {
   background-color: var(--transition-base);
 }
-
-/* Filete horizontal de acento no corpo da placa da frente (e espelhado embaixo). */
-.bodyLine {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: max(2px, calc(var(--u) * 0.22));
-  background-color: var(--transition-accent);
-}
-
-.bodyLineTop {
-  top: calc(var(--cap) + var(--u) * 7.5);
-}
-
-.bodyLineBottom {
-  bottom: calc(var(--cap) + var(--u) * 7.5);
-}
