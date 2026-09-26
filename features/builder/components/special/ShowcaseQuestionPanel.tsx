@@ -178,7 +178,7 @@ export default function ShowcaseQuestionPanel({
                         {/* Seleção nunca depende só de cor (regra do projeto, Fase 19): além do
                             verde, um check explícito no canto. */}
                         {isSelected && (
-                          <span className={styles.optionCheck} aria-hidden="true">
+                          <span className={styles.optionCheck} data-selection-check aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none">
                               <path d="M5 12.5 10 17.5 19 7" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>

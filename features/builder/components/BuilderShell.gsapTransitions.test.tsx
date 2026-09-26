@@ -99,15 +99,16 @@ describe("Builder — comportamento de motion/transição (Fase GSAP e Transiç�
 
     const option = screen.getByRole("button", { name: /Somente apresentação e contato/ });
     // "O que esse projeto precisa ter?" usa o painel especial (`ShowcaseQuestionPanel`): o estado
-    // marcado ganha um check explícito (um `<svg>`) além do verde. A intenção do teste continua a
+    // marcado ganha um check explícito (`[data-selection-check]`) além do verde — as opções também têm
+    // ícone próprio, então procurar "qualquer <svg>" não serviria. A intenção do teste continua a
     // mesma — seleção nunca depende só de cor: existe um indicador explícito que aparece no clique
     // e some sem ele.
-    expect(option.querySelector("svg")).toBeNull();
+    expect(option.querySelector("[data-selection-check]")).toBeNull();
 
     fireEvent.click(option);
 
     expect(option.getAttribute("aria-pressed")).toBe("true");
-    expect(option.querySelector("svg")).not.toBeNull();
+    expect(option.querySelector("[data-selection-check]")).not.toBeNull();
   });
 
   it("9. Meu Upgrade abre e fecha", async () => {
