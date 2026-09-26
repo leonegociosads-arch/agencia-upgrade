@@ -83,7 +83,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Loja Virtual / E-commerce"));
     fireEvent.click(screen.getByText("Catálogo e pedidos"));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByText("Vou criar do zero"));
     await screen.findByText(/adicionado ao seu Upgrade/);
 

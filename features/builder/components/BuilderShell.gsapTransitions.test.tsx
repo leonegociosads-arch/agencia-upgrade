@@ -40,37 +40,37 @@ describe("Builder — comportamento de motion/transição (Fase GSAP e Transiç�
     expect(screen.getByText("O que esse projeto precisa ter?")).toBeTruthy();
   });
 
-  it("2. 'Continuar' fica desabilitado sem nenhuma opção marcada, e habilita após marcar uma", () => {
+  it("2. 'Próxima' (painel especial) fica desabilitado sem nenhuma opção marcada, e habilita após marcar uma", () => {
     renderBuilder();
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Site Institucional"));
 
-    const continueButton = screen.getByRole("button", { name: "Continuar" });
+    const continueButton = screen.getByRole("button", { name: "Próxima" });
     expect((continueButton as HTMLButtonElement).disabled).toBe(true);
 
     fireEvent.click(screen.getByText("Somente apresentação e contato"));
     expect((continueButton as HTMLButtonElement).disabled).toBe(false);
   });
 
-  it("3. 'Continuar' avança exatamente uma cena (não pula perguntas)", () => {
+  it("3. 'Próxima' (painel especial) avança exatamente uma cena (não pula perguntas)", () => {
     renderBuilder();
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Site Institucional"));
     fireEvent.click(screen.getByText("Somente apresentação e contato"));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
 
     // A pergunta seguinte no fluxo de "site" é "Em que situação está esse projeto?" — nunca a
     // tela de conclusão diretamente (que exigiria também `site_situacao` respondida).
     expect(screen.getByText("Em que situação está esse projeto?")).toBeTruthy();
   });
 
-  it("4. duplo clique em 'Continuar' não pula duas perguntas", () => {
+  it("4. duplo clique em 'Próxima' (painel especial) não pula duas perguntas", () => {
     renderBuilder();
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Site Institucional"));
     fireEvent.click(screen.getByText("Somente apresentação e contato"));
 
-    const continueButton = screen.getByRole("button", { name: "Continuar" });
+    const continueButton = screen.getByRole("button", { name: "Próxima" });
     fireEvent.click(continueButton);
     fireEvent.click(continueButton); // mesmo elemento, clique imediato em seguida
 
@@ -84,7 +84,7 @@ describe("Builder — comportamento de motion/transição (Fase GSAP e Transiç�
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Site Institucional"));
     fireEvent.click(screen.getByText("Somente apresentação e contato"));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     expect(screen.getByText("Em que situação está esse projeto?")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "← Voltar" }));
@@ -98,10 +98,10 @@ describe("Builder — comportamento de motion/transição (Fase GSAP e Transiç�
     fireEvent.click(screen.getByText("Site Institucional"));
 
     const option = screen.getByRole("button", { name: /Somente apresentação e contato/ });
-    // A opção tem arte própria (PNG), onde a caixa de seleção já vem desenhada VAZIA: o estado
-    // marcado é o check que o componente desenha dentro dela (um `<svg>`), não mais o "✓" de
-    // texto do cartão antigo. A intenção do teste continua a mesma — seleção nunca depende só de
-    // cor: existe um indicador explícito que aparece no clique e some sem ele.
+    // "O que esse projeto precisa ter?" usa o painel especial (`ShowcaseQuestionPanel`): o estado
+    // marcado ganha um check explícito (um `<svg>`) além do verde. A intenção do teste continua a
+    // mesma — seleção nunca depende só de cor: existe um indicador explícito que aparece no clique
+    // e some sem ele.
     expect(option.querySelector("svg")).toBeNull();
 
     fireEvent.click(option);

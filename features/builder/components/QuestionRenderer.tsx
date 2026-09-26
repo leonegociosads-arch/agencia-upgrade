@@ -6,6 +6,8 @@ import gsap from "gsap";
 import { getNextQuestion } from "../logic/flow";
 import { getOptionAsset, type OptionAsset } from "../data/optionAssets";
 import { getProgress } from "../logic/getProgress";
+import { getQuestionLayout, getQuestionNumber } from "../logic/getQuestionLayout";
+import ShowcaseQuestionPanel from "./special/ShowcaseQuestionPanel";
 import { getVisibleQuestions } from "../logic/getVisibleQuestions";
 import { validateAnswer } from "../logic/validateAnswer";
 import { buildServiceSummary } from "../logic/buildServiceSummary";
@@ -71,38 +73,41 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
     }
   }, [state, isEditing, saveServiceDraft, serviceId]);
 
+  // Mesmo "voltar" nas duas apresentações (tela normal e cena especial `ShowcaseQuestionPanel`).
+  function handleBack() {
+    if (isTransitioning) return;
+    playSound("scene_back");
+    markBackward();
+    backDraft();
+  }
+
+  const editingBadge = isEditing && <Badge tone="warning">Editando {SERVICES[serviceId].label}</Badge>;
+  const exitButton = (
+    <button
+      type="button"
+      className={styles.exitLink}
+      onClick={() => {
+        if (isTransitioning) return;
+        markForward();
+        if (isEditing) {
+          cancelServiceDraft();
+        } else {
+          goToEntry();
+        }
+      }}
+      disabled={isTransitioning}
+    >
+      {isEditing ? "Cancelar edição" : "Escolher outra área"}
+    </button>
+  );
+
   const topBar = (
     <div className={styles.topRow}>
-      <button
-        type="button"
-        className={styles.backButton}
-        onClick={() => {
-          if (isTransitioning) return;
-          playSound("scene_back");
-          markBackward();
-          backDraft();
-        }}
-        disabled={!canGoBackDraft() || isTransitioning}
-      >
+      <button type="button" className={styles.backButton} onClick={handleBack} disabled={!canGoBackDraft() || isTransitioning}>
         ← Voltar
       </button>
-      {isEditing && <Badge tone="warning">Editando {SERVICES[serviceId].label}</Badge>}
-      <button
-        type="button"
-        className={styles.exitLink}
-        onClick={() => {
-          if (isTransitioning) return;
-          markForward();
-          if (isEditing) {
-            cancelServiceDraft();
-          } else {
-            goToEntry();
-          }
-        }}
-        disabled={isTransitioning}
-      >
-        {isEditing ? "Cancelar edição" : "Escolher outra área"}
-      </button>
+      {editingBadge}
+      {exitButton}
     </div>
   );
 
@@ -160,6 +165,35 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
           Confirmar alterações
         </Button>
       </div>
+    );
+  }
+
+  // Cena especial (painel/browser inclinado) só para as perguntas listadas em `getQuestionLayout` —
+  // mesma pergunta, mesmas opções, mesmos callbacks; muda só a apresentação.
+  if (getQuestionLayout(question, state.serviceDraft) === "browser-panel") {
+    const options = typeof question.options === "function" ? question.options(state.serviceDraft) : question.options;
+    return (
+      <ShowcaseQuestionPanel
+        key={question.id}
+        serviceId={serviceId}
+        question={question}
+        options={options}
+        stepNumber={getQuestionNumber(question, state.serviceDraft) + 1}
+        progress={{ current, total, percentage }}
+        exitControls={
+          <div className={styles.topRow}>
+            {editingBadge}
+            {exitButton}
+          </div>
+        }
+        canGoBack={canGoBackDraft()}
+        onBack={handleBack}
+        onSubmit={(value) => {
+          if (isTransitioning) return;
+          markForward();
+          updateDraftAnswer(question.id, value);
+        }}
+      />
     );
   }
 

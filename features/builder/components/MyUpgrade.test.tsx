@@ -125,7 +125,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     reopenSiteTipo();
     fireEvent.click(screen.getByText("Site Institucional"));
     fireEvent.click(screen.getByText("Formulários ou captação de leads"));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
 
     // A revisão do rascunho já reflete Institucional...
     const reviewArea = screen.getByText(/Revise as respostas e confirme/).closest("div")!;
@@ -143,7 +143,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     reopenSiteTipo();
     fireEvent.click(screen.getByText("Site Institucional"));
     fireEvent.click(screen.getByText("Formulários ou captação de leads"));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByText("Confirmar alterações"));
 
     const scope = within(panel());
@@ -158,7 +158,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     reopenSiteTipo();
     fireEvent.click(screen.getByText("Site Institucional"));
     fireEvent.click(screen.getByText("Formulários ou captação de leads"));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByText("Cancelar edição"));
 
     const scope = within(panel());

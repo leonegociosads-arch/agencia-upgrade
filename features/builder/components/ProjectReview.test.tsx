@@ -83,7 +83,7 @@ describe("ProjectReview — integração (Etapa 11)", () => {
     reopenSiteTipo();
     fireEvent.click(screen.getByText("Site Institucional"));
     fireEvent.click(screen.getByText("Formulários ou captação de leads"));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByText("Cancelar edição"));
 
     expect(screen.getByText("Confira seu projeto")).toBeTruthy(); // voltou para o Resumo, não para o seletor
@@ -96,7 +96,7 @@ describe("ProjectReview — integração (Etapa 11)", () => {
     reopenSiteTipo();
     fireEvent.click(screen.getByText("Site Institucional"));
     fireEvent.click(screen.getByText("Formulários ou captação de leads"));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByText("Confirmar alterações"));
 
     expect(screen.getByText("Confira seu projeto")).toBeTruthy();

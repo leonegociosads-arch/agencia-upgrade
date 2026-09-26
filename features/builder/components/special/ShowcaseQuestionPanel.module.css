@@ -1,0 +1,644 @@
+/* Cena especial de pergunta (`ShowcaseQuestionPanel.tsx`) — painel/browser branco inclinado sobre o
+ * fundo escuro do Builder, reproduzindo a referência aprovada. Cores medidas nos próprios assets
+ * enviados pelo usuário (painel #f8f8f8, bolinhas #ff6e6b/#ffdb73/#00f763, aba #e7e7e7, card
+ * #fbfbfb com borda #d1d2d3, verde do botão #00f785). */
+
+.root {
+  --showcase-rotate: -3deg;
+  --panel-bg: #f6f6f5;
+  --panel-border: #d9dadb;
+  --card-bg: #f3f4f4;
+  --card-border: #d6d8d9;
+  --ink: #06090a;
+
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: var(--ds-space-8) var(--ds-space-6) var(--ds-space-16);
+  /* O post-it passa um pouco da borda do painel de propósito — nunca pode gerar rolagem lateral. */
+  overflow-x: clip;
+}
+
+.exitRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--ds-space-6);
+}
+
+/* Estado inicial da microentrada (sem flash antes do GSAP assumir) — só quando há movimento. */
+@media (prefers-reduced-motion: no-preference) {
+  .enter {
+    opacity: 0;
+  }
+}
+
+.stage {
+  position: relative;
+  transform: rotate(var(--showcase-rotate));
+  /* Espaço para o post-it e para a sombra do painel inclinado não baterem nas bordas. */
+  padding: 0 2.5% var(--ds-space-6) 1.5%;
+}
+
+/* ---------------------------------------------------------------------------
+ * Cabeçalho escuro atrás do painel — etapa + barra de progresso reais.
+ * ------------------------------------------------------------------------- */
+.backPanel {
+  position: relative;
+  z-index: 0;
+  padding: 26px 30px 96px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #111a1c 0%, #0b1113 100%);
+  border: 1.5px solid rgba(118, 196, 170, 0.45);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.backHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  /* Reserva o canto direito, onde o post-it pousa. */
+  padding-right: 13%;
+  margin-bottom: 18px;
+}
+
+.stepLabel {
+  font-family: var(--ds-font-display);
+  font-size: clamp(0.95rem, 1.9vw, 1.35rem);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #f1f5f4;
+}
+
+.progressCount {
+  font-family: var(--ds-font-display);
+  flex-shrink: 0;
+  font-size: clamp(0.95rem, 1.9vw, 1.3rem);
+  font-weight: 800;
+  color: #f1f5f4;
+  font-variant-numeric: tabular-nums;
+}
+
+.progressTrack {
+  height: 20px;
+  margin-right: 13%;
+  border-radius: 999px;
+  background: #36434a;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--showcase-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--showcase-accent) 70%, transparent);
+  transition: width var(--ds-duration-normal) var(--ds-easing-base);
+}
+
+/* ---------------------------------------------------------------------------
+ * Painel branco (browser) + placa verde atrás.
+ * ------------------------------------------------------------------------- */
+.panelWrap {
+  position: relative;
+  z-index: 1;
+  margin: -64px 0 0 3%;
+}
+
+.greenSlab {
+  position: absolute;
+  z-index: 0;
+  top: 17%;
+  bottom: 5%;
+  left: -3.4%;
+  right: -1.6%;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #21ff72 0%, #00d94e 55%, #00b83f 100%);
+  box-shadow:
+    0 0 26px rgba(0, 247, 99, 0.45),
+    0 0 4px rgba(0, 247, 99, 0.7);
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  border-radius: 30px;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-border);
+  box-shadow:
+    inset 0 2px 0 #ffffff,
+    0 2px 0 #c9cbcc,
+    0 26px 50px rgba(0, 0, 0, 0.45);
+}
+
+.chrome {
+  position: relative;
+  height: 116px;
+}
+
+/* Linha fina do "título da janela", logo abaixo das bolinhas — a aba fica em cima dela. */
+.chrome::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 48px;
+  height: 2px;
+  background: #dcdddd;
+}
+
+.dots {
+  position: absolute;
+  top: 16px;
+  left: 26px;
+  display: flex;
+  gap: 10px;
+}
+
+.dots span {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+}
+
+.dotRed {
+  background: #ff6e6b;
+}
+
+.dotYellow {
+  background: #ffdb73;
+}
+
+.dotGreen {
+  background: #00f763;
+}
+
+.tab {
+  position: absolute;
+  z-index: 1;
+  top: 40px;
+  left: 40px;
+  display: flex;
+  align-items: stretch;
+  height: 64px;
+  border-radius: 12px;
+  border: 2px solid #c4c6c7;
+  background: #e7e7e7;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+
+.tabIcon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  background: #050505;
+  color: #ffffff;
+}
+
+.tabIcon svg {
+  width: 34px;
+  height: 34px;
+}
+
+.tabLabel {
+  font-family: var(--ds-font-display);
+  display: flex;
+  align-items: center;
+  padding: 0 26px 0 18px;
+  min-width: 96px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Área segura do conteúdo — nada encosta na moldura. */
+.content {
+  position: relative;
+  padding: 18px 6% 40px;
+}
+
+.title {
+  font-family: var(--ds-font-display);
+  margin: 0;
+  /* Um pouco mais de respiro à direita: o post-it pousa naquele canto. */
+  padding: 0 7% 0 3%;
+  font-size: clamp(1.45rem, 3.6vw, 2.55rem);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-transform: uppercase;
+  text-wrap: balance;
+  color: var(--ink);
+  /* Contorno claro + sombra curta: o título "adesivo" da referência. */
+  text-shadow:
+    0 2px 0 #ffffff,
+    0 4px 10px rgba(0, 0, 0, 0.16);
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  font-family: var(--ds-font-body);
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  text-align: center;
+  color: #4b5052;
+}
+
+/* ---------------------------------------------------------------------------
+ * Opções — 2 colunas; item ímpar sobrando no fim fica centralizado embaixo (3 → 2+1, 5 → 2+2+1).
+ * ------------------------------------------------------------------------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.grid > .option:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc(50% - 9px);
+}
+
+.option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 118px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 2px solid var(--card-border);
+  background: linear-gradient(180deg, #f8f9f9 0%, var(--card-bg) 100%);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 2px 5px rgba(0, 0, 0, 0.05);
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    transform var(--ds-duration-fast) var(--ds-easing-base),
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    box-shadow var(--ds-duration-fast) var(--ds-easing-base),
+    background-color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+@media (hover: hover) {
+  .option:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.01);
+    border-color: #b9bcbe;
+    box-shadow:
+      inset 0 1px 0 #ffffff,
+      0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.option:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.option:focus-visible {
+  outline: 3px solid var(--ds-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.option:disabled {
+  cursor: default;
+}
+
+.optionSelected,
+.optionSelected:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--showcase-accent) 70%, #007a35);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--showcase-accent) 58%, #ffffff) 0%,
+    color-mix(in srgb, var(--showcase-accent) 72%, #ffffff) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 0 18px color-mix(in srgb, var(--showcase-accent) 45%, transparent);
+}
+
+/* Check explícito da opção marcada — seleção nunca depende só de cor. */
+.optionCheck {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: color-mix(in srgb, var(--showcase-accent) 80%, #ffffff);
+}
+
+.optionCheck svg {
+  width: 15px;
+  height: 15px;
+}
+
+.optionLabel {
+  font-family: var(--ds-font-body);
+  font-size: 1.08rem;
+  font-weight: var(--ds-font-weight-bold);
+  line-height: 1.25;
+}
+
+.optionDescription {
+  font-family: var(--ds-font-body);
+  font-size: 0.92rem;
+  line-height: 1.3;
+  color: #3d4244;
+}
+
+/* ---------------------------------------------------------------------------
+ * Voltar (pílula clara — sem asset enviado, recriada no visual da referência) e Próxima (asset
+ * verde aprovado como fundo; o texto é HTML de verdade).
+ * ------------------------------------------------------------------------- */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  margin-top: 30px;
+}
+
+.arrow {
+  width: 1.15em;
+  height: 1.15em;
+  flex-shrink: 0;
+}
+
+.backButton {
+  font-family: var(--ds-font-display);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 0 32px 0 26px;
+  border-radius: 999px;
+  border: 2.5px solid #b7babb;
+  background: linear-gradient(180deg, #eef0f0 0%, #dfe2e2 100%);
+  box-shadow:
+    inset 0 2px 0 #ffffff,
+    0 4px 10px rgba(0, 0, 0, 0.12);
+  font-size: 1.15rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.nextButton {
+  font-family: var(--ds-font-display);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  /* Mesma proporção do asset (3:1) — o fundo nunca estica. A área clicável inclui a margem do
+   * brilho do próprio asset, o que só aumenta o alvo de toque. */
+  width: min(300px, 48%);
+  aspect-ratio: 3 / 1;
+  margin: -12px -14px -12px 0;
+  border: none;
+  background: url("/assets/builder/special-question/button-next.png") center / 100% 100% no-repeat;
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    transform var(--ds-duration-fast) var(--ds-easing-base),
+    opacity var(--ds-duration-normal) var(--ds-easing-standard),
+    filter var(--ds-duration-normal) var(--ds-easing-standard);
+}
+
+@media (hover: hover) {
+  .backButton:hover:not(:disabled),
+  .nextButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+}
+
+.backButton:active:not(:disabled),
+.nextButton:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.backButton:focus-visible,
+.nextButton:focus-visible {
+  outline: 3px solid var(--ds-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.backButton:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* Sem opção escolhida: o botão continua visível, só apagado (mesma regra de antes). */
+.nextButton:disabled {
+  cursor: default;
+  opacity: 0.4;
+  filter: saturate(0.4);
+}
+
+.nextPulse {
+  animation: nextPulse 320ms var(--ds-easing-emphasized);
+}
+
+@keyframes nextPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Post-it — colagem editorial no canto superior direito, passando da borda.
+ * ------------------------------------------------------------------------- */
+.postIt {
+  position: absolute;
+  z-index: 2;
+  top: -78px;
+  right: -7%;
+  width: 26%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile — layout próprio, não só o desktop encolhido.
+ * ------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .root {
+    --showcase-rotate: -1deg;
+    padding: var(--ds-space-6) 12px var(--ds-space-12);
+  }
+
+  .exitRow {
+    margin-bottom: var(--ds-space-4);
+  }
+
+  .stage {
+    padding: 0 3px var(--ds-space-4);
+  }
+
+  .backPanel {
+    padding: 16px 16px 70px;
+    border-radius: 18px;
+  }
+
+  .backHeader {
+    padding-right: 84px;
+    margin-bottom: 12px;
+  }
+
+  .stepLabel {
+    font-size: 0.8rem;
+  }
+
+  .progressCount {
+    font-size: 0.85rem;
+  }
+
+  .progressTrack {
+    height: 12px;
+    margin-right: 84px;
+  }
+
+  .panelWrap {
+    margin: -48px 0 0 1.5%;
+  }
+
+  .greenSlab {
+    top: 12%;
+    bottom: 4%;
+    left: -2.4%;
+    right: -1%;
+    border-radius: 20px;
+  }
+
+  .panel {
+    border-radius: 22px;
+  }
+
+  .chrome {
+    height: 84px;
+  }
+
+  .chrome::after {
+    top: 34px;
+  }
+
+  .dots {
+    top: 12px;
+    left: 16px;
+    gap: 7px;
+  }
+
+  .dots span {
+    width: 12px;
+    height: 12px;
+  }
+
+  .tab {
+    top: 28px;
+    left: 22px;
+    height: 46px;
+    border-radius: 10px;
+  }
+
+  .tabIcon {
+    width: 46px;
+  }
+
+  .tabIcon svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .tabLabel {
+    padding: 0 16px 0 12px;
+    min-width: 0;
+    font-size: 0.9rem;
+  }
+
+  .content {
+    padding: 12px 16px 22px;
+  }
+
+  .title {
+    padding: 0;
+    font-size: clamp(1.3rem, 6.4vw, 1.6rem);
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .grid > .option:last-child:nth-child(odd) {
+    grid-column: auto;
+    width: auto;
+    justify-self: stretch;
+  }
+
+  .option {
+    min-height: 64px;
+    padding: 14px 16px;
+    border-radius: 14px;
+  }
+
+  .optionLabel {
+    font-size: 1rem;
+  }
+
+  .optionDescription {
+    font-size: 0.85rem;
+  }
+
+  .actions {
+    margin-top: 20px;
+    gap: 10px;
+  }
+
+  .backButton {
+    min-height: 52px;
+    padding: 0 18px 0 16px;
+    gap: 8px;
+    font-size: 0.95rem;
+  }
+
+  .nextButton {
+    width: min(210px, 58%);
+    gap: 10px;
+    margin: -10px -10px -10px 0;
+    font-size: 1.05rem;
+  }
+
+  .postIt {
+    top: -122px;
+    right: -6px;
+    width: 92px;
+  }
+}
