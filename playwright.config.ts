@@ -49,6 +49,12 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     baseURL: `http://localhost:${PORT}`,
+    // A suíte testa COMPORTAMENTO (fluxo, estado, persistência), não movimento. Com movimento
+    // ligado, os cards das perguntas flutuam sem parar (GSAP) e a cutscene cobre a tela por ~1,5s —
+    // o Playwright nunca considera um card "parado" para clicar. O app já tem o caminho de
+    // movimento reduzido completo (mesma lógica, animações desligadas/instantâneas), o mesmo que a
+    // suíte do Vitest usa por padrão (`vitest.setup.ts`).
+    reducedMotion: "reduce",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

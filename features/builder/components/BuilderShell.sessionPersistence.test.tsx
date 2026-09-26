@@ -62,7 +62,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Ainda não sei"));
     fireEvent.click(screen.getByText("Vou criar do zero"));
-    await screen.findByText(/adicionado ao seu Upgrade/);
+    await screen.findByRole("heading", { name: /Serviço adicionado/ });
 
     fireEvent.click(screen.getByText("Adicionar outro serviço"));
     await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
@@ -85,9 +85,9 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     fireEvent.click(screen.getByText("Catálogo e pedidos"));
     fireEvent.click(screen.getByRole("button", { name: "Próxima" }));
     fireEvent.click(screen.getByText("Vou criar do zero"));
-    await screen.findByText(/adicionado ao seu Upgrade/);
+    await screen.findByRole("heading", { name: /Serviço adicionado/ });
 
-    fireEvent.click(screen.getByText("Continuar"));
+    fireEvent.click(screen.getByText("Adicionar outro serviço"));
     await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: /Editar/ }));
@@ -111,8 +111,8 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Ainda não sei"));
     fireEvent.click(screen.getByText("Vou criar do zero"));
-    await screen.findByText(/adicionado ao seu Upgrade/);
-    fireEvent.click(screen.getByText("Continuar"));
+    await screen.findByRole("heading", { name: /Serviço adicionado/ });
+    fireEvent.click(screen.getByText("Adicionar outro serviço"));
     await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
@@ -153,7 +153,7 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Ainda não sei"));
     fireEvent.click(screen.getByText("Vou criar do zero"));
-    await screen.findByText(/adicionado ao seu Upgrade/);
+    await screen.findByRole("heading", { name: /Serviço adicionado/ });
     await waitForPersistedSave();
 
     fireEvent.click(screen.getByText("Começar de novo"));
@@ -171,8 +171,8 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     fireEvent.click(screen.getByText("Criar um site"));
     fireEvent.click(screen.getByText("Ainda não sei"));
     fireEvent.click(screen.getByText("Vou criar do zero"));
-    await screen.findByText(/adicionado ao seu Upgrade/);
-    fireEvent.click(screen.getByText("Continuar"));
+    await screen.findByRole("heading", { name: /Serviço adicionado/ });
+    fireEvent.click(screen.getByText("Adicionar outro serviço"));
     await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));

@@ -76,7 +76,7 @@ describe("Builder — comportamento de motion/transição (Fase GSAP e Transiç�
 
     // Chegou em "site_situacao" (uma cena à frente) — não em "conclusão" (duas cenas à frente).
     expect(screen.getByText("Em que situação está esse projeto?")).toBeTruthy();
-    expect(screen.queryByText(/adicionado ao seu Upgrade/)).toBeNull();
+    expect(screen.queryByRole("heading", { name: /Serviço adicionado/ })).toBeNull();
   });
 
   it("5. 'Voltar' retorna à pergunta anterior corretamente", () => {
@@ -129,7 +129,7 @@ describe("Builder — comportamento de motion/transição (Fase GSAP e Transiç�
     fireEvent.click(screen.getByText("Ainda não sei"));
     fireEvent.click(screen.getByText("Vou criar do zero"));
 
-    expect(screen.getByText(/adicionado ao seu Upgrade/)).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /Serviço adicionado/ })).toBeTruthy();
   });
 
   it("11. desmontar o Builder no meio de uma transição não lança erro (cleanup do GSAP)", () => {

@@ -21,7 +21,7 @@ export async function dismissConsentBanner(page: Page) {
 export async function gotoBuilder(page: Page) {
   await page.goto("/builder");
   await dismissConsentBanner(page);
-  await expect(page.getByRole("heading", { name: "Por onde você quer começar?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Upgrade." })).toBeVisible();
 }
 
 export async function selectService(page: Page, serviceLabel: string) {
@@ -38,12 +38,20 @@ export async function answerSingleChoice(page: Page, optionLabel: string) {
   await page.getByRole("button", { name: new RegExp(`^${optionLabel}`) }).click();
 }
 
-/** Marca 1+ opções de múltipla escolha e clica em "Continuar". */
+/** Marca 1+ opções de múltipla escolha e confirma — "Próxima" no painel especial
+ * (`ShowcaseQuestionPanel`, ex.: `site_recursos`), "Continuar" na tela normal. */
 export async function answerMultiChoice(page: Page, optionLabels: string[]) {
   for (const label of optionLabels) {
     await page.getByRole("button", { name: new RegExp(`^${label}`) }).click();
   }
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("button", { name: /^(Próxima|Continuar)$/ }).click();
+}
+
+/** Escolha única dentro do painel especial (`ShowcaseQuestionPanel`): marcar a opção NÃO avança
+ * sozinho — é preciso confirmar em "Próxima" (Tráfego etapa 4, Design etapa 3). */
+export async function answerShowcaseSingleChoice(page: Page, optionLabel: string) {
+  await page.getByRole("button", { name: new RegExp(`^${optionLabel}`) }).click();
+  await page.getByRole("button", { name: "Próxima", exact: true }).click();
 }
 
 /** Completa o mini-fluxo de "Sites e Desenvolvimento" pelo caminho mais curto (site_tipo = "Ainda
@@ -70,20 +78,25 @@ export async function completeTrafego(page: Page) {
   await selectService(page, "Atrair mais clientes");
   await answerSingleChoice(page, "Negócio local");
   await answerSingleChoice(page, "WhatsApp");
-  await answerSingleChoice(page, "Nunca anunciei");
+  await answerShowcaseSingleChoice(page, "Nunca anunciei");
   await answerSingleChoice(page, "Até R\\$ 1.000");
 }
 
 export async function completeDesign(page: Page) {
   await selectService(page, "Fortalecer minha marca e conteúdo");
   await answerSingleChoice(page, "Identidade Visual");
-  await answerSingleChoice(page, "Ainda não tenho identidade");
+  await answerShowcaseSingleChoice(page, "Ainda não tenho identidade");
   await answerSingleChoice(page, "Identidade essencial");
 }
 
-/** A partir da tela "X adicionado ao seu Upgrade", volta ao seletor principal. */
+/** A partir da tela "Serviço adicionado!", volta ao seletor principal (mantendo o que já foi configurado). */
 export async function continueFromServiceComplete(page: Page) {
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("button", { name: /Adicionar outro serviço/ }).click();
+}
+
+/** A partir da tela "Serviço adicionado!", abre o Resumo do Projeto. */
+export async function viewSummaryFromServiceComplete(page: Page) {
+  await page.getByRole("button", { name: "Ver resumo do projeto" }).click();
 }
 
 export async function openMyUpgrade(page: Page) {

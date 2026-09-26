@@ -10,8 +10,9 @@ test("Seção 12 — Voltar preserva respostas anteriores válidas (não perde n
   await selectService(page, "Atrair mais clientes");
   await answerSingleChoice(page, "Negócio local");
   await answerSingleChoice(page, "WhatsApp");
-  // Volta uma pergunta — a resposta de "negocio" (anterior) precisa continuar valendo.
-  await page.getByRole("button", { name: "← Voltar" }).click();
+  // Volta uma pergunta — a resposta de "negocio" (anterior) precisa continuar valendo. A etapa 4
+  // (`trafego_experiencia`) usa o painel especial, cujo botão é "Voltar" (sem a seta de texto).
+  await page.getByRole("button", { name: "Voltar", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Onde você quer gerar o resultado?" })).toBeVisible();
   await page.getByRole("button", { name: "← Voltar" }).click();
   await expect(page.getByRole("heading", { name: "O que você quer divulgar?" })).toBeVisible();
@@ -28,9 +29,11 @@ test("Seção 13 — trocar o tipo de site remove a resposta dependente obsoleta
   await answerMultiChoice(page, ["Catálogo e pedidos", "Pagamento online"]);
   await expect(page.getByRole("heading", { name: "Em que situação está esse projeto?" })).toBeVisible();
 
-  // Volta duas perguntas (situação -> recursos -> tipo) e troca o tipo.
+  // Volta duas perguntas (situação -> recursos -> tipo) e troca o tipo. "Recursos" é o painel
+  // especial, cujo botão é "Voltar" (sem a seta de texto).
   await page.getByRole("button", { name: "← Voltar" }).click();
-  await page.getByRole("button", { name: "← Voltar" }).click();
+  await expect(page.getByRole("heading", { name: "O que esse projeto precisa ter?" })).toBeVisible();
+  await page.getByRole("button", { name: "Voltar", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Que tipo de site você precisa?" })).toBeVisible();
   await answerSingleChoice(page, "Site Institucional");
 
@@ -42,12 +45,12 @@ test("Seção 13 — trocar o tipo de site remove a resposta dependente obsoleta
   await expect(page.getByRole("button", { name: /^Formulários ou captação de leads/ })).toBeVisible();
 });
 
-test("Seção 14 — Continuar (múltipla escolha) fica desabilitado sem nenhuma opção marcada", async ({ page }) => {
+test("Seção 14 — Próxima (múltipla escolha, painel especial) fica desabilitado sem nenhuma opção marcada", async ({ page }) => {
   await gotoBuilder(page);
   await selectService(page, "Criar um site");
   await answerSingleChoice(page, "Landing Page");
   await expect(page.getByRole("heading", { name: "O que esse projeto precisa ter?" })).toBeVisible();
-  const continueButton = page.getByRole("button", { name: "Continuar" });
+  const continueButton = page.getByRole("button", { name: "Próxima", exact: true });
   await expect(continueButton).toBeDisabled();
   await page.getByRole("button", { name: /^Formulários ou captação de leads/ }).click();
   await expect(continueButton).toBeEnabled();

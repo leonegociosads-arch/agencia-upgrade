@@ -128,9 +128,11 @@ test("Seção 51 — alterar o status persiste (sobrevive a um refresh)", async 
   await loginAsAdmin(page);
   await openLead(page, "Fixture Bruno Lima");
   await page.getByLabel("Status").selectOption("proposal");
-  // "Salvo." (`StatusSelect.tsx`) some sozinho depois de 2s — uma janela curta demais para
-  // afirmar com segurança sob carga (workers em paralelo); o que realmente importa para a Seção
-  // 51 ("validar persistência") é o valor sobreviver a um refresh de verdade, abaixo.
+  // Espera o servidor confirmar o salvamento ANTES do refresh — sem isto o teste dependia de o
+  // refresh acontecer "devagar o bastante" (passava com as animações ligadas, falhava sem elas).
+  // "Salvo." (`StatusSelect.tsx`) só aparece depois da confirmação e some sozinho em 2s; a
+  // verificação consulta a tela continuamente, então pega essa janela com folga.
+  await expect(page.getByText("Salvo.")).toBeVisible();
   await expect(page.getByLabel("Status")).toHaveValue("proposal");
 
   await page.reload();

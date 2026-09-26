@@ -42,9 +42,9 @@ describe("Builder — integração básica de componentes", () => {
     fireEvent.click(screen.getByText("Ainda não sei"));
     fireEvent.click(screen.getByText("Vou criar do zero"));
 
-    await screen.findByText(/adicionado ao seu Upgrade/);
+    await screen.findByRole("heading", { name: /Serviço adicionado/ });
 
-    fireEvent.click(screen.getByText("Continuar"));
+    fireEvent.click(screen.getByText("Adicionar outro serviço"));
     expect(await screen.findByText("Configurado")).toBeTruthy();
   });
 });

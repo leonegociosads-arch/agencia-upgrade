@@ -1,0 +1,301 @@
+/* Tela "Serviço adicionado" (`ServiceCompleteScene.tsx`). Cores do card medidas no asset do painel
+ * enviado pelo usuário (barra #1e2a33, corpo #00030a, borda #39424b com filete claro no topo,
+ * bolinhas #ff746f/#ffd431/#00fa7d) e dos botões (verde #00f776, preto com borda #e3e0e0). */
+
+/* ---------------------------------------------------------------------------
+ * Cenário fixo (montado pelo BuilderShell, atrás de todo o conteúdo).
+ * ------------------------------------------------------------------------- */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: #000;
+}
+
+/* Brilho de estrelas — localizado no alto, perto de onde o card pousa, bem discreto. */
+.stars {
+  position: absolute;
+  z-index: 1;
+  top: 64px;
+  left: 50%;
+  width: 420px;
+  height: auto;
+  transform: translateX(-62%);
+  opacity: 0.55;
+}
+
+/* Terreno: atravessa a viewport inteira (um pouco além das laterais, sem fresta), preso à base,
+ * proporção original preservada. O PNG já some em transparência na borda de baixo. */
+.terrain {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: -2px;
+  width: 110vw;
+  /* O reset global limita toda <img> a 100% da largura — aqui ela PRECISA passar das laterais. */
+  max-width: none;
+  height: auto;
+  transform: translateX(-50%);
+}
+
+/* ---------------------------------------------------------------------------
+ * Cena (conteúdo): muito espaço negativo, card como protagonista.
+ * ------------------------------------------------------------------------- */
+.scene {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  padding: clamp(40px, 9vh, 110px) 16px calc(clamp(140px, 22vh, 260px) + env(safe-area-inset-bottom));
+}
+
+.card {
+  width: min(540px, 100%);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #03070d 0%, #00030a 100%);
+  border: 1.5px solid #39424b;
+  box-shadow:
+    inset 0 1.5px 0 rgba(220, 230, 236, 0.55),
+    0 30px 70px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 0, 0, 0.6);
+  transform: rotate(-1.2deg);
+  overflow: hidden;
+}
+
+.titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 20px;
+  background: linear-gradient(180deg, #2b353d 0%, #1e2a33 100%);
+  border-bottom: 1.5px solid #3b4851;
+}
+
+.dots {
+  display: flex;
+  gap: 9px;
+}
+
+.dots span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.dotRed {
+  background: #ff746f;
+  box-shadow: 0 0 6px rgba(255, 116, 111, 0.55);
+}
+
+.dotYellow {
+  background: #ffd431;
+  box-shadow: 0 0 6px rgba(255, 212, 49, 0.55);
+}
+
+.dotGreen {
+  background: #00fa7d;
+  box-shadow: 0 0 6px rgba(0, 250, 125, 0.6);
+}
+
+.tag {
+  font-family: var(--ds-font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fa1ab;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px clamp(20px, 7%, 44px) 40px;
+  text-align: center;
+}
+
+.check {
+  width: 88px;
+  height: auto;
+  /* Pixel art: escala sem suavizar os "degraus". */
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 16px rgba(0, 247, 118, 0.35));
+}
+
+.title {
+  margin: 24px 0 0;
+  font-family: var(--ds-font-display);
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.subtitle {
+  margin: 12px 0 0;
+  font-family: var(--ds-font-body);
+  font-size: 1rem;
+  color: #9aa7ae;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 32px;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 58px;
+  padding: 0 28px;
+  border-radius: 999px;
+  font-family: var(--ds-font-display);
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform var(--ds-duration-fast) var(--ds-easing-base),
+    box-shadow var(--ds-duration-fast) var(--ds-easing-base),
+    border-color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.primary {
+  border: 2px solid #7dffbc;
+  background: linear-gradient(180deg, #1fff8a 0%, #00f776 55%, #00e86d 100%);
+  color: #000;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 0 18px rgba(0, 247, 118, 0.4);
+}
+
+.primary svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.secondary {
+  border: 2px solid #e3e0e0;
+  background: #000;
+  color: #fff;
+}
+
+@media (hover: hover) {
+  .primary:hover:not(:disabled) {
+    transform: scale(1.015);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      0 0 28px rgba(0, 247, 118, 0.6);
+  }
+
+  .secondary:hover:not(:disabled) {
+    border-color: #ffffff;
+  }
+}
+
+.primary:active:not(:disabled),
+.secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 3px solid var(--ds-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.primary:disabled,
+.secondary:disabled {
+  cursor: default;
+}
+
+/* Tablet em pé: viewport alto e estreito — o terreno cresce para continuar sendo horizonte. */
+@media (min-width: 641px) and (max-width: 1100px) {
+  .terrain {
+    width: 160vw;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile — card central, terreno mais alto (recortado nas laterais), botões grandes.
+ * ------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .scene {
+    padding: 32px 5vw calc(150px + env(safe-area-inset-bottom));
+  }
+
+  .card {
+    width: min(90vw, 460px);
+    transform: rotate(-0.6deg);
+    border-radius: 16px;
+  }
+
+  .titlebar {
+    height: 42px;
+    padding: 0 14px;
+  }
+
+  .dots span {
+    width: 11px;
+    height: 11px;
+  }
+
+  .content {
+    padding: 30px 18px 28px;
+  }
+
+  .check {
+    width: 72px;
+  }
+
+  .title {
+    margin-top: 18px;
+    font-size: clamp(1.7rem, 8.4vw, 2.1rem);
+  }
+
+  /* "SERVIÇO / ADICIONADO!" em duas linhas no mobile. */
+  .titleBreak {
+    display: block;
+  }
+
+  .subtitle {
+    font-size: 0.92rem;
+  }
+
+  .actions {
+    margin-top: 26px;
+    gap: 12px;
+  }
+
+  .primary,
+  .secondary {
+    min-height: 54px;
+    padding: 0 18px;
+    font-size: 0.85rem;
+  }
+
+  /* A barra do topo é mais alta no celular: as estrelas descem para ficar logo acima do card. */
+  .stars {
+    top: 96px;
+    width: 260px;
+  }
+
+  .terrain {
+    width: 220vw;
+  }
+}

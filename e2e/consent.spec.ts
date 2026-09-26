@@ -29,7 +29,7 @@ test("novo visitante vê o banner; recusar não essenciais grava a decisão e o 
 
   // Site inteiro continua funcional depois de recusar — navega para o Builder e interage.
   await page.goto("/builder");
-  await expect(page.getByRole("heading", { name: "Por onde você quer começar?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Upgrade." })).toBeVisible();
 });
 
 test("Aceitar todos grava analytics e marketing como true", async ({ page }) => {

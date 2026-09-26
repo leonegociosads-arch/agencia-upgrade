@@ -35,10 +35,10 @@ test("Seção 19 — teste crítico: confirmed (E-commerce) e draft (Institucion
   await answerSingleChoice(page, "Loja Virtual / E-commerce");
   // Confirma o E-commerce completo primeiro.
   await page.getByRole("button", { name: /^Catálogo e pedidos/ }).click();
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByRole("button", { name: "Próxima", exact: true }).click();
   await answerSingleChoice(page, "Vou criar do zero");
-  await expect(page.getByRole("heading", { name: /adicionado ao seu Upgrade/ })).toBeVisible();
-  await page.getByRole("button", { name: "Adicionar outro serviço" }).click();
+  await expect(page.getByRole("heading", { name: /Serviço adicionado/ })).toBeVisible();
+  await page.getByRole("button", { name: /Adicionar outro serviço/ }).click();
 
   // Agora começa um SEGUNDO serviço em rascunho (Tráfego) sem terminar — o draft fica pendente.
   await selectService(page, "Atrair mais clientes");
@@ -58,7 +58,7 @@ test("Seção 22 — localStorage corrompido: o app inicia normalmente (não tra
   await page.evaluate((key) => window.localStorage.setItem(key, "{ isto não é json válido"), BUILDER_STORAGE_KEY);
   await page.reload();
   await dismissConsentBanner(page);
-  await expect(page.getByRole("heading", { name: "Por onde você quer começar?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Upgrade." })).toBeVisible();
 });
 
 test("Seção 21 — versão de sessão incompatível é descartada com segurança (app não quebra)", async ({ page }) => {
@@ -69,7 +69,7 @@ test("Seção 21 — versão de sessão incompatível é descartada com seguran�
   );
   await page.reload();
   await dismissConsentBanner(page);
-  await expect(page.getByRole("heading", { name: "Por onde você quer começar?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Upgrade." })).toBeVisible();
 });
 
 test("Seção 23 — 'Começar de novo' remove a sessão e volta ao estado inicial", async ({ page }) => {
@@ -80,7 +80,7 @@ test("Seção 23 — 'Começar de novo' remove a sessão e volta ao estado inici
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Começar de novo" }).click();
 
-  await expect(page.getByRole("heading", { name: "Por onde você quer começar?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Upgrade." })).toBeVisible();
   const stored = await page.evaluate((key) => window.localStorage.getItem(key), BUILDER_STORAGE_KEY);
   const hasConfirmedServices = stored ? JSON.stringify(JSON.parse(stored)).includes("Criar um site") : false;
   expect(hasConfirmedServices).toBe(false);

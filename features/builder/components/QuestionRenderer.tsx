@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { getNextQuestion } from "../logic/flow";
 import { getOptionAsset, type OptionAsset } from "../data/optionAssets";
 import { getProgress } from "../logic/getProgress";
 import { getQuestionLayout, getQuestionNumber } from "../logic/getQuestionLayout";
+import { isRepeatedClick } from "../logic/repeatedClick";
 import ShowcaseQuestionPanel from "./special/ShowcaseQuestionPanel";
 import { getVisibleQuestions } from "../logic/getVisibleQuestions";
 import { validateAnswer } from "../logic/validateAnswer";
@@ -74,8 +75,8 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
   }, [state, isEditing, saveServiceDraft, serviceId]);
 
   // Mesmo "voltar" nas duas apresentações (tela normal e cena especial `ShowcaseQuestionPanel`).
-  function handleBack() {
-    if (isTransitioning) return;
+  function handleBack(event?: MouseEvent) {
+    if (isTransitioning || isRepeatedClick(event)) return;
     playSound("scene_back");
     markBackward();
     backDraft();
@@ -86,8 +87,8 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
     <button
       type="button"
       className={styles.exitLink}
-      onClick={() => {
-        if (isTransitioning) return;
+      onClick={(event) => {
+        if (isTransitioning || isRepeatedClick(event)) return;
         markForward();
         if (isEditing) {
           cancelServiceDraft();
@@ -142,7 +143,10 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
               <button
                 type="button"
                 className={styles.linkButton}
-                onClick={() => editDraftField(answeredQuestions[index].id)}
+                onClick={(event) => {
+                  if (isRepeatedClick(event)) return;
+                  editDraftField(answeredQuestions[index].id);
+                }}
               >
                 Alterar
               </button>
@@ -151,8 +155,8 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
         </div>
 
         <Button
-          onClick={() => {
-            if (isTransitioning) return;
+          onClick={(event) => {
+            if (isTransitioning || isRepeatedClick(event)) return;
             playSound("confirm");
             markForward();
             // `service_edited` (Fase 17) — este botão só aparece quando o rascunho de edição já
@@ -172,14 +176,19 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
   // mesma pergunta, mesmas opções, mesmos callbacks; muda só a apresentação.
   if (getQuestionLayout(question, state.serviceDraft) === "browser-panel") {
     const options = typeof question.options === "function" ? question.options(state.serviceDraft) : question.options;
+    // Posição REAL da pergunta no caminho. `current` (contagem de respostas) só coincide com ela
+    // num fluxo novo — ao reabrir uma resposta na revisão de uma edição, as respostas SEGUINTES já
+    // existem e o painel mostrava "3/3" numa pergunta que é a 2ª (bug real).
+    const questionNumber = getQuestionNumber(question, state.serviceDraft);
+    const answeredBefore = Math.max(questionNumber - 1, 0);
     return (
       <ShowcaseQuestionPanel
         key={question.id}
         serviceId={serviceId}
         question={question}
         options={options}
-        stepNumber={getQuestionNumber(question, state.serviceDraft) + 1}
-        progress={{ current, total, percentage }}
+        stepNumber={questionNumber + 1}
+        progress={{ current: answeredBefore, total, percentage: total > 0 ? Math.round((answeredBefore / total) * 100) : 0 }}
         exitControls={
           <div className={styles.topRow}>
             {editingBadge}
@@ -369,13 +378,16 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
               selected={selected}
               showCheck={question.type === "multi_choice"}
               disabled={question.type !== "multi_choice" && isTransitioning}
-              onClick={() => {
-                playSound("card_select");
+              onClick={(event) => {
                 if (question.type === "multi_choice") {
+                  playSound("card_select");
                   toggleMulti(option.id);
                   return;
                 }
-                if (isTransitioning) return;
+                // Escolha única troca a tela no clique — o 2º clique de um clique duplo cairia na
+                // pergunta seguinte (ver `repeatedClick.ts`).
+                if (isTransitioning || isRepeatedClick(event)) return;
+                playSound("card_select");
                 markForward();
                 onAnswer(option.id);
               }}
@@ -388,8 +400,8 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
         <div className={styles.continueRow}>
           <ContinueButton
             enabled={validateAnswer(question, pending) && !isTransitioning}
-            onClick={() => {
-              if (!validateAnswer(question, pending) || isTransitioning) return;
+            onClick={(event) => {
+              if (!validateAnswer(question, pending) || isTransitioning || isRepeatedClick(event)) return;
               playSound("scene_advance");
               markForward();
               onAnswer(pending);
@@ -409,7 +421,7 @@ interface OptionCardProps {
   selected: boolean;
   showCheck: boolean;
   disabled: boolean;
-  onClick: () => void;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
 /**
@@ -547,7 +559,7 @@ function OptionCard({ question, optionId, label, description, selected, showChec
 
 interface ContinueButtonProps {
   enabled: boolean;
-  onClick: () => void;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
 /** Microfeedback ao ficar habilitado (briefing Microinterações, Seção 15) — um pulso curto quando

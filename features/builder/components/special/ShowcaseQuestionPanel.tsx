@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode 
 import Image from "next/image";
 import gsap from "gsap";
 import { validateAnswer } from "../../logic/validateAnswer";
+import { isRepeatedClick } from "../../logic/repeatedClick";
 import type { DraftProgress } from "../../logic/getProgress";
 import type { AnswerValue, Question, QuestionOption, ServiceId } from "../../types";
 import { playSound } from "@/features/design-system/motion/sound";
@@ -200,7 +201,9 @@ export default function ShowcaseQuestionPanel({
                   <button
                     type="button"
                     className={styles.backButton}
-                    onClick={onBack}
+                    onClick={(event) => {
+                      if (!isRepeatedClick(event)) onBack();
+                    }}
                     disabled={!canGoBack || isTransitioning}
                   >
                     <ArrowIcon direction="left" />
@@ -209,7 +212,9 @@ export default function ShowcaseQuestionPanel({
                   <button
                     type="button"
                     className={cx(styles.nextButton, pulsing && styles.nextPulse)}
-                    onClick={submit}
+                    onClick={(event) => {
+                      if (!isRepeatedClick(event)) submit();
+                    }}
                     disabled={!canSubmit}
                   >
                     Próxima

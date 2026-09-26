@@ -15,7 +15,7 @@ import ParticleNucleusBackground from "./ParticleNucleusBackground";
 import { getProgress } from "../logic/getProgress";
 import ServiceSelector from "./ServiceSelector";
 import QuestionRenderer from "./QuestionRenderer";
-import ServiceComplete from "./ServiceComplete";
+import ServiceCompleteScene, { ServiceCompleteBackdrop } from "./serviceComplete/ServiceCompleteScene";
 import ProjectReview from "./ProjectReview";
 import MyUpgrade from "./MyUpgrade";
 import LeadForm from "@/features/lead/components/LeadForm";
@@ -83,7 +83,7 @@ export default function BuilderShell() {
   } else if (state.step === "reviewing") {
     content = <ProjectReview />;
   } else if (state.activeService && state.step === "service_complete") {
-    content = <ServiceComplete serviceId={state.activeService} />;
+    content = <ServiceCompleteScene serviceId={state.activeService} />;
   } else if (state.activeService) {
     content = <QuestionRenderer serviceId={state.activeService} />;
   } else {
@@ -113,13 +113,16 @@ export default function BuilderShell() {
   const isQuestionScreen = state.step === "configuring" && state.activeService !== null;
   // Terceira etapa = segunda pergunta do caminho (etapa 1 = escolha do caminho, etapa 2 = primeira
   // pergunta) — mesmo cálculo do "2 de N" da barra de progresso.
+  // Tela "Serviço adicionado": cenário preto próprio (terreno fixo na base), também fora da transição.
+  const isServiceComplete = state.step === "service_complete" && state.activeService !== null;
   const isThirdStep = isQuestionScreen && state.activeService !== null && getProgress(state.activeService, state.serviceDraft).current === 1;
 
   return (
     <SceneCutsceneProvider>
-      <div className={isQuestionScreen ? `${styles.shell} ${styles.shellTransparent}` : styles.shell}>
+      <div className={isQuestionScreen || isServiceComplete ? `${styles.shell} ${styles.shellTransparent}` : styles.shell}>
         {isQuestionScreen && <BuilderMovingBackground theme={state.activeService ?? undefined} />}
         {isQuestionScreen && <ParticleNucleusBackground active={isThirdStep} theme={state.activeService ?? undefined} />}
+        {isServiceComplete && <ServiceCompleteBackdrop />}
         {!isChoosingService && <BuilderNavigation onToggleMyUpgrade={handleToggleMyUpgrade} onResetSession={resetSession} />}
 
         {justRestored && <div className={styles.restoredBanner}>Seu progresso foi recuperado.</div>}

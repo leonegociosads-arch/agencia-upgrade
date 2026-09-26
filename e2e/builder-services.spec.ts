@@ -21,19 +21,20 @@ test("Sites e Desenvolvimento — mini-fluxo completo (com site_recursos, não s
   await answerSingleChoice(page, "Landing Page");
   await answerMultiChoice(page, ["Somente apresentação e contato"]);
   await answerSingleChoice(page, "Vou criar do zero");
-  await expect(page.getByRole("heading", { name: /adicionado ao seu Upgrade/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Serviço adicionado/ })).toBeVisible();
 });
 
 test("Tráfego Pago — mini-fluxo completo (4 perguntas fixas)", async ({ page }) => {
   await gotoBuilder(page);
   await completeTrafego(page);
-  await expect(page.getByRole("heading", { name: "Atrair mais clientes adicionado ao seu Upgrade" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Serviço adicionado/ })).toBeVisible();
+  await expect(page.getByText("Seu serviço de Tráfego pago foi configurado com sucesso.")).toBeVisible();
 });
 
 test("Design / Social Media — mini-fluxo completo", async ({ page }) => {
   await gotoBuilder(page);
   await completeDesign(page);
-  await expect(page.getByRole("heading", { name: /adicionado ao seu Upgrade/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Serviço adicionado/ })).toBeVisible();
 });
 
 test("Múltiplos serviços — Site + Tráfego", async ({ page }) => {

@@ -16,11 +16,11 @@ test("Seção 84/85 — desativar WebGL não impede o Builder de funcionar (fall
   await gotoBuilder(page);
   await completeSiteQuickly(page);
   // A asserção precisa vir ANTES de `continueFromServiceComplete` — esse helper já navega para
-  // longe da tela "adicionado ao seu Upgrade" (bug de teste: checar depois checa uma tela que o
+  // longe da tela "Serviço adicionado!" (bug de teste: checar depois checa uma tela que o
   // próprio teste já mandou trocar).
-  await expect(page.getByRole("heading", { name: /adicionado ao seu Upgrade/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Serviço adicionado/ })).toBeVisible();
   await continueFromServiceComplete(page);
-  await expect(page.getByRole("heading", { name: "Por onde você quer começar?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Upgrade." })).toBeVisible();
   await context.close();
 });
 
