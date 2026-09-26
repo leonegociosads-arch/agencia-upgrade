@@ -1,48 +1,352 @@
-.wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-3);
-  max-width: 640px;
+/* Resumo do Projeto ("Seu Upgrade está quase pronto!") — painel branco estilo janela sobre o fundo
+ * escuro do Builder. Cores medidas nos assets de referência: painel #f3f4f4 com borda quase preta,
+ * CTA verde #00f948 com borda preta, "adicionar" #f4f5f5 com borda preta tracejada. */
+
+.scene {
+  width: 100%;
+  /* Largura folgada em volta do painel (760px): os desenhos laterais passam da borda dele e não
+   * podem ser cortados pelo `overflow-x: clip` logo abaixo. */
+  max-width: 1040px;
   margin: 0 auto;
-  padding: var(--ds-space-8) var(--ds-space-4) var(--ds-space-16);
+  padding: clamp(28px, 6vh, 64px) 24px var(--ds-space-16);
+  /* Os desenhos laterais passam um pouco da borda do painel — nunca podem gerar rolagem lateral. */
+  overflow-x: clip;
+}
+
+.stage {
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  border-radius: 26px;
+  border: 4px solid #000608;
+  background: #f3f4f4;
+  box-shadow:
+    inset 0 2px 0 #ffffff,
+    0 28px 60px rgba(0, 0, 0, 0.55);
+  transform: rotate(-1.2deg);
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  /* Rótulo logo depois das bolinhas: o canto direito é onde a prancheta pousa. */
+  gap: 18px;
+  height: 50px;
+  padding: 0 22px;
+  border-bottom: 2px solid #dcdfe0;
+}
+
+.dots {
+  display: flex;
+  gap: 9px;
+}
+
+.dots span {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+
+.dotRed {
+  background: #ff5f57;
+}
+
+.dotYellow {
+  background: #febc2e;
+}
+
+.dotGreen {
+  background: #28c840;
+}
+
+.tag {
+  font-family: var(--ds-font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a9298;
+}
+
+.content {
+  padding: 30px clamp(20px, 6%, 48px) 40px;
 }
 
 .title {
-  margin-top: var(--ds-space-1);
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: clamp(1.9rem, 4.6vw, 3rem);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  color: #000;
+}
+
+.titleLine {
+  display: block;
+}
+
+.brush {
+  display: block;
+  width: 190px;
+  height: auto;
+  margin: 10px 0 0 -6px;
 }
 
 .subtitle {
-  margin-top: calc(var(--ds-space-2) * -1);
-  margin-bottom: var(--ds-space-2);
+  max-width: 34em;
+  margin: 8px 0 0;
+  font-family: var(--ds-font-body);
+  font-size: 1.08rem;
+  line-height: 1.45;
+  color: #1f2a33;
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-4);
+  gap: 14px;
+  margin-top: 28px;
 }
 
 .actions {
   display: flex;
-  justify-content: space-between;
-  gap: var(--ds-space-4);
-  margin-top: var(--ds-space-4);
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 26px;
 }
 
-/* Microfeedback ao "Continuar" ficar habilitado (briefing Microinterações, Seção 15) — mesmo
- * pulso curto e único de `QuestionRenderer.module.css` (`useEnabledPulse`), nunca um loop. */
-.continuePulse {
-  animation: continuePulse 260ms var(--ds-easing-emphasized);
+.addButton,
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  border-radius: 16px;
+  font-family: var(--ds-font-display);
+  font-weight: 800;
+  color: #000;
+  cursor: pointer;
+  transition:
+    transform var(--ds-duration-fast) var(--ds-easing-base),
+    box-shadow var(--ds-duration-fast) var(--ds-easing-base),
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    opacity var(--ds-duration-normal) var(--ds-easing-standard);
 }
 
-@keyframes continuePulse {
+.addButton {
+  min-height: 60px;
+  border: 3px dashed #020303;
+  background: #f4f5f5;
+  font-size: 1.1rem;
+}
+
+.addButton svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ctaButton {
+  min-height: 70px;
+  border: 4px solid #000601;
+  background: #00f948;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+  font-size: 1.25rem;
+}
+
+.ctaButton svg {
+  width: 26px;
+  height: 26px;
+}
+
+@media (hover: hover) {
+  .addButton:hover:not(:disabled) {
+    border-color: #000;
+    background: #ffffff;
+  }
+
+  .ctaButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 0 rgba(0, 0, 0, 0.18),
+      0 0 24px rgba(0, 249, 72, 0.45);
+  }
+}
+
+.addButton:active:not(:disabled),
+.ctaButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.addButton:focus-visible,
+.ctaButton:focus-visible {
+  outline: 3px solid var(--ds-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.addButton:disabled,
+.ctaButton:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+/* Mesmo pulso curto de antes quando o CTA fica habilitado (nunca em loop). */
+.ctaPulse {
+  animation: ctaPulse 260ms var(--ds-easing-emphasized);
+}
+
+@keyframes ctaPulse {
   0% {
-    box-shadow: 0 0 0 0 var(--ds-color-accent-soft);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18), 0 0 0 0 rgba(0, 249, 72, 0.5);
   }
   60% {
-    box-shadow: 0 0 0 6px var(--ds-color-accent-soft);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18), 0 0 0 8px rgba(0, 249, 72, 0.35);
   }
   100% {
-    box-shadow: 0 0 0 0 transparent;
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18), 0 0 0 0 transparent;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Desenhos laterais (assets aprovados) — decorativos, nunca recebem clique.
+ * ------------------------------------------------------------------------- */
+.clipboard,
+.mascot {
+  position: absolute;
+  z-index: 2;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.45));
+}
+
+.clipboard {
+  top: -34px;
+  right: -64px;
+  width: 118px;
+  transform: rotate(9deg);
+}
+
+.mascot {
+  bottom: 120px;
+  right: -86px;
+  width: 112px;
+  transform: rotate(-8deg);
+}
+
+/* Telas médias: os desenhos entram um pouco para dentro, sem sair da viewport. */
+@media (max-width: 1000px) {
+  .clipboard {
+    right: -24px;
+    width: 96px;
+  }
+
+  .mascot {
+    right: -30px;
+    width: 88px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile — painel reto, largura quase total, desenhos menores e fora do caminho.
+ * ------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .scene {
+    padding: 36px 3vw var(--ds-space-12);
+  }
+
+  .panel {
+    border-radius: 20px;
+    border-width: 3px;
+    transform: none;
+  }
+
+  .titlebar {
+    height: 42px;
+    padding: 0 16px;
+  }
+
+  .dots span {
+    width: 12px;
+    height: 12px;
+  }
+
+  .content {
+    padding: 22px 14px 26px;
+  }
+
+  .title {
+    font-size: clamp(1.5rem, 8vw, 2rem);
+    /* Espaço à direita para a prancheta, que pousa no canto do painel. */
+    padding-right: 48px;
+  }
+
+  .brush {
+    width: 140px;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .list {
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .actions {
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .addButton {
+    min-height: 54px;
+    font-size: 0.98rem;
+  }
+
+  .ctaButton {
+    min-height: 60px;
+    font-size: 1.02rem;
+    gap: 10px;
+  }
+
+  .clipboard {
+    top: -26px;
+    right: -4px;
+    width: 62px;
+  }
+
+  .mascot {
+    bottom: -30px;
+    right: -2px;
+    width: 58px;
+  }
+}
+
+/* Telas estreitas: o rótulo da barra encostaria na prancheta — as bolinhas bastam. */
+@media (max-width: 400px) {
+  .tag {
+    display: none;
+  }
+}
+
+/* Telas bem estreitas (~320px): o CTA continua numa linha só. */
+@media (max-width: 360px) {
+  .ctaButton {
+    padding: 0 10px;
+    font-size: 0.9rem;
+    gap: 8px;
+  }
+
+  .ctaButton svg {
+    width: 20px;
+    height: 20px;
   }
 }

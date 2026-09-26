@@ -121,8 +121,8 @@ export async function finalizeFromMyUpgrade(page: Page) {
 }
 
 export async function goToReviewAndContinue(page: Page) {
-  await expect(page.getByRole("heading", { name: "Confira seu projeto" })).toBeVisible();
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeVisible();
+  await page.getByRole("button", { name: /Quero receber um retorno/ }).click();
 }
 
 export interface LeadFormValues {

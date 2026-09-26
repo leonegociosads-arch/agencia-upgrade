@@ -63,8 +63,8 @@ test("Seção 35 — preencher, voltar ao projeto e retornar preserva os campos 
   await page.getByLabel("Nome").fill("João Preservado");
   await page.getByLabel("Empresa").fill("Empresa Preservada");
   await page.getByRole("button", { name: "Voltar ao projeto" }).click();
-  await expect(page.getByRole("heading", { name: "Confira seu projeto" })).toBeVisible();
-  await page.getByRole("button", { name: "Continuar" }).click();
+  await expect(page.getByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeVisible();
+  await page.getByRole("button", { name: /Quero receber um retorno/ }).click();
   await expect(page.getByLabel("Nome")).toHaveValue("João Preservado");
   await expect(page.getByLabel("Empresa")).toHaveValue("Empresa Preservada");
 });

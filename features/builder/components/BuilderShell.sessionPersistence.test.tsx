@@ -116,8 +116,8 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
-    await screen.findByText("Confira seu projeto");
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" });
+    fireEvent.click(screen.getByRole("button", { name: /Quero receber um retorno/ }));
     await screen.findByLabelText("Nome");
 
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Maria Souza" } });
@@ -176,8 +176,8 @@ describe("Persistência de sessão do Builder (Fase 14) — integração via Bui
     await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
-    await screen.findByText("Confira seu projeto");
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" });
+    fireEvent.click(screen.getByRole("button", { name: /Quero receber um retorno/ }));
     await screen.findByLabelText("Nome");
 
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Ana Lima" } });

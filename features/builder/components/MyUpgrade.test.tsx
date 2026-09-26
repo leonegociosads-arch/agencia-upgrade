@@ -210,7 +210,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     renderWithState(confirmedEcommerceSite());
     toggleMyUpgrade();
     fireEvent.click(within(panel()).getByRole("button", { name: "Finalizar projeto" }));
-    expect(screen.getByText("Confira seu projeto")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeTruthy();
   });
 
   it("TESTE 13 — com uma edição em andamento, finalizar não ignora a alteração pendente", () => {
@@ -221,7 +221,7 @@ describe("MyUpgrade — integração (Etapa 10)", () => {
     // "Finalizar projeto" dele está visível ao mesmo tempo que a tela de edição.
     fireEvent.click(within(panel()).getByRole("button", { name: "Finalizar projeto" }));
 
-    expect(screen.queryByText("Confira seu projeto")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeNull();
     expect(within(panel()).getByText(/Termine antes de finalizar o projeto/)).toBeTruthy();
 
     fireEvent.click(within(panel()).getByText("Descartar alterações"));

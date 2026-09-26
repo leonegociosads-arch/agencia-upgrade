@@ -128,7 +128,7 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
 
-    await screen.findByText("Confira seu projeto");
+    await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" });
     expect(trackFunnelMilestoneMock).toHaveBeenCalledWith("upgrade_reviewed", { serviceCount: 1, serviceIds: ["site"] });
   });
 
@@ -142,10 +142,10 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
-    await screen.findByText("Confira seu projeto");
+    await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" });
     trackFunnelMilestoneMock.mockClear();
 
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: /Quero receber um retorno/ }));
     await screen.findByLabelText("Nome");
     expect(trackFunnelMilestoneMock).toHaveBeenCalledWith("contact_started", {});
   });
@@ -159,8 +159,8 @@ describe("Disparo de eventos de analytics (Fase 17) — integração via Builder
     await screen.findByText("Selecione um serviço para montarmos a solução ideal para o seu momento.");
     fireEvent.click(screen.getByRole("button", { name: /Meu Upgrade/ }));
     fireEvent.click(screen.getByRole("button", { name: "Finalizar projeto" }));
-    await screen.findByText("Confira seu projeto");
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" });
+    fireEvent.click(screen.getByRole("button", { name: /Quero receber um retorno/ }));
     await screen.findByLabelText("Nome");
     fireEvent.change(screen.getByLabelText("Nome"), { target: { value: "Ana Lima" } });
     fireEvent.change(screen.getByLabelText("Empresa"), { target: { value: "Ana Confeitaria" } });

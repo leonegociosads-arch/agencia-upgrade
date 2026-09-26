@@ -48,8 +48,10 @@ describe("Tela 'Serviço adicionado' (ServiceCompleteScene)", () => {
     renderBuilder();
     await completeSiteQuickly();
     fireEvent.click(screen.getByRole("button", { name: "Ver resumo do projeto" }));
-    expect(await screen.findByText("Confira seu projeto")).toBeTruthy();
-    expect(screen.getAllByText(/Criar um site/).length).toBeGreaterThan(0);
+    expect(await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Site" })).toBeTruthy();
+    // Só o serviço configurado aparece (nunca os três fixos da arte de referência).
+    expect(screen.queryByRole("heading", { name: "Tráfego Pago" })).toBeNull();
   });
 
   it("'Adicionar outro serviço' volta à escolha de categoria sem apagar o que já foi configurado", async () => {
@@ -66,9 +68,9 @@ describe("Tela 'Serviço adicionado' (ServiceCompleteScene)", () => {
     await completeTrafego();
     expect(screen.getByText(/Seu serviço de Tráfego pago foi configurado com sucesso/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Ver resumo do projeto" }));
-    expect(await screen.findByText("Confira seu projeto")).toBeTruthy();
-    expect(screen.getAllByText(/Criar um site/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Atrair mais clientes/).length).toBeGreaterThan(0);
+    expect(await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Site" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Tráfego Pago" })).toBeTruthy();
   });
 
   it("clique duplo numa ação não navega duas vezes", async () => {

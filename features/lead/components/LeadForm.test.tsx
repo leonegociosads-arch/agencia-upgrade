@@ -126,9 +126,9 @@ describe("LeadForm — integração (Etapa 12)", () => {
     fireEvent.change(screen.getByLabelText("Empresa"), { target: { value: "ABC Móveis" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Voltar ao projeto" }));
-    expect(screen.getByText("Confira seu projeto")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: /Quero receber um retorno/ }));
     expect((screen.getByLabelText("Nome") as HTMLInputElement).value).toBe("João Silva");
     expect((screen.getByLabelText("Empresa") as HTMLInputElement).value).toBe("ABC Móveis");
   });
@@ -161,8 +161,8 @@ describe("LeadForm — integração (Etapa 12)", () => {
     await screen.findByText("Não conseguimos enviar agora. Seus dados continuam preenchidos.");
 
     fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
-    expect(screen.getByText("Confira seu projeto")).toBeTruthy();
-    expect(within(screen.getByRole("heading", { name: "Criar um site" }).closest("section")!).getByText("Criar um site")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeTruthy();
+    expect(within(screen.getByRole("heading", { name: "Site" }).closest("article")!).getByText("Site")).toBeTruthy();
   });
 
   it("TESTE 9 (Fase 13) — submitLead é chamado com o payload contendo idempotencyKey estável", async () => {
