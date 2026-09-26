@@ -423,58 +423,10 @@ function maskAspectRatio(asset: OptionAsset): string {
   return `${asset.width} / ${asset.height * asset.visualScale}`;
 }
 
-/**
- * TESTE VISUAL (pedido do usuário) — só a primeira pergunta do caminho Design/Social Media
- * (`design_servico`, escolha única) troca a arte pronta em PNG por um botão construído em
- * HTML/CSS (moldura chanfrada com brilho neon, ver `QuestionRenderer.module.css`/`.hudOption`),
- * com o espaço da ilustração ainda VAZIO — o usuário vai recortar e enviar essa arte depois, se
- * gostar do resultado. Não é permanente e não muda nenhuma outra pergunta: a variante em pacote
- * (`design_servico`, múltipla escolha) e todas as outras perguntas continuam com a arte em PNG de
- * sempre (branch abaixo). Nenhuma lógica do Builder (id, resposta, ramificação) muda aqui — é
- * só uma troca de CASCA visual para uma única tela, a título de comparação.
- */
-const HUD_TEST_QUESTION_ID = "design_servico";
-
 function OptionCard({ question, optionId, label, description, selected, showCheck, disabled, onClick }: OptionCardProps) {
   const tiltRef = useTilt<HTMLButtonElement>(2.5);
   const asset = getOptionAsset(question, optionId);
   const checkboxRect = asset?.checkbox ? scaledCheckboxRect(asset.checkbox, asset.visualScale) : null;
-  const isHudTest = question.id === HUD_TEST_QUESTION_ID && question.type === "single_choice";
-
-  if (isHudTest) {
-    return (
-      <button
-        ref={tiltRef}
-        type="button"
-        className={cx(styles.hudOption, selected && styles.hudOptionSelected)}
-        aria-pressed={showCheck ? selected : undefined}
-        disabled={disabled}
-        onClick={onClick}
-      >
-        {/* SEM `aria-hidden` aqui nem em `.hudInner`: ao contrário do cartão em PNG (`.assetOption`
-            acima), aqui o rótulo/descrição são texto de verdade, não uma arte com um texto oculto
-            duplicado por baixo — escondê-los da árvore de acessibilidade deixaria o botão sem
-            nome acessível nenhum. Só os elementos puramente decorativos (a caixa vazia da
-            ilustração e os dois brilhos do canto) ganham `aria-hidden`. */}
-        <span className={styles.hudBorder}>
-          <span className={styles.hudInner}>
-            {/* Espaço reservado para a ilustração — de propósito VAZIO nesta rodada de teste (o
-                usuário vai recortar e enviar a arte separadamente depois de aprovar a moldura). */}
-            <span className={styles.hudIconSlot} aria-hidden="true" />
-            <span className={styles.hudBody}>
-              <span className={styles.hudLabel}>{label}</span>
-              {description && <span className={styles.hudDescription}>{description}</span>}
-            </span>
-          </span>
-          {/* Os dois pontos de brilho mais intenso da referência — nos vértices dos chanfros da
-              direita, onde as duas facetas do corte se encontram (ver `QuestionRenderer.module.css`
-              sobre as coordenadas medidas pixel a pixel na imagem enviada). */}
-          <span className={styles.hudFlare} style={{ top: "20.1%", left: "97.22%" }} aria-hidden="true" />
-          <span className={styles.hudFlare} style={{ top: "79.9%", left: "97.22%" }} aria-hidden="true" />
-        </span>
-      </button>
-    );
-  }
 
   if (asset) {
     return (
