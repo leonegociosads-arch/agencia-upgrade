@@ -13,6 +13,7 @@ import { useSceneCutscene } from "@/features/design-system/motion/SceneCutscene"
 import { useEnabledPulse } from "@/features/design-system/motion/useEnabledPulse";
 import { cx } from "@/features/design-system/utils/cx";
 import { SHOWCASE_THEMES } from "./showcaseQuestionTheme";
+import { getShowcaseOptionIcon } from "./showcaseOptionIcons";
 import styles from "./ShowcaseQuestionPanel.module.css";
 
 export interface ShowcaseQuestionPanelProps {
@@ -181,6 +182,11 @@ export default function ShowcaseQuestionPanel({
                             <svg viewBox="0 0 24 24" fill="none">
                               <path d="M5 12.5 10 17.5 19 7" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
+                          </span>
+                        )}
+                        {getShowcaseOptionIcon(question.id, option.id) && (
+                          <span className={styles.optionIcon} aria-hidden="true">
+                            {getShowcaseOptionIcon(question.id, option.id)}
                           </span>
                         )}
                         <span className={styles.optionLabel}>{option.label}</span>
