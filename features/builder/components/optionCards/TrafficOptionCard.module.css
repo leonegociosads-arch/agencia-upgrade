@@ -1,0 +1,299 @@
+/* Card de resposta "laboratório" — caminho Tráfego Pago (roxo).
+ * Filosofia (pedido do usuário): a tela dos 3 serviços é o espetáculo; as perguntas internas são
+ * clareza e elegância. O roxo é ACENTO (linha fina + pequenos detalhes), nunca uma massa de luz.
+ * Todos os valores de ajuste fino ficam nas variáveis abaixo, para o design ser calibrado sem
+ * mexer na estrutura. */
+.card {
+  /* Cor de identidade do caminho (triplet RGB para usar com alpha). Um pouco mais clara que o
+   * #8225c1 da cutscene de Tráfego: numa linha de 1px sobre fundo escuro, o roxo escuro sumiria. */
+  --toc-accent: 157, 77, 255;
+  --toc-chamfer: 12px;
+  --toc-border-alpha: 0.32;
+  --toc-glow: 0 0 0 rgba(var(--toc-accent), 0);
+  --toc-fill-top: #14111b;
+  --toc-fill-bottom: #0b0a0f;
+  --toc-tint-alpha: 0;
+  --toc-line-width: 26px;
+  --toc-line-alpha: 0.55;
+  --toc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --toc-duration: 240ms;
+
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  /* A entrada da lista (GSAP, `QuestionRenderer.tsx`) escreve `transform`/`opacity` inline AQUI;
+   * por isso nenhuma transição de `transform` neste elemento (mesma regra do `.option`). */
+  transition: opacity var(--ds-duration-normal) var(--ds-easing-standard);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.surface {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 78px;
+  padding: 14px 18px 14px 20px;
+  filter: drop-shadow(var(--toc-glow));
+  transition:
+    transform var(--toc-duration) var(--toc-ease),
+    filter var(--toc-duration) var(--toc-ease);
+}
+
+/* Silhueta: chanfro no canto superior direito e no inferior esquerdo — a lembrança discreta da
+ * moldura tecnológica dos cards anteriores, sem virar "placa". */
+.frame,
+.fill {
+  position: absolute;
+  pointer-events: none;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--toc-chamfer)) 0,
+    100% var(--toc-chamfer),
+    100% 100%,
+    var(--toc-chamfer) 100%,
+    0 calc(100% - var(--toc-chamfer))
+  );
+}
+
+/* A "borda" de 1px: a camada de trás é a cor da linha e o `.fill` cobre tudo 1px para dentro. */
+.frame {
+  inset: 0;
+  background: rgba(var(--toc-accent), var(--toc-border-alpha));
+  transition: background-color var(--toc-duration) var(--toc-ease);
+}
+
+.fill {
+  inset: 1px;
+  background:
+    radial-gradient(120% 160% at 0% 50%, rgba(var(--toc-accent), var(--toc-tint-alpha)), transparent 58%),
+    linear-gradient(180deg, var(--toc-fill-top), var(--toc-fill-bottom));
+  transition: background var(--toc-duration) var(--toc-ease);
+}
+
+/* Pequena linha de luz sobre a borda superior — cresce no hover e na seleção. */
+.lightLine {
+  position: absolute;
+  top: 0;
+  left: 20px;
+  width: var(--toc-line-width);
+  height: 1px;
+  background: rgba(var(--toc-accent), var(--toc-line-alpha));
+  box-shadow: 0 0 6px rgba(var(--toc-accent), calc(var(--toc-line-alpha) * 0.8));
+  transition:
+    width var(--toc-duration) var(--toc-ease),
+    background-color var(--toc-duration) var(--toc-ease),
+    box-shadow var(--toc-duration) var(--toc-ease);
+}
+
+/* Conteúdo acima das duas camadas de fundo. */
+.index,
+.text,
+.indicator {
+  position: relative;
+}
+
+/* Identificador "01" — discreto, separado do texto por um fio vertical. */
+.index {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--ds-font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: rgba(var(--toc-accent), 0.7);
+  transition: color var(--toc-duration) var(--toc-ease);
+}
+
+.index::after {
+  content: "";
+  width: 1px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.label {
+  font-family: var(--ds-font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: #f3f0f8;
+}
+
+.description {
+  font-family: var(--ds-font-body);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: rgba(226, 220, 238, 0.58);
+}
+
+/* Seta: só indicação visual (o card inteiro é o botão) — círculo pequeno de 1px. */
+.indicator {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--toc-accent), 0.3);
+  color: rgba(226, 214, 255, 0.62);
+  transition:
+    transform var(--toc-duration) var(--toc-ease),
+    border-color var(--toc-duration) var(--toc-ease),
+    background-color var(--toc-duration) var(--toc-ease),
+    color var(--toc-duration) var(--toc-ease);
+}
+
+.indicator svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Estados — normal = elegante · hover = ganha energia · selecionado = ganha presença.
+ * ------------------------------------------------------------------------- */
+@media (hover: hover) {
+  .card:hover:not(:disabled) {
+    --toc-border-alpha: 0.62;
+    --toc-glow: 0 0 10px rgba(var(--toc-accent), 0.2);
+    --toc-fill-top: #18141f;
+    --toc-fill-bottom: #0e0c13;
+    --toc-tint-alpha: 0.08;
+    --toc-line-width: 56px;
+    --toc-line-alpha: 0.9;
+  }
+
+  .card:hover:not(:disabled) .surface {
+    transform: translateY(-1px);
+  }
+
+  .card:hover:not(:disabled) .index {
+    color: rgba(var(--toc-accent), 1);
+  }
+
+  .card:hover:not(:disabled) .indicator {
+    transform: translateX(3px);
+    border-color: rgba(var(--toc-accent), 0.7);
+    color: #fff;
+  }
+}
+
+/* Selecionado: borda cheia, glow claro, fundo levemente tingido e o check no lugar da seta
+ * (a seleção nunca depende só da cor). */
+.card[data-selected] {
+  --toc-border-alpha: 0.95;
+  --toc-glow: 0 0 14px rgba(var(--toc-accent), 0.38);
+  --toc-fill-top: #1a1424;
+  --toc-fill-bottom: #100c17;
+  --toc-tint-alpha: 0.16;
+  --toc-line-width: 96px;
+  --toc-line-alpha: 1;
+}
+
+.card[data-selected] .index {
+  color: rgba(var(--toc-accent), 1);
+}
+
+.card[data-selected] .indicator {
+  border-color: rgb(var(--toc-accent));
+  background: rgb(var(--toc-accent));
+  color: #fff;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.card:focus-visible:not([data-selected]) {
+  --toc-border-alpha: 0.62;
+}
+
+.card:active:not(:disabled) .surface {
+  transform: translateY(0) scale(0.99);
+  transition-duration: 90ms;
+}
+
+/* Durante a troca de cena (escolha única), as outras opções apagam; a escolhida fica acesa. */
+.card:disabled {
+  cursor: default;
+}
+
+.card:disabled:not([data-selected]) {
+  opacity: 0.45;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile — mesma estrutura, mais compacta; a descrição quebra livremente.
+ * ------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .card {
+    --toc-chamfer: 10px;
+  }
+
+  .surface {
+    gap: 12px;
+    min-height: 70px;
+    padding: 12px 12px 12px 14px;
+  }
+
+  .lightLine {
+    left: 14px;
+  }
+
+  .index {
+    gap: 12px;
+    font-size: 0.66rem;
+  }
+
+  .index::after {
+    height: 26px;
+  }
+
+  .label {
+    font-size: 0.98rem;
+  }
+
+  .description {
+    font-size: 0.8rem;
+  }
+
+  .indicator {
+    width: 28px;
+    height: 28px;
+  }
+
+  .indicator svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface,
+  .indicator,
+  .lightLine {
+    transition: none;
+  }
+
+  .card:hover:not(:disabled) .surface,
+  .card:hover:not(:disabled) .indicator {
+    transform: none;
+  }
+}

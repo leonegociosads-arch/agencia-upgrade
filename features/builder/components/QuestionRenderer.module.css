@@ -109,7 +109,25 @@
  * Só ativo quando o SO não pede motion reduzido — o gate em JS (`useReducedMotion`) lê o mesmo
  * sinal do sistema operacional, então os dois nunca divergem (nunca um card fica preso invisível
  * esperando um JS que decidiu não rodar). */
+/* Laboratório visual das respostas (`TrafficOptionCard`): lista compacta — o respiro de 16px acima
+ * existe para o glow dos PNGs, que aqui não há. */
+.optionsCompact {
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .optionsCompact {
+    gap: 8px;
+  }
+}
+
+/* Marcador do card do laboratório — é por ele que a entrada GSAP da lista encontra os cards. */
+.labOption {
+  min-width: 0;
+}
+
 @media (prefers-reduced-motion: no-preference) {
+  .optionsFirstEntry .labOption,
   .optionsFirstEntry .assetOption,
   .optionsFirstEntry .option {
     opacity: 0;

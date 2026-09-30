@@ -9,6 +9,7 @@ import { getProgress } from "../logic/getProgress";
 import { getQuestionLayout, getQuestionNumber } from "../logic/getQuestionLayout";
 import { isRepeatedClick } from "../logic/repeatedClick";
 import ShowcaseQuestionPanel from "./special/ShowcaseQuestionPanel";
+import TrafficOptionCard, { usesTrafficOptionCard } from "./optionCards/TrafficOptionCard";
 import { getVisibleQuestions } from "../logic/getVisibleQuestions";
 import { validateAnswer } from "../logic/validateAnswer";
 import { buildServiceSummary } from "../logic/buildServiceSummary";
@@ -302,6 +303,8 @@ interface QuestionOptionsProps {
 function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer }: QuestionOptionsProps) {
   const options = typeof question.options === "function" ? question.options(answers) : question.options;
   const [pending, setPending] = useState<string[]>([]);
+  // Laboratório visual das respostas (hoje só a 1ª pergunta de Tráfego Pago, ver `TrafficOptionCard`).
+  const usesLabCard = usesTrafficOptionCard(question);
   const { isTransitioning, markForward } = useSceneNavigation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const reducedMotion = useReducedMotion();
@@ -319,7 +322,9 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const cards = Array.from(container.querySelectorAll<HTMLElement>(`.${styles.assetOption}, .${styles.option}`));
+    const cards = Array.from(
+      container.querySelectorAll<HTMLElement>(`.${styles.assetOption}, .${styles.option}, .${styles.labOption}`),
+    );
     if (cards.length === 0) return;
 
     // Motion reduzido (Seção 12): sem entrada lateral, sem flutuação — só garante que os cards
@@ -335,9 +340,14 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
     // Se esta cena chegou por trás de uma cutscene (`SceneCutscene`), espera a cortina terminar de
     // revelar antes de qualquer movimento — cortina, depois entrada, depois flutuação. Os cards
     // continuam escondidos pelo `.optionsFirstEntry` enquanto isso (sem flash).
+    // O card do laboratório é propositalmente calmo: entra junto com a lista, mas sem a
+    // microflutuação contínua (numa lista compacta, cards balançando pareceriam desalinhados).
+    const startFloat = () => {
+      if (!usesLabCard) floatCleanup = startOptionFloat(cards);
+    };
     const cancelWait = whenRevealed(() => {
       if (!isFirstQuestionOfService) {
-        floatCleanup = startOptionFloat(cards);
+        startFloat();
         return;
       }
       entryTween = animateFirstQuestionEntry(cards, () => {
@@ -348,8 +358,8 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
         // (sempre vence uma regra de classe) impediria para sempre o
         // `.assetOption:disabled { opacity: 0.7 }` de fazer efeito nesta pergunta.
         container.classList.remove(styles.optionsFirstEntry);
-        gsap.set(cards, { clearProps: "opacity" });
-        floatCleanup = startOptionFloat(cards);
+        gsap.set(cards, { clearProps: usesLabCard ? "transform,opacity" : "opacity" });
+        startFloat();
       });
     });
 
@@ -358,16 +368,52 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
       entryTween?.kill();
       floatCleanup?.();
     };
-  }, [isFirstQuestionOfService, reducedMotion, whenRevealed]);
+  }, [isFirstQuestionOfService, reducedMotion, whenRevealed, usesLabCard]);
 
   return (
     <>
       <div
         ref={containerRef}
-        className={cx(styles.options, hasSelection && styles.optionsHasSelection, isFirstQuestionOfService && styles.optionsFirstEntry)}
+        className={cx(
+          styles.options,
+          usesLabCard && styles.optionsCompact,
+          hasSelection && styles.optionsHasSelection,
+          isFirstQuestionOfService && styles.optionsFirstEntry,
+        )}
       >
-        {options.map((option) => {
+        {options.map((option, index) => {
           const selected = question.type === "multi_choice" && pending.includes(option.id);
+          const disabled = question.type !== "multi_choice" && isTransitioning;
+          const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+            if (question.type === "multi_choice") {
+              playSound("card_select");
+              toggleMulti(option.id);
+              return;
+            }
+            // Escolha única troca a tela no clique — o 2º clique de um clique duplo cairia na
+            // pergunta seguinte (ver `repeatedClick.ts`).
+            if (isTransitioning || isRepeatedClick(event)) return;
+            playSound("card_select");
+            markForward();
+            onAnswer(option.id);
+          };
+
+          if (usesLabCard) {
+            return (
+              <TrafficOptionCard
+                key={option.id}
+                className={styles.labOption}
+                index={index}
+                label={option.label}
+                description={option.description}
+                selected={selected}
+                showCheck={question.type === "multi_choice"}
+                disabled={disabled}
+                onClick={handleClick}
+              />
+            );
+          }
+
           return (
             <OptionCard
               key={option.id}
@@ -377,20 +423,8 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
               description={option.description}
               selected={selected}
               showCheck={question.type === "multi_choice"}
-              disabled={question.type !== "multi_choice" && isTransitioning}
-              onClick={(event) => {
-                if (question.type === "multi_choice") {
-                  playSound("card_select");
-                  toggleMulti(option.id);
-                  return;
-                }
-                // Escolha única troca a tela no clique — o 2º clique de um clique duplo cairia na
-                // pergunta seguinte (ver `repeatedClick.ts`).
-                if (isTransitioning || isRepeatedClick(event)) return;
-                playSound("card_select");
-                markForward();
-                onAnswer(option.id);
-              }}
+              disabled={disabled}
+              onClick={handleClick}
             />
           );
         })}
