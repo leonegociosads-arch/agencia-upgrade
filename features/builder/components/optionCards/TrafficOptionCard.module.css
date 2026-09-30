@@ -8,13 +8,13 @@
    * #8225c1 da cutscene de Tráfego: numa linha de 1px sobre fundo escuro, o roxo escuro sumiria. */
   --toc-accent: 157, 77, 255;
   --toc-chamfer: 12px;
-  --toc-border-alpha: 0.32;
-  --toc-glow: 0 0 0 rgba(var(--toc-accent), 0);
-  --toc-fill-top: #14111b;
-  --toc-fill-bottom: #0b0a0f;
-  --toc-tint-alpha: 0;
-  --toc-line-width: 26px;
-  --toc-line-alpha: 0.55;
+  --toc-border-alpha: 0.5;
+  --toc-glow: 0 0 8px rgba(var(--toc-accent), 0.14);
+  --toc-fill-top: #171224;
+  --toc-fill-bottom: #0c0a12;
+  --toc-tint-alpha: 0.06;
+  --toc-line-width: 30px;
+  --toc-line-alpha: 0.75;
   --toc-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --toc-duration: 240ms;
 
@@ -109,7 +109,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   font-variant-numeric: tabular-nums;
-  color: rgba(var(--toc-accent), 0.7);
+  color: rgba(var(--toc-accent), 0.9);
   transition: color var(--toc-duration) var(--toc-ease);
 }
 
@@ -150,8 +150,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid rgba(var(--toc-accent), 0.3);
-  color: rgba(226, 214, 255, 0.62);
+  border: 1px solid rgba(var(--toc-accent), 0.5);
+  color: rgba(232, 220, 255, 0.78);
   transition:
     transform var(--toc-duration) var(--toc-ease),
     border-color var(--toc-duration) var(--toc-ease),
@@ -169,11 +169,11 @@
  * ------------------------------------------------------------------------- */
 @media (hover: hover) {
   .card:hover:not(:disabled) {
-    --toc-border-alpha: 0.62;
-    --toc-glow: 0 0 10px rgba(var(--toc-accent), 0.2);
-    --toc-fill-top: #18141f;
-    --toc-fill-bottom: #0e0c13;
-    --toc-tint-alpha: 0.08;
+    --toc-border-alpha: 0.85;
+    --toc-glow: 0 0 16px rgba(var(--toc-accent), 0.4);
+    --toc-fill-top: #1d1530;
+    --toc-fill-bottom: #0f0b17;
+    --toc-tint-alpha: 0.16;
     --toc-line-width: 56px;
     --toc-line-alpha: 0.9;
   }
@@ -196,11 +196,11 @@
 /* Selecionado: borda cheia, glow claro, fundo levemente tingido e o check no lugar da seta
  * (a seleção nunca depende só da cor). */
 .card[data-selected] {
-  --toc-border-alpha: 0.95;
-  --toc-glow: 0 0 14px rgba(var(--toc-accent), 0.38);
-  --toc-fill-top: #1a1424;
-  --toc-fill-bottom: #100c17;
-  --toc-tint-alpha: 0.16;
+  --toc-border-alpha: 1;
+  --toc-glow: 0 0 22px rgba(var(--toc-accent), 0.6);
+  --toc-fill-top: #221639;
+  --toc-fill-bottom: #120c1e;
+  --toc-tint-alpha: 0.26;
   --toc-line-width: 96px;
   --toc-line-alpha: 1;
 }
@@ -222,7 +222,7 @@
 }
 
 .card:focus-visible:not([data-selected]) {
-  --toc-border-alpha: 0.62;
+  --toc-border-alpha: 0.85;
 }
 
 .card:active:not(:disabled) .surface {
