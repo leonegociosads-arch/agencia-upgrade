@@ -30,14 +30,26 @@ describe("TrafficOptionCard (laboratório visual — 1ª pergunta de Tráfego Pa
     expect(screen.getByText("06")).toBeTruthy();
   });
 
-  it("o clique continua respondendo e avançando igual; a pergunta seguinte segue com os PNGs de sempre", async () => {
+  it("o clique continua respondendo e avançando; destino e investimento também usam o card em código", async () => {
     const { container } = renderBuilder();
     fireEvent.click(screen.getByText("Atrair mais clientes"));
     fireEvent.click(await screen.findByRole("button", { name: /Negócio local/ }));
 
     await screen.findByRole("heading", { name: "Onde você quer gerar o resultado?" });
-    expect(container.querySelectorAll('img[src*="trafego_destino"]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('img[src*="trafego_destino"]')).toHaveLength(0);
+    expect(screen.getByText("05")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /WhatsApp/ }));
+
+    // A 3ª pergunta é a cena especial (banner branco) e continua como estava.
+    await screen.findByRole("heading", { name: "Qual é sua situação atual com anúncios?" });
     expect(screen.queryByText("01")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Nunca anunciei/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Próxima/ }));
+
+    await screen.findByRole("heading", { name: "Quanto pretende investir em anúncios por mês?" });
+    expect(container.querySelectorAll('img[src*="trafego_investimento"]')).toHaveLength(0);
+    fireEvent.click(screen.getByText("Até R$ 1.000"));
+    await screen.findByRole("heading", { name: /Serviço adicionado/ });
   });
 
   it("as outras categorias não mudam: a 1ª pergunta do Site continua com os PNGs", async () => {

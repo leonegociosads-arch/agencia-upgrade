@@ -6,12 +6,16 @@ import type { Question } from "../../types";
 import styles from "./TrafficOptionCard.module.css";
 
 /**
- * Laboratório visual das respostas (pedido do usuário): card de resposta desenhado 100% em código
- * — sem PNG, sem ilustração — para encontrar o padrão definitivo das perguntas internas. Por
- * enquanto vale SÓ para as perguntas listadas aqui; todas as outras continuam com o `OptionCard`
- * de sempre (arte em PNG). Para testar em outra pergunta no futuro, basta incluir o id dela.
+ * Card de resposta desenhado 100% em código — sem PNG, sem ilustração — padrão visual das
+ * perguntas de lista do caminho Tráfego Pago (roxo). Vale SÓ para as perguntas listadas aqui; a
+ * pergunta do banner branco (`trafego_experiencia`, cena especial) e os outros caminhos continuam
+ * como estavam. Para usar em outra pergunta, basta incluir o id dela.
  */
-const TRAFFIC_OPTION_CARD_QUESTIONS: ReadonlySet<string> = new Set(["trafego_negocio"]);
+const TRAFFIC_OPTION_CARD_QUESTIONS: ReadonlySet<string> = new Set([
+  "trafego_negocio",
+  "trafego_destino",
+  "trafego_investimento",
+]);
 
 export function usesTrafficOptionCard(question: Question): boolean {
   return TRAFFIC_OPTION_CARD_QUESTIONS.has(question.id);

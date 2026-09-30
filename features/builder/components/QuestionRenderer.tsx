@@ -241,7 +241,7 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
       {usesAnswerMotion ? (
         // Laboratório de motion: rótulo + pergunta num bloco próprio, para entrarem juntos (alguns
         // pixels da esquerda) logo antes dos cards. Mesmo espaçamento do `.wrapper` — layout igual.
-        <div ref={introRef} className={cx(styles.questionIntro, isFirstQuestionOfService && styles.introFirstEntry)}>
+        <div ref={introRef} className={cx(styles.questionIntro, styles.introFirstEntry)}>
           {questionIntro}
         </div>
       ) : (
@@ -370,10 +370,10 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
       return;
     }
 
-    // Laboratório de motion: entrada rótulo/pergunta → cards em onda da esquerda; sem flutuação
-    // depois (a lista compacta fica estável e só reage ao hover).
+    // Cards em código do Tráfego (`answerMotion.ts`): em TODAS as perguntas de lista do caminho a
+    // entrada é rótulo/pergunta → cards em onda da esquerda (não só na primeira do serviço); sem
+    // flutuação depois — a lista compacta fica estável e só reage ao hover.
     if (usesLabCard) {
-      if (!isFirstQuestionOfService) return;
       let entryTimeline: gsap.core.Timeline | undefined;
       const cancelLabWait = whenRevealed(() => {
         entryTimeline = animateAnswersEntry({
@@ -456,7 +456,7 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
           styles.options,
           usesLabCard && styles.optionsCompact,
           hasSelection && styles.optionsHasSelection,
-          isFirstQuestionOfService && styles.optionsFirstEntry,
+          (isFirstQuestionOfService || usesLabCard) && styles.optionsFirstEntry,
         )}
       >
         {options.map((option, index) => {
