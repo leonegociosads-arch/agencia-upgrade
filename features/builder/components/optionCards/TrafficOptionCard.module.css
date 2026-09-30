@@ -9,7 +9,7 @@
   --toc-accent: 157, 77, 255;
   --toc-chamfer: 12px;
   --toc-border-alpha: 0.5;
-  --toc-glow: 0 0 8px rgba(var(--toc-accent), 0.14);
+  --toc-glow: none;
   --toc-fill-top: #171224;
   --toc-fill-bottom: #0c0a12;
   --toc-tint-alpha: 0.06;
@@ -40,7 +40,6 @@
   gap: 18px;
   min-height: 78px;
   padding: 14px 18px 14px 20px;
-  filter: drop-shadow(var(--toc-glow));
   transition:
     transform var(--toc-duration) var(--toc-ease),
     filter var(--toc-duration) var(--toc-ease),
@@ -86,7 +85,6 @@
   width: var(--toc-line-width);
   height: 1px;
   background: rgba(var(--toc-accent), var(--toc-line-alpha));
-  box-shadow: 0 0 6px rgba(var(--toc-accent), calc(var(--toc-line-alpha) * 0.8));
   transition:
     width var(--toc-duration) var(--toc-ease),
     background-color var(--toc-duration) var(--toc-ease),
@@ -198,8 +196,8 @@
  * ------------------------------------------------------------------------- */
 @media (hover: hover) {
   .card:hover:not(:disabled) {
-    --toc-border-alpha: 0.85;
-    --toc-glow: 0 0 16px rgba(var(--toc-accent), 0.4);
+    --toc-border-alpha: 1;
+    --toc-accent: 166, 52, 255;
     --toc-fill-top: #1d1530;
     --toc-fill-bottom: #0f0b17;
     --toc-tint-alpha: 0.16;
@@ -230,7 +228,7 @@
  * (a seleção nunca depende só da cor). */
 .card[data-selected] {
   --toc-border-alpha: 1;
-  --toc-glow: 0 0 22px rgba(var(--toc-accent), 0.6);
+  --toc-accent: 172, 60, 255;
   --toc-fill-top: #221639;
   --toc-fill-bottom: #120c1e;
   --toc-tint-alpha: 0.26;
@@ -264,7 +262,7 @@
 }
 
 .card:focus-visible:not([data-selected]) {
-  --toc-border-alpha: 0.85;
+  --toc-border-alpha: 1;
 }
 
 .card:active:not(:disabled) .surface {
