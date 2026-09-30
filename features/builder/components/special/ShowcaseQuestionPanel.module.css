@@ -679,11 +679,13 @@
   --lab-hover-bg: linear-gradient(180deg, #faf8ff 0%, #f3eefb 100%);
   --lab-hover-shadow: rgba(60, 20, 110, 0.12);
   --lab-icon-hover: #4a2a82;
-  --lab-sel-border: #8f3df0;
-  --lab-sel-bg: linear-gradient(180deg, #f6efff 0%, #ecdfff 100%);
-  --lab-sel-shadow: rgba(120, 50, 220, 0.16);
-  --lab-icon-sel: #6d28d9;
-  --lab-check: #c9a0ff;
+  --lab-sel-border: color-mix(in srgb, var(--showcase-accent) 70%, #2a0a66);
+  --lab-sel-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--showcase-accent) 62%, #ffffff) 0%,
+    color-mix(in srgb, var(--showcase-accent) 78%, #ffffff) 100%
+  );
+  --lab-check: color-mix(in srgb, var(--showcase-accent) 80%, #ffffff);
 
   /* A cena entra/sai pelas laterais da janela, então o recorte não pode acontecer na borda deste
    * bloco (860px). Não gera rolagem lateral: `html, body` já têm `overflow-x: hidden`. */
@@ -698,11 +700,7 @@
   --lab-hover-bg: linear-gradient(180deg, #f8fbff 0%, #eef5fc 100%);
   --lab-hover-shadow: rgba(20, 60, 110, 0.12);
   --lab-icon-hover: #1f4f86;
-  --lab-sel-border: #2b86e8;
-  --lab-sel-bg: linear-gradient(180deg, #eef6ff 0%, #dcecff 100%);
-  --lab-sel-shadow: rgba(40, 120, 220, 0.16);
-  --lab-icon-sel: #1d6fd1;
-  --lab-check: #9fd0ff;
+  --lab-sel-border: color-mix(in srgb, var(--showcase-accent) 70%, #042a5e);
 }
 
 /* Saindo: nenhum clique chega aos botões (a trava de verdade está no JS; isto evita hover/press). */
@@ -759,21 +757,23 @@
   outline-offset: 3px;
 }
 
-/* Selecionada: borda na cor do caminho, fundo bem claro tingido, ícone colorido e check — limpo,
- * nunca um bloco de cor sólido. A microcompressão (~130ms) roda quando a classe entra. */
+/* Selecionada: a opção inteira na cor do caminho — a mesma receita do verde do Site (preenchimento
+ * cheio + borda + brilho), só que roxa no Tráfego e azul no Design. O check continua marcando a
+ * seleção sem depender da cor. A microcompressão (~130ms) roda quando a classe entra. */
 .lab .optionSelected,
 .lab .optionSelected:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: var(--lab-sel-border);
   background: var(--lab-sel-bg);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 6px 14px var(--lab-sel-shadow);
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 0 18px rgba(var(--lab-rgb), 0.45);
   animation: labPress 130ms var(--ds-easing-base);
 }
 
+/* Ícone e texto seguem pretos sobre o preenchimento (como no Site): contraste máximo. */
 .lab .optionSelected .optionIcon {
-  color: var(--lab-icon-sel);
+  color: var(--ink);
 }
 
 .lab .optionCheck {
