@@ -14,7 +14,9 @@ import { expect } from "@playwright/test";
 export async function dismissConsentBanner(page: Page) {
   const acceptButton = page.getByRole("button", { name: "Aceitar todos" });
   if (await acceptButton.isVisible().catch(() => false)) {
-    await acceptButton.click();
+    // Depois de um reload, o banner pode aparecer por um instante e sumir sozinho assim que lê o
+    // consentimento já salvo — o clique nunca pode travar o teste nesse caso.
+    await acceptButton.click({ timeout: 3000 }).catch(() => {});
   }
 }
 
