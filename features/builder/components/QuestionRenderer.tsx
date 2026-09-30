@@ -201,9 +201,11 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
         }
         canGoBack={canGoBackDraft()}
         onBack={handleBack}
-        onSubmit={(value) => {
+        onSubmit={(value, options) => {
           if (isTransitioning) return;
-          markForward();
+          // Cena que saiu pela direita (laboratório): a próxima chega pela esquerda.
+          if (options?.enterFromLeft) markBackward();
+          else markForward();
           updateDraftAnswer(question.id, value);
         }}
       />

@@ -13,7 +13,8 @@ import { useReducedMotion } from "@/features/design-system/motion/useReducedMoti
 import { useSceneCutscene } from "@/features/design-system/motion/SceneCutscene";
 import { useEnabledPulse } from "@/features/design-system/motion/useEnabledPulse";
 import { cx } from "@/features/design-system/utils/cx";
-import { SHOWCASE_THEMES } from "./showcaseQuestionTheme";
+import { SHOWCASE_THEMES, TRAFEGO_PURPLE_ACCENT, usesPurpleShowcase } from "./showcaseQuestionTheme";
+import { animatePanelEntry, animatePanelExit } from "./panelMotion";
 import { getShowcaseOptionIcon } from "./showcaseOptionIcons";
 import styles from "./ShowcaseQuestionPanel.module.css";
 
@@ -30,8 +31,10 @@ export interface ShowcaseQuestionPanelProps {
   canGoBack: boolean;
   /** Exatamente o "voltar" da tela normal (som, direção da transição, `backDraft`). */
   onBack: () => void;
-  /** Grava a resposta pelo mesmo caminho da tela normal (`updateDraftAnswer`). */
-  onSubmit: (value: AnswerValue) => void;
+  /** Grava a resposta pelo mesmo caminho da tela normal (`updateDraftAnswer`). `enterFromLeft`:
+   * a cena saiu pela direita, então a próxima deve chegar pela esquerda (só escolhe o lado do
+   * deslize da `SceneTransition` — não é um "voltar"). */
+  onSubmit: (value: AnswerValue, options?: { enterFromLeft?: boolean }) => void;
 }
 
 /**
@@ -57,6 +60,9 @@ export default function ShowcaseQuestionPanel({
   onSubmit,
 }: ShowcaseQuestionPanelProps) {
   const theme = SHOWCASE_THEMES[serviceId];
+  // Laboratório roxo + timeline (ver `usesPurpleShowcase`): as demais cenas especiais não mudam.
+  const isLab = usesPurpleShowcase(question);
+  const accent = isLab ? TRAFEGO_PURPLE_ACCENT : theme.accent;
   const isMulti = question.type === "multi_choice";
   const [selected, setSelected] = useState<string[]>([]);
   const { isTransitioning } = useSceneNavigation();
@@ -64,6 +70,11 @@ export default function ShowcaseQuestionPanel({
   const { whenRevealed } = useSceneCutscene();
   const enterRef = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
+  // Saída em andamento: a trava que impede um segundo clique/Enter de disparar outra saída, outro
+  // avanço ou outra gravação (o `data-leaving` do root também corta o ponteiro visualmente).
+  const leavingRef = useRef(false);
+  const [leaving, setLeaving] = useState(false);
+  const exitTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const value: AnswerValue | undefined = isMulti ? selected : selected[0];
   const canSubmit = validateAnswer(question, value) && !isTransitioning;
@@ -79,7 +90,25 @@ export default function ShowcaseQuestionPanel({
       return;
     }
     let tween: gsap.core.Tween | undefined;
+    let timeline: gsap.core.Timeline | undefined;
     const cancelWait = whenRevealed(() => {
+      if (isLab) {
+        const all = (selector: string) => Array.from(element.querySelectorAll<HTMLElement>(selector));
+        const one = (selector: string) => element.querySelector<HTMLElement>(selector);
+        timeline = animatePanelEntry(
+          {
+            enter: element,
+            slab: one(`.${styles.greenSlab}`),
+            header: all(`.${styles.backHeader}, .${styles.progressTrack}, .${styles.tab}`),
+            heading: all(`.${styles.title}, .${styles.subtitle}`),
+            options: all(`.${styles.option}`),
+            actions: one(`.${styles.actions}`),
+            postIt: one(`.${styles.postIt}`),
+          },
+          () => {},
+        );
+        return;
+      }
       tween = gsap.fromTo(
         element,
         { opacity: 0, y: 20, rotation: -1.5 },
@@ -89,10 +118,17 @@ export default function ShowcaseQuestionPanel({
     return () => {
       cancelWait();
       tween?.kill();
+      // `revert` (não só `kill`): se o efeito rodar de novo (Strict Mode), recomeça do zero.
+      timeline?.revert();
     };
-  }, [reducedMotion, whenRevealed]);
+  }, [reducedMotion, whenRevealed, isLab]);
+
+  // Se a cena sair no meio da saída (ex.: "Escolher outra área"), a timeline morre junto e o
+  // avanço que ela dispararia no fim nunca acontece depois.
+  useEffect(() => () => void exitTimelineRef.current?.kill(), []);
 
   function toggle(optionId: string) {
+    if (leavingRef.current) return;
     playSound("card_select");
     if (isMulti) {
       setSelected((prev) => (prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId]));
@@ -101,16 +137,33 @@ export default function ShowcaseQuestionPanel({
     }
   }
 
-  function submit() {
-    if (!canSubmit || value === undefined) return;
+  function submit(button: HTMLElement | null) {
+    if (!canSubmit || value === undefined || leavingRef.current) return;
     playSound("scene_advance");
-    onSubmit(value);
+    const element = enterRef.current;
+    if (!isLab || reducedMotion || !element) {
+      onSubmit(value);
+      return;
+    }
+    // Laboratório: a cena sai pela direita e SÓ ENTÃO o avanço de sempre acontece.
+    leavingRef.current = true;
+    setLeaving(true);
+    exitTimelineRef.current = animatePanelExit({ enter: element, button }, () => onSubmit(value, { enterFromLeft: true }));
+  }
+
+  function handleBack(event: { detail: number }) {
+    if (leavingRef.current || isRepeatedClick(event)) return;
+    onBack();
   }
 
   const stepLabel = `${String(stepNumber).padStart(2, "0")}.`;
 
   return (
-    <div className={styles.root} style={{ "--showcase-accent": theme.accent } as CSSProperties}>
+    <div
+      className={cx(styles.root, isLab && styles.lab)}
+      data-leaving={leaving || undefined}
+      style={{ "--showcase-accent": accent } as CSSProperties}
+    >
       <div className={styles.exitRow}>{exitControls}</div>
 
       <div ref={enterRef} className={styles.enter}>
@@ -201,9 +254,7 @@ export default function ShowcaseQuestionPanel({
                   <button
                     type="button"
                     className={styles.backButton}
-                    onClick={(event) => {
-                      if (!isRepeatedClick(event)) onBack();
-                    }}
+                    onClick={handleBack}
                     disabled={!canGoBack || isTransitioning}
                   >
                     <ArrowIcon direction="left" />
@@ -213,7 +264,7 @@ export default function ShowcaseQuestionPanel({
                     type="button"
                     className={cx(styles.nextButton, pulsing && styles.nextPulse)}
                     onClick={(event) => {
-                      if (!isRepeatedClick(event)) submit();
+                      if (!isRepeatedClick(event)) submit(event.currentTarget);
                     }}
                     disabled={!canSubmit}
                   >
@@ -227,7 +278,7 @@ export default function ShowcaseQuestionPanel({
             {/* Post-it decorativo (asset aprovado, texto já faz parte da arte) — nunca recebe
                 clique, então nunca bloqueia uma opção mesmo quando encosta nela. */}
             <Image
-              src="/assets/builder/special-question/sticky-note.png"
+              src={isLab ? "/assets/builder/special-question/sticky-note-purple.png" : "/assets/builder/special-question/sticky-note.png"}
               alt=""
               aria-hidden="true"
               width={560}

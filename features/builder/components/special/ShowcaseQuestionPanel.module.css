@@ -663,3 +663,147 @@
     width: 92px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Laboratório roxo (`usesPurpleShowcase` → classe `.lab`) — só a pergunta de situação com anúncios
+ * do Tráfego Pago. Regra de cor: ROXO = contexto do caminho + seleção · VERDE = avançar (Próxima).
+ * O painel continua branco; o roxo entra como acento, sem glow forte. Nada aqui vale para as
+ * outras cenas especiais.
+ * ------------------------------------------------------------------------- */
+.lab {
+  /* A cena entra/sai pelas laterais da janela, então o recorte não pode acontecer na borda deste
+   * bloco (860px). Não gera rolagem lateral: `html, body` já têm `overflow-x: hidden`. */
+  overflow-x: visible;
+}
+
+/* Saindo: nenhum clique chega aos botões (a trava de verdade está no JS; isto evita hover/press). */
+.lab[data-leaving] button {
+  pointer-events: none;
+}
+
+.lab .backPanel {
+  border-color: rgba(176, 140, 230, 0.42);
+}
+
+.lab .progressFill {
+  background: linear-gradient(90deg, #b77bff 0%, #8f45e6 100%);
+  box-shadow: 0 0 8px rgba(157, 77, 255, 0.4);
+}
+
+/* Camada roxa atrás do painel — mesma família do card protagonista, com bem menos luz. */
+.lab .greenSlab {
+  background: linear-gradient(180deg, #b77bff 0%, #9043e8 55%, #6f2bc2 100%);
+  box-shadow:
+    0 0 14px rgba(157, 77, 255, 0.28),
+    0 0 3px rgba(157, 77, 255, 0.6);
+}
+
+.lab .option {
+  transition-duration: 200ms;
+}
+
+.lab .optionIcon {
+  transition:
+    transform 200ms var(--ds-easing-base),
+    color 200ms var(--ds-easing-base);
+}
+
+@media (hover: hover) {
+  /* Hover: sobe 1px, borda ganha presença, fundo com ~3% de roxo e o ícone reage de leve. */
+  .lab .option:hover:not(:disabled):not(.optionSelected) {
+    transform: translateY(-1px);
+    border-color: rgba(157, 77, 255, 0.5);
+    background: linear-gradient(180deg, #faf8ff 0%, #f3eefb 100%);
+    box-shadow:
+      inset 0 1px 0 #ffffff,
+      0 8px 16px rgba(60, 20, 110, 0.12);
+  }
+
+  .lab .option:hover:not(:disabled) .optionIcon {
+    transform: translateY(-1px) scale(1.03);
+    color: #4a2a82;
+  }
+}
+
+.lab .option:focus-visible {
+  outline: 3px solid rgba(157, 77, 255, 0.9);
+  outline-offset: 3px;
+}
+
+/* Selecionada: borda roxa, fundo lavanda bem claro, ícone roxo e check — limpo, nunca um bloco
+ * roxo sólido. A microcompressão (~130ms) roda quando a classe entra. */
+.lab .optionSelected,
+.lab .optionSelected:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #8f3df0;
+  background: linear-gradient(180deg, #f6efff 0%, #ecdfff 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 6px 14px rgba(120, 50, 220, 0.16);
+  animation: labPress 130ms var(--ds-easing-base);
+}
+
+.lab .optionSelected .optionIcon {
+  color: #6d28d9;
+}
+
+.lab .optionCheck {
+  color: #c9a0ff;
+}
+
+@keyframes labPress {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    transform: translateY(0) scale(0.99);
+  }
+  100% {
+    transform: translateY(-1px) scale(1);
+  }
+}
+
+/* "Próxima" continua VERDE (regra: verde = avançar). Sem escolha, fica neutra (cinza, apagada);
+ * ao escolher, acende para o verde com uma transição curta (cor, contraste e escala). */
+.lab .nextButton {
+  transition:
+    transform 260ms var(--ds-easing-emphasized),
+    opacity 260ms var(--ds-easing-standard),
+    filter 260ms var(--ds-easing-standard);
+}
+
+.lab .nextButton:disabled {
+  transform: scale(0.98);
+  opacity: 0.5;
+  filter: grayscale(1) brightness(1.04);
+}
+
+.lab .nextPulse {
+  animation: none;
+}
+
+.lab .nextButton .arrow {
+  transition: transform 200ms var(--ds-easing-base);
+}
+
+@media (hover: hover) {
+  .lab .nextButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.05) saturate(1.1);
+  }
+
+  .lab .nextButton:hover:not(:disabled) .arrow {
+    transform: translateX(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab .optionSelected,
+  .lab .optionSelected:hover:not(:disabled) {
+    animation: none;
+  }
+
+  .lab .nextButton:hover:not(:disabled) .arrow {
+    transform: none;
+  }
+}
