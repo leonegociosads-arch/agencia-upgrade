@@ -87,8 +87,11 @@ export function animateAnswersEntry({ intro, cards, onComplete }: EntryOptions):
 }
 
 interface ExitOptions {
-  selected: HTMLElement;
+  /** A(s) opção(ões) escolhida(s): saem primeiro. Em escolha múltipla são todas as marcadas. */
+  selected: HTMLElement | HTMLElement[];
   cards: HTMLElement[];
+  /** Outros elementos que acompanham a lista na saída (ex.: o botão "Continuar"). */
+  extras?: HTMLElement[];
   onComplete: () => void;
 }
 
@@ -103,23 +106,32 @@ function distanceToLeaveViewport(card: HTMLElement): number {
 /** Saída: a escolhida confirma (microcompressão enquanto o estado "selecionado" acende), dispara
  * primeiro, e as demais a acompanham quase juntas. `onComplete` só roda quando a lista inteira
  * já saiu — é ali que a navegação existente acontece. */
-export function animateAnswersExit({ selected, cards, onComplete }: ExitOptions): gsap.core.Timeline {
+export function animateAnswersExit({ selected, cards, extras = [], onComplete }: ExitOptions): gsap.core.Timeline {
   const { exitDuration } = profile();
-  const others = cards.filter((card) => card !== selected);
+  const leaders = Array.isArray(selected) ? selected : [selected];
+  const others = [...cards.filter((card) => !leaders.includes(card)), ...extras];
   // Clique no meio da entrada: a saída assume a partir de onde cada card está (nada de duas
   // animações disputando o mesmo `x`).
-  gsap.killTweensOf(cards);
+  gsap.killTweensOf([...cards, ...extras]);
   const timeline = gsap.timeline({ onComplete });
 
-  timeline.to(selected, { scale: 0.995, duration: ANSWER_MOTION.selectedHold * 0.5, ease: "power1.out" }, 0);
-  timeline.to(selected, { scale: 1, duration: ANSWER_MOTION.selectedHold * 0.5, ease: "power1.out" });
+  if (leaders.length > 0) {
+    timeline.to(leaders, { scale: 0.995, duration: ANSWER_MOTION.selectedHold * 0.5, ease: "power1.out" }, 0);
+    timeline.to(leaders, { scale: 1, duration: ANSWER_MOTION.selectedHold * 0.5, ease: "power1.out" });
+  }
 
   const leaveAt = ANSWER_MOTION.selectedHold;
   const fadeDelay = exitDuration * 0.55;
   const fadeDuration = exitDuration - fadeDelay;
 
-  timeline.to(selected, { x: () => distanceToLeaveViewport(selected), duration: exitDuration, ease: ANSWER_MOTION.exitEase }, leaveAt);
-  timeline.to(selected, { opacity: 0, duration: fadeDuration, ease: "power1.in" }, leaveAt + fadeDelay);
+  if (leaders.length > 0) {
+    timeline.to(
+      leaders,
+      { x: (_index: number, card: HTMLElement) => distanceToLeaveViewport(card), duration: exitDuration, ease: ANSWER_MOTION.exitEase },
+      leaveAt,
+    );
+    timeline.to(leaders, { opacity: 0, duration: fadeDuration, ease: "power1.in" }, leaveAt + fadeDelay);
+  }
 
   if (others.length > 0) {
     const othersAt = leaveAt + ANSWER_MOTION.selectedLead;

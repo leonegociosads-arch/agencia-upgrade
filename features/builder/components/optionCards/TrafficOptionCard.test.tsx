@@ -65,10 +65,32 @@ describe("TrafficOptionCard (laboratório visual — 1ª pergunta de Tráfego Pa
     expect(container.querySelector('img[src*="sticky-note.png"]')).not.toBeNull();
   });
 
-  it("Design não muda: a 1ª pergunta continua com os PNGs", async () => {
+  it("Design usa o mesmo card em tom azul; a cena especial (banner branco) segue como estava", async () => {
     const { container } = renderBuilder();
     fireEvent.click(screen.getByText("Fortalecer minha marca e conteúdo"));
     await screen.findByRole("heading", { name: "O que sua marca precisa?" });
-    expect(container.querySelectorAll('img[src*="design_servico"]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('img[src*="design_servico"]')).toHaveLength(0);
+    expect(screen.getByText("06")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Identidade Visual/ }));
+    await screen.findByRole("heading", { name: "Como está sua marca hoje?" });
+    expect(container.querySelector('img[src*="sticky-note-blue"]')).not.toBeNull();
+  });
+
+  it("Design em pacote: lista de várias escolhas com 'Continuar' avança com as opções marcadas", async () => {
+    const { container } = renderBuilder();
+    fireEvent.click(screen.getByText("Fortalecer minha marca e conteúdo"));
+    fireEvent.click(await screen.findByRole("button", { name: /Montar um pacote/ }));
+    await screen.findByRole("heading", { name: "Quais serviços você quer incluir no seu pacote?" });
+    expect(container.querySelectorAll('img[src*="design_servico-pacote"]')).toHaveLength(0);
+
+    const cont = screen.getByRole("button", { name: "Continuar" }) as HTMLButtonElement;
+    expect(cont.disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: /Identidade Visual/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Edição de Vídeo/ }));
+    expect(container.querySelectorAll('button[aria-pressed="true"]')).toHaveLength(2);
+    expect(cont.disabled).toBe(false);
+    fireEvent.click(cont);
+    await screen.findByRole("heading", { name: /^(?!Quais serviços você quer incluir).+/ });
   });
 });

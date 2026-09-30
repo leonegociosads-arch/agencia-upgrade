@@ -7,12 +7,13 @@ import styles from "./TrafficOptionCard.module.css";
 
 /**
  * Card de resposta desenhado 100% em código — sem PNG, sem ilustração — padrão visual das
- * perguntas de lista dos caminhos Tráfego Pago (roxo) e Site (verde). Vale SÓ para as perguntas
- * listadas aqui: as cenas especiais (banner branco: `trafego_experiencia`, `site_recursos`) e o
- * caminho Design continuam como estavam. Para usar em outra pergunta, basta incluir o id dela com a
- * cor do caminho.
+ * perguntas de lista dos caminhos Tráfego Pago (roxo), Site (verde) e Design e Social Media (azul).
+ * Vale SÓ para as perguntas listadas aqui: as cenas especiais (banner branco) continuam como
+ * estavam — e, quando uma delas cai na tela de lista (ex.: Design em pacote), a lista usa o card em
+ * código. `site_recursos` (Site) ainda não está na lista. Para usar em outra pergunta, basta
+ * incluir o id dela com a cor do caminho.
  */
-export type OptionCardTone = "purple" | "green";
+export type OptionCardTone = "purple" | "green" | "blue";
 
 const OPTION_CARD_TONES: Readonly<Record<string, OptionCardTone>> = {
   trafego_negocio: "purple",
@@ -20,6 +21,16 @@ const OPTION_CARD_TONES: Readonly<Record<string, OptionCardTone>> = {
   trafego_investimento: "purple",
   site_tipo: "green",
   site_situacao: "green",
+  design_servico: "blue",
+  marca_identidade: "blue",
+  identidade_situacao: "blue",
+  identidade_escopo: "blue",
+  design_formato: "blue",
+  social_necessidade: "blue",
+  criativos_formato: "blue",
+  criativos_material: "blue",
+  video_material: "blue",
+  video_destino: "blue",
 };
 
 /** Cor do card em código desta pergunta, ou `null` se ela ainda usa o card com PNG. */
@@ -34,7 +45,7 @@ export function usesLabOptionCard(question: Question): boolean {
 interface TrafficOptionCardProps {
   /** Posição da opção na lista (0, 1, 2…) — vira o identificador discreto "01", "02"… */
   index: number;
-  /** Cor do caminho (roxo = Tráfego, verde = Site). */
+  /** Cor do caminho (roxo = Tráfego, verde = Site, azul = Design). */
   tone?: OptionCardTone;
   label: string;
   description?: string;
@@ -69,7 +80,7 @@ export default function TrafficOptionCard({
   return (
     <button
       type="button"
-      className={cx(styles.card, tone === "green" && styles.green, className)}
+      className={cx(styles.card, tone === "green" && styles.green, tone === "blue" && styles.blue, className)}
       data-selected={selected || undefined}
       aria-pressed={showCheck ? selected : undefined}
       disabled={disabled}

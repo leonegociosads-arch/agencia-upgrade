@@ -61,6 +61,23 @@
   --toc-sweep: rgba(228, 255, 238, 0.95);
 }
 
+/* Tom azul (caminho Design e Social Media). */
+.blue {
+  --toc-accent: 56, 156, 255;
+  --toc-accent-hover: 40, 172, 255;
+  --toc-accent-selected: 64, 176, 255;
+  --toc-fill-top: #0f1622;
+  --toc-fill-bottom: #090d14;
+  --toc-fill-hover-top: #121f33;
+  --toc-fill-hover-bottom: #0a1018;
+  --toc-fill-selected-top: #132541;
+  --toc-fill-selected-bottom: #0b1424;
+  --toc-text: #eef4fb;
+  --toc-description: rgba(214, 228, 244, 0.58);
+  --toc-indicator: rgba(214, 236, 255, 0.78);
+  --toc-sweep: rgba(228, 242, 255, 0.95);
+}
+
 .surface {
   position: relative;
   display: grid;

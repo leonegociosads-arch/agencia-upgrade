@@ -241,7 +241,7 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
       {usesAnswerMotion ? (
         // Laboratório de motion: rótulo + pergunta num bloco próprio, para entrarem juntos (alguns
         // pixels da esquerda) logo antes dos cards. Mesmo espaçamento do `.wrapper` — layout igual.
-        <div ref={introRef} className={cx(styles.questionIntro, styles.introFirstEntry)}>
+        <div key={`intro:${question.id}:${question.type}`} ref={introRef} className={cx(styles.questionIntro, styles.introFirstEntry)}>
           {questionIntro}
         </div>
       ) : (
@@ -253,7 +253,7 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
           colateral útil, remonta o componente inteiro a cada pergunta nova, exatamente o gatilho
           que a entrada/flutuação abaixo precisam para tocar uma vez por pergunta. */}
       <QuestionOptions
-        key={question.id}
+        key={`${question.id}:${question.type}`}
         question={question}
         answers={state.serviceDraft}
         isFirstQuestionOfService={isFirstQuestionOfService}
@@ -333,7 +333,12 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
   // impede um segundo clique/Enter de disparar outra saída ou outra navegação.
   const [leavingId, setLeavingId] = useState<string | null>(null);
   const leavingRef = useRef(false);
+  // Cards em código: a entrada terminou. O estado "escondido até entrar" é controlado por ESTADO
+  // (não por `classList.remove`): numa escolha múltipla o React reescreve o `className` do
+  // container a cada marcação, e uma classe removida na mão voltaria — escondendo os cards.
+  const [labEntered, setLabEntered] = useState(false);
   const exitTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const continueRowRef = useRef<HTMLDivElement | null>(null);
   const { isTransitioning, markForward, markBackward } = useSceneNavigation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const reducedMotion = useReducedMotion();
@@ -380,7 +385,7 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
           intro,
           cards,
           onComplete: () => {
-            container.classList.remove(styles.optionsFirstEntry);
+            setLabEntered(true);
             intro?.classList.remove(styles.introFirstEntry);
             gsap.set(intro ? [...cards, intro] : cards, { clearProps: "transform,opacity" });
           },
@@ -422,30 +427,43 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
     };
   }, [isFirstQuestionOfService, reducedMotion, whenRevealed, usesLabCard, introRef]);
 
-  /** Laboratório de motion: a escolhida acende, a lista sai pela direita e SÓ ENTÃO a navegação de
-   * sempre acontece (mesmo `onAnswer`). A próxima cena entra pelo lado oposto (esquerda):
-   * `markBackward` só escolhe o lado do deslize da `SceneTransition` — não é um "voltar". */
-  function leaveThenAnswer(optionId: string, target: HTMLButtonElement) {
+  /** Cards em código: as escolhidas saem primeiro, a lista sai pela direita e SÓ ENTÃO a navegação de
+   * sempre acontece (`commit` = o mesmo `onAnswer`). A próxima cena entra pelo lado oposto
+   * (esquerda): `markBackward` só escolhe o lado do deslize da `SceneTransition` — não é um "voltar". */
+  function leaveThen(selected: HTMLElement[], commit: () => void) {
     leavingRef.current = true;
-    setLeavingId(optionId);
-    playSound("card_select");
 
     const container = containerRef.current;
     const cards = container ? Array.from(container.querySelectorAll<HTMLElement>(`.${styles.labOption}`)) : [];
     if (reducedMotion || cards.length === 0) {
       markForward();
-      onAnswer(optionId);
+      commit();
       return;
     }
 
     exitTimelineRef.current = animateAnswersExit({
-      selected: target,
+      selected,
       cards,
+      extras: continueRowRef.current ? [continueRowRef.current] : [],
       onComplete: () => {
         markBackward();
-        onAnswer(optionId);
+        commit();
       },
     });
+  }
+
+  function leaveThenAnswer(optionId: string, target: HTMLButtonElement) {
+    setLeavingId(optionId);
+    playSound("card_select");
+    leaveThen([target], () => onAnswer(optionId));
+  }
+
+  function leaveThenContinue() {
+    playSound("scene_advance");
+    const chosen = Array.from(
+      containerRef.current?.querySelectorAll<HTMLElement>(`.${styles.labOption}[aria-pressed="true"]`) ?? [],
+    );
+    leaveThen(chosen, () => onAnswer(pending));
   }
 
   return (
@@ -456,7 +474,7 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
           styles.options,
           usesLabCard && styles.optionsCompact,
           hasSelection && styles.optionsHasSelection,
-          (isFirstQuestionOfService || usesLabCard) && styles.optionsFirstEntry,
+          (usesLabCard ? !labEntered : isFirstQuestionOfService) && styles.optionsFirstEntry,
         )}
       >
         {options.map((option, index) => {
@@ -464,6 +482,7 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
           const disabled = question.type !== "multi_choice" && isTransitioning;
           const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
             if (question.type === "multi_choice") {
+              if (leavingRef.current) return;
               playSound("card_select");
               toggleMulti(option.id);
               return;
@@ -516,11 +535,17 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
       </div>
 
       {question.type === "multi_choice" && (
-        <div className={styles.continueRow}>
+        <div ref={continueRowRef} className={styles.continueRow}>
           <ContinueButton
             enabled={validateAnswer(question, pending) && !isTransitioning}
             onClick={(event) => {
               if (!validateAnswer(question, pending) || isTransitioning || isRepeatedClick(event)) return;
+              if (usesLabCard) {
+                // Uma saída por vez: cliques/Enter durante a saída são ignorados.
+                if (leavingRef.current) return;
+                leaveThenContinue();
+                return;
+              }
               playSound("scene_advance");
               markForward();
               onAnswer(pending);
