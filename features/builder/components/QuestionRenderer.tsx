@@ -9,7 +9,7 @@ import { getProgress } from "../logic/getProgress";
 import { getQuestionLayout, getQuestionNumber } from "../logic/getQuestionLayout";
 import { isRepeatedClick } from "../logic/repeatedClick";
 import ShowcaseQuestionPanel from "./special/ShowcaseQuestionPanel";
-import TrafficOptionCard, { usesTrafficOptionCard } from "./optionCards/TrafficOptionCard";
+import TrafficOptionCard, { getOptionCardTone, usesLabOptionCard } from "./optionCards/TrafficOptionCard";
 import { animateAnswersEntry, animateAnswersExit } from "./optionCards/answerMotion";
 import { getVisibleQuestions } from "../logic/getVisibleQuestions";
 import { validateAnswer } from "../logic/validateAnswer";
@@ -212,7 +212,7 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
     );
   }
 
-  const usesAnswerMotion = usesTrafficOptionCard(question);
+  const usesAnswerMotion = usesLabOptionCard(question);
   const questionIntro = (
     <>
       <Text as="span" size="label" color="secondary" className={styles.contextLabel}>
@@ -328,7 +328,7 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
   const [pending, setPending] = useState<string[]>([]);
   // Laboratório visual das respostas (hoje só a 1ª pergunta de Tráfego Pago, ver `TrafficOptionCard`
   // e `answerMotion.ts`): card em código + entrada pela esquerda e saída pela direita.
-  const usesLabCard = usesTrafficOptionCard(question);
+  const usesLabCard = usesLabOptionCard(question);
   // Saída pela direita em andamento: a opção escolhida (acende como selecionada) e a trava que
   // impede um segundo clique/Enter de disparar outra saída ou outra navegação.
   const [leavingId, setLeavingId] = useState<string | null>(null);
@@ -488,6 +488,7 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef
                 key={option.id}
                 className={styles.labOption}
                 index={index}
+                tone={getOptionCardTone(question) ?? "purple"}
                 label={option.label}
                 description={option.description}
                 selected={selected || leavingId === option.id}

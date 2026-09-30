@@ -7,23 +7,35 @@ import styles from "./TrafficOptionCard.module.css";
 
 /**
  * Card de resposta desenhado 100% em código — sem PNG, sem ilustração — padrão visual das
- * perguntas de lista do caminho Tráfego Pago (roxo). Vale SÓ para as perguntas listadas aqui; a
- * pergunta do banner branco (`trafego_experiencia`, cena especial) e os outros caminhos continuam
- * como estavam. Para usar em outra pergunta, basta incluir o id dela.
+ * perguntas de lista dos caminhos Tráfego Pago (roxo) e Site (verde). Vale SÓ para as perguntas
+ * listadas aqui: as cenas especiais (banner branco: `trafego_experiencia`, `site_recursos`) e o
+ * caminho Design continuam como estavam. Para usar em outra pergunta, basta incluir o id dela com a
+ * cor do caminho.
  */
-const TRAFFIC_OPTION_CARD_QUESTIONS: ReadonlySet<string> = new Set([
-  "trafego_negocio",
-  "trafego_destino",
-  "trafego_investimento",
-]);
+export type OptionCardTone = "purple" | "green";
 
-export function usesTrafficOptionCard(question: Question): boolean {
-  return TRAFFIC_OPTION_CARD_QUESTIONS.has(question.id);
+const OPTION_CARD_TONES: Readonly<Record<string, OptionCardTone>> = {
+  trafego_negocio: "purple",
+  trafego_destino: "purple",
+  trafego_investimento: "purple",
+  site_tipo: "green",
+  site_situacao: "green",
+};
+
+/** Cor do card em código desta pergunta, ou `null` se ela ainda usa o card com PNG. */
+export function getOptionCardTone(question: Question): OptionCardTone | null {
+  return OPTION_CARD_TONES[question.id] ?? null;
+}
+
+export function usesLabOptionCard(question: Question): boolean {
+  return getOptionCardTone(question) !== null;
 }
 
 interface TrafficOptionCardProps {
   /** Posição da opção na lista (0, 1, 2…) — vira o identificador discreto "01", "02"… */
   index: number;
+  /** Cor do caminho (roxo = Tráfego, verde = Site). */
+  tone?: OptionCardTone;
   label: string;
   description?: string;
   selected: boolean;
@@ -45,6 +57,7 @@ interface TrafficOptionCardProps {
  */
 export default function TrafficOptionCard({
   index,
+  tone = "purple",
   label,
   description,
   selected,
@@ -56,7 +69,7 @@ export default function TrafficOptionCard({
   return (
     <button
       type="button"
-      className={cx(styles.card, className)}
+      className={cx(styles.card, tone === "green" && styles.green, className)}
       data-selected={selected || undefined}
       aria-pressed={showCheck ? selected : undefined}
       disabled={disabled}

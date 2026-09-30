@@ -13,6 +13,18 @@
   --toc-fill-top: #171224;
   --toc-fill-bottom: #0c0a12;
   --toc-tint-alpha: 0.06;
+  /* Paleta por caminho: hover e selecionado usam um tom mais vivo da MESMA cor. O tom verde
+   * (`.green`, Site) só redefine estas variáveis — a estrutura e o motion são os mesmos. */
+  --toc-accent-hover: 166, 52, 255;
+  --toc-accent-selected: 172, 60, 255;
+  --toc-fill-hover-top: #1d1530;
+  --toc-fill-hover-bottom: #0f0b17;
+  --toc-fill-selected-top: #221639;
+  --toc-fill-selected-bottom: #120c1e;
+  --toc-text: #f3f0f8;
+  --toc-description: rgba(226, 220, 238, 0.58);
+  --toc-indicator: rgba(232, 220, 255, 0.78);
+  --toc-sweep: rgba(240, 228, 255, 0.95);
   --toc-line-width: 30px;
   --toc-line-alpha: 0.75;
   --toc-ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -30,6 +42,23 @@
    * AQUI, quadro a quadro — por isso NENHUMA transição de CSS neste elemento: ela "amaciaria" cada
    * quadro do GSAP e o card ficaria invisível durante quase todo o deslocamento. */
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Tom verde (caminho Site) — mesma identidade visual, só a cor muda. */
+.green {
+  --toc-accent: 34, 214, 112;
+  --toc-accent-hover: 0, 240, 120;
+  --toc-accent-selected: 0, 247, 133;
+  --toc-fill-top: #101a15;
+  --toc-fill-bottom: #09100c;
+  --toc-fill-hover-top: #14241b;
+  --toc-fill-hover-bottom: #0a120e;
+  --toc-fill-selected-top: #15291d;
+  --toc-fill-selected-bottom: #0a1610;
+  --toc-text: #eefbf3;
+  --toc-description: rgba(214, 236, 224, 0.58);
+  --toc-indicator: rgba(214, 255, 232, 0.78);
+  --toc-sweep: rgba(228, 255, 238, 0.95);
 }
 
 .surface {
@@ -100,7 +129,7 @@
   left: 0;
   width: 16px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(240, 228, 255, 0.95), transparent);
+  background: linear-gradient(90deg, transparent, var(--toc-sweep), transparent);
   opacity: 0;
   transform: translateX(-16px);
 }
@@ -160,14 +189,14 @@
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.005em;
-  color: #f3f0f8;
+  color: var(--toc-text);
 }
 
 .description {
   font-family: var(--ds-font-body);
   font-size: 0.85rem;
   line-height: 1.4;
-  color: rgba(226, 220, 238, 0.58);
+  color: var(--toc-description);
 }
 
 /* Seta: só indicação visual (o card inteiro é o botão) — círculo pequeno de 1px. */
@@ -178,7 +207,7 @@
   height: 32px;
   border-radius: 50%;
   border: 1px solid rgba(var(--toc-accent), 0.5);
-  color: rgba(232, 220, 255, 0.78);
+  color: var(--toc-indicator);
   transition:
     transform var(--toc-duration) var(--toc-ease),
     border-color var(--toc-duration) var(--toc-ease),
@@ -197,9 +226,9 @@
 @media (hover: hover) {
   .card:hover:not(:disabled) {
     --toc-border-alpha: 1;
-    --toc-accent: 166, 52, 255;
-    --toc-fill-top: #1d1530;
-    --toc-fill-bottom: #0f0b17;
+    --toc-accent: var(--toc-accent-hover);
+    --toc-fill-top: var(--toc-fill-hover-top);
+    --toc-fill-bottom: var(--toc-fill-hover-bottom);
     --toc-tint-alpha: 0.16;
     --toc-line-width: 56px;
     --toc-line-alpha: 0.9;
@@ -228,9 +257,9 @@
  * (a seleção nunca depende só da cor). */
 .card[data-selected] {
   --toc-border-alpha: 1;
-  --toc-accent: 172, 60, 255;
-  --toc-fill-top: #221639;
-  --toc-fill-bottom: #120c1e;
+  --toc-accent: var(--toc-accent-selected);
+  --toc-fill-top: var(--toc-fill-selected-top);
+  --toc-fill-bottom: var(--toc-fill-selected-bottom);
   --toc-tint-alpha: 0.26;
   --toc-line-width: 96px;
   --toc-line-alpha: 1;

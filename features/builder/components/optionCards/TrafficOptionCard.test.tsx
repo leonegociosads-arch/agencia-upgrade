@@ -52,10 +52,23 @@ describe("TrafficOptionCard (laboratório visual — 1ª pergunta de Tráfego Pa
     await screen.findByRole("heading", { name: /Serviço adicionado/ });
   });
 
-  it("as outras categorias não mudam: a 1ª pergunta do Site continua com os PNGs", async () => {
+  it("Site usa o mesmo card em tom verde nas perguntas de lista; a cena especial de recursos segue como estava", async () => {
     const { container } = renderBuilder();
     fireEvent.click(screen.getByText("Criar um site"));
     await screen.findByRole("heading", { name: "Que tipo de site você precisa?" });
-    expect(container.querySelectorAll('img[src*="site_tipo"]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('img[src*="site_tipo"]')).toHaveLength(0);
+    expect(screen.getByText("05")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: /Loja Virtual/ }));
+    // 2ª pergunta do Site = cena especial (banner branco): continua com o post-it e o botão Próxima.
+    expect(await screen.findByRole("button", { name: /Próxima/ })).toBeTruthy();
+    expect(container.querySelector('img[src*="sticky-note.png"]')).not.toBeNull();
+  });
+
+  it("Design não muda: a 1ª pergunta continua com os PNGs", async () => {
+    const { container } = renderBuilder();
+    fireEvent.click(screen.getByText("Fortalecer minha marca e conteúdo"));
+    await screen.findByRole("heading", { name: "O que sua marca precisa?" });
+    expect(container.querySelectorAll('img[src*="design_servico"]').length).toBeGreaterThan(0);
   });
 });
