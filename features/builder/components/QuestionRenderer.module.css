@@ -126,12 +126,39 @@
   min-width: 0;
 }
 
+/* Rótulo + pergunta do laboratório de motion, agrupados para entrarem juntos. Mesmo espaçamento
+ * do `.wrapper`, então o layout fica idêntico ao de sempre. */
+.questionIntro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Estado inicial sem flash (mesma ideia do `.optionsFirstEntry`): o GSAP parte destes valores. */
+  .introFirstEntry {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .optionsFirstEntry .labOption,
   .optionsFirstEntry .assetOption,
   .optionsFirstEntry .option {
     opacity: 0;
     transform: translateX(-72px);
+  }
+
+  /* Laboratório de motion: parte da mesma distância que `answerMotion.ts` usa (96px / 56px). */
+  .optionsFirstEntry .labOption {
+    transform: translateX(-96px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (max-width: 639px) {
+  .optionsFirstEntry .labOption {
+    transform: translateX(-56px);
   }
 }
 

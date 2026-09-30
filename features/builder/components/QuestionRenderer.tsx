@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { getNextQuestion } from "../logic/flow";
@@ -10,6 +10,7 @@ import { getQuestionLayout, getQuestionNumber } from "../logic/getQuestionLayout
 import { isRepeatedClick } from "../logic/repeatedClick";
 import ShowcaseQuestionPanel from "./special/ShowcaseQuestionPanel";
 import TrafficOptionCard, { usesTrafficOptionCard } from "./optionCards/TrafficOptionCard";
+import { animateAnswersEntry, animateAnswersExit } from "./optionCards/answerMotion";
 import { getVisibleQuestions } from "../logic/getVisibleQuestions";
 import { validateAnswer } from "../logic/validateAnswer";
 import { buildServiceSummary } from "../logic/buildServiceSummary";
@@ -52,6 +53,8 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
     goToEntry,
   } = useBuilder();
   const { isTransitioning, markForward, markBackward } = useSceneNavigation();
+  // Bloco rótulo + pergunta — só existe no laboratório de motion (`answerMotion.ts`).
+  const introRef = useRef<HTMLDivElement | null>(null);
 
   const question = getNextQuestion(serviceId, state.serviceDraft);
   const { current, total, percentage } = getProgress(serviceId, state.serviceDraft);
@@ -207,6 +210,19 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
     );
   }
 
+  const usesAnswerMotion = usesTrafficOptionCard(question);
+  const questionIntro = (
+    <>
+      <Text as="span" size="label" color="secondary" className={styles.contextLabel}>
+        {current >= total - 1 ? "Só mais uma coisa" : SERVICES[serviceId].label}
+      </Text>
+
+      <Heading variant="h2" as="h2" className={styles.title}>
+        {question.title}
+      </Heading>
+    </>
+  );
+
   return (
     <div className={styles.wrapper}>
       {topBar}
@@ -220,13 +236,15 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
         </Text>
       </div>
 
-      <Text as="span" size="label" color="secondary" className={styles.contextLabel}>
-        {current >= total - 1 ? "Só mais uma coisa" : SERVICES[serviceId].label}
-      </Text>
-
-      <Heading variant="h2" as="h2" className={styles.title}>
-        {question.title}
-      </Heading>
+      {usesAnswerMotion ? (
+        // Laboratório de motion: rótulo + pergunta num bloco próprio, para entrarem juntos (alguns
+        // pixels da esquerda) logo antes dos cards. Mesmo espaçamento do `.wrapper` — layout igual.
+        <div ref={introRef} className={cx(styles.questionIntro, isFirstQuestionOfService && styles.introFirstEntry)}>
+          {questionIntro}
+        </div>
+      ) : (
+        questionIntro
+      )}
 
       {/* `key={question.id}` dá um estado local (pending) fresco a cada pergunta, sem precisar
           de um efeito para resetá-lo (evita setState síncrono dentro de efeito) — e, como efeito
@@ -237,6 +255,7 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
         question={question}
         answers={state.serviceDraft}
         isFirstQuestionOfService={isFirstQuestionOfService}
+        introRef={usesAnswerMotion ? introRef : undefined}
         onAnswer={(value) => updateDraftAnswer(question.id, value)}
       />
     </div>
@@ -297,18 +316,30 @@ interface QuestionOptionsProps {
   question: Question;
   answers: Record<string, AnswerValue>;
   isFirstQuestionOfService: boolean;
+  /** Bloco rótulo + pergunta que entra junto com os cards (só no laboratório de motion). */
+  introRef?: RefObject<HTMLDivElement | null>;
   onAnswer: (value: AnswerValue) => void;
 }
 
-function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer }: QuestionOptionsProps) {
+function QuestionOptions({ question, answers, isFirstQuestionOfService, introRef, onAnswer }: QuestionOptionsProps) {
   const options = typeof question.options === "function" ? question.options(answers) : question.options;
   const [pending, setPending] = useState<string[]>([]);
-  // Laboratório visual das respostas (hoje só a 1ª pergunta de Tráfego Pago, ver `TrafficOptionCard`).
+  // Laboratório visual das respostas (hoje só a 1ª pergunta de Tráfego Pago, ver `TrafficOptionCard`
+  // e `answerMotion.ts`): card em código + entrada pela esquerda e saída pela direita.
   const usesLabCard = usesTrafficOptionCard(question);
-  const { isTransitioning, markForward } = useSceneNavigation();
+  // Saída pela direita em andamento: a opção escolhida (acende como selecionada) e a trava que
+  // impede um segundo clique/Enter de disparar outra saída ou outra navegação.
+  const [leavingId, setLeavingId] = useState<string | null>(null);
+  const leavingRef = useRef(false);
+  const exitTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const { isTransitioning, markForward, markBackward } = useSceneNavigation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const reducedMotion = useReducedMotion();
   const { whenRevealed } = useSceneCutscene();
+
+  // Se a tela sair no meio da saída (ex.: "Voltar"), a timeline morre junto — a navegação que ela
+  // dispararia no fim nunca acontece depois.
+  useEffect(() => () => void exitTimelineRef.current?.kill(), []);
 
   function toggleMulti(optionId: string) {
     setPending((prev) => (prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId]));
@@ -330,9 +361,33 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
     // Motion reduzido (Seção 12): sem entrada lateral, sem flutuação — só garante que os cards
     // fiquem no estado visual final (o CSS abaixo já cuida disso sozinho; isto é só uma segurança
     // contra um `transform`/`opacity` inline que uma execução anterior possa ter deixado).
+    const intro = introRef?.current ?? null;
+
     if (reducedMotion) {
-      gsap.set(cards, { clearProps: "transform,opacity" });
+      gsap.set(intro ? [...cards, intro] : cards, { clearProps: "transform,opacity" });
       return;
+    }
+
+    // Laboratório de motion: entrada rótulo/pergunta → cards em onda da esquerda; sem flutuação
+    // depois (a lista compacta fica estável e só reage ao hover).
+    if (usesLabCard) {
+      if (!isFirstQuestionOfService) return;
+      let entryTimeline: gsap.core.Timeline | undefined;
+      const cancelLabWait = whenRevealed(() => {
+        entryTimeline = animateAnswersEntry({
+          intro,
+          cards,
+          onComplete: () => {
+            container.classList.remove(styles.optionsFirstEntry);
+            intro?.classList.remove(styles.introFirstEntry);
+            gsap.set(intro ? [...cards, intro] : cards, { clearProps: "transform,opacity" });
+          },
+        });
+      });
+      return () => {
+        cancelLabWait();
+        entryTimeline?.kill();
+      };
     }
 
     let floatCleanup: (() => void) | undefined;
@@ -340,14 +395,9 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
     // Se esta cena chegou por trás de uma cutscene (`SceneCutscene`), espera a cortina terminar de
     // revelar antes de qualquer movimento — cortina, depois entrada, depois flutuação. Os cards
     // continuam escondidos pelo `.optionsFirstEntry` enquanto isso (sem flash).
-    // O card do laboratório é propositalmente calmo: entra junto com a lista, mas sem a
-    // microflutuação contínua (numa lista compacta, cards balançando pareceriam desalinhados).
-    const startFloat = () => {
-      if (!usesLabCard) floatCleanup = startOptionFloat(cards);
-    };
     const cancelWait = whenRevealed(() => {
       if (!isFirstQuestionOfService) {
-        startFloat();
+        floatCleanup = startOptionFloat(cards);
         return;
       }
       entryTween = animateFirstQuestionEntry(cards, () => {
@@ -358,8 +408,8 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
         // (sempre vence uma regra de classe) impediria para sempre o
         // `.assetOption:disabled { opacity: 0.7 }` de fazer efeito nesta pergunta.
         container.classList.remove(styles.optionsFirstEntry);
-        gsap.set(cards, { clearProps: usesLabCard ? "transform,opacity" : "opacity" });
-        startFloat();
+        gsap.set(cards, { clearProps: "opacity" });
+        floatCleanup = startOptionFloat(cards);
       });
     });
 
@@ -368,7 +418,33 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
       entryTween?.kill();
       floatCleanup?.();
     };
-  }, [isFirstQuestionOfService, reducedMotion, whenRevealed, usesLabCard]);
+  }, [isFirstQuestionOfService, reducedMotion, whenRevealed, usesLabCard, introRef]);
+
+  /** Laboratório de motion: a escolhida acende, a lista sai pela direita e SÓ ENTÃO a navegação de
+   * sempre acontece (mesmo `onAnswer`). A próxima cena entra pelo lado oposto (esquerda):
+   * `markBackward` só escolhe o lado do deslize da `SceneTransition` — não é um "voltar". */
+  function leaveThenAnswer(optionId: string, target: HTMLButtonElement) {
+    leavingRef.current = true;
+    setLeavingId(optionId);
+    playSound("card_select");
+
+    const container = containerRef.current;
+    const cards = container ? Array.from(container.querySelectorAll<HTMLElement>(`.${styles.labOption}`)) : [];
+    if (reducedMotion || cards.length === 0) {
+      markForward();
+      onAnswer(optionId);
+      return;
+    }
+
+    exitTimelineRef.current = animateAnswersExit({
+      selected: target,
+      cards,
+      onComplete: () => {
+        markBackward();
+        onAnswer(optionId);
+      },
+    });
+  }
 
   return (
     <>
@@ -393,6 +469,12 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
             // Escolha única troca a tela no clique — o 2º clique de um clique duplo cairia na
             // pergunta seguinte (ver `repeatedClick.ts`).
             if (isTransitioning || isRepeatedClick(event)) return;
+            if (usesLabCard) {
+              // Uma saída por vez: cliques/Enter durante a saída são ignorados.
+              if (leavingRef.current) return;
+              leaveThenAnswer(option.id, event.currentTarget);
+              return;
+            }
             playSound("card_select");
             markForward();
             onAnswer(option.id);
@@ -406,7 +488,7 @@ function QuestionOptions({ question, answers, isFirstQuestionOfService, onAnswer
                 index={index}
                 label={option.label}
                 description={option.description}
-                selected={selected}
+                selected={selected || leavingId === option.id}
                 showCheck={question.type === "multi_choice"}
                 disabled={disabled}
                 onClick={handleClick}

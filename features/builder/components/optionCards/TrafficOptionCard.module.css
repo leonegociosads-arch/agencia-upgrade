@@ -26,9 +26,9 @@
   background: none;
   text-align: left;
   cursor: pointer;
-  /* A entrada da lista (GSAP, `QuestionRenderer.tsx`) escreve `transform`/`opacity` inline AQUI;
-   * por isso nenhuma transição de `transform` neste elemento (mesma regra do `.option`). */
-  transition: opacity var(--ds-duration-normal) var(--ds-easing-standard);
+  /* A entrada e a saída da lista (GSAP, `answerMotion.ts`) escrevem `transform`/`opacity` inline
+   * AQUI, quadro a quadro — por isso NENHUMA transição de CSS neste elemento: ela "amaciaria" cada
+   * quadro do GSAP e o card ficaria invisível durante quase todo o deslocamento. */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -43,7 +43,8 @@
   filter: drop-shadow(var(--toc-glow));
   transition:
     transform var(--toc-duration) var(--toc-ease),
-    filter var(--toc-duration) var(--toc-ease);
+    filter var(--toc-duration) var(--toc-ease),
+    opacity var(--ds-duration-normal) var(--ds-easing-standard);
 }
 
 /* Silhueta: chanfro no canto superior direito e no inferior esquerdo — a lembrança discreta da
@@ -90,6 +91,34 @@
     width var(--toc-duration) var(--toc-ease),
     background-color var(--toc-duration) var(--toc-ease),
     box-shadow var(--toc-duration) var(--toc-ease);
+}
+
+/* "Linha de energia": um segmento curto e claro que percorre a linha de luz UMA vez quando o
+ * mouse entra — só `transform`/`opacity`, invisível fora do hover. */
+.lightLine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(240, 228, 255, 0.95), transparent);
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
+@keyframes energySweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(64px);
+  }
 }
 
 /* Conteúdo acima das duas camadas de fundo. */
@@ -186,8 +215,12 @@
     color: rgba(var(--toc-accent), 1);
   }
 
+  .card:hover:not(:disabled) .lightLine::after {
+    animation: energySweep 720ms var(--toc-ease) 60ms 1 both;
+  }
+
   .card:hover:not(:disabled) .indicator {
-    transform: translateX(3px);
+    transform: translateX(4px);
     border-color: rgba(var(--toc-accent), 0.7);
     color: #fff;
   }
@@ -203,6 +236,15 @@
   --toc-tint-alpha: 0.26;
   --toc-line-width: 96px;
   --toc-line-alpha: 1;
+}
+
+/* O clique acende a escolhida em ~120ms — ela fica acesa só um instante antes de sair pela
+ * direita, então a confirmação precisa chegar rápido. */
+.card[data-selected] .surface,
+.card[data-selected] .frame,
+.card[data-selected] .lightLine,
+.card[data-selected] .indicator {
+  transition-duration: 120ms;
 }
 
 .card[data-selected] .index {
@@ -235,7 +277,7 @@
   cursor: default;
 }
 
-.card:disabled:not([data-selected]) {
+.card:disabled:not([data-selected]) .surface {
   opacity: 0.45;
 }
 
@@ -290,6 +332,10 @@
   .indicator,
   .lightLine {
     transition: none;
+  }
+
+  .card:hover:not(:disabled) .lightLine::after {
+    animation: none;
   }
 
   .card:hover:not(:disabled) .surface,
