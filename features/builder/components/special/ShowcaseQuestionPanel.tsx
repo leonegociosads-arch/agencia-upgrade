@@ -13,7 +13,12 @@ import { useReducedMotion } from "@/features/design-system/motion/useReducedMoti
 import { useSceneCutscene } from "@/features/design-system/motion/SceneCutscene";
 import { useEnabledPulse } from "@/features/design-system/motion/useEnabledPulse";
 import { cx } from "@/features/design-system/utils/cx";
-import { SHOWCASE_THEMES, TRAFEGO_PURPLE_ACCENT, usesPurpleShowcase } from "./showcaseQuestionTheme";
+import {
+  SHOWCASE_LAB_ACCENTS,
+  SHOWCASE_LAB_POST_IT,
+  SHOWCASE_THEMES,
+  getShowcaseLabVariant,
+} from "./showcaseQuestionTheme";
 import { animatePanelEntry, animatePanelExit } from "./panelMotion";
 import { getShowcaseOptionIcon } from "./showcaseOptionIcons";
 import styles from "./ShowcaseQuestionPanel.module.css";
@@ -60,9 +65,10 @@ export default function ShowcaseQuestionPanel({
   onSubmit,
 }: ShowcaseQuestionPanelProps) {
   const theme = SHOWCASE_THEMES[serviceId];
-  // Laboratório roxo + timeline (ver `usesPurpleShowcase`): as demais cenas especiais não mudam.
-  const isLab = usesPurpleShowcase(question);
-  const accent = isLab ? TRAFEGO_PURPLE_ACCENT : theme.accent;
+  // Laboratório de cor do caminho + timeline (ver `getShowcaseLabVariant`): a cena do Site não muda.
+  const labVariant = getShowcaseLabVariant(question);
+  const isLab = labVariant !== null;
+  const accent = labVariant ? SHOWCASE_LAB_ACCENTS[labVariant] : theme.accent;
   const isMulti = question.type === "multi_choice";
   const [selected, setSelected] = useState<string[]>([]);
   const { isTransitioning } = useSceneNavigation();
@@ -160,7 +166,7 @@ export default function ShowcaseQuestionPanel({
 
   return (
     <div
-      className={cx(styles.root, isLab && styles.lab)}
+      className={cx(styles.root, isLab && styles.lab, labVariant === "blue" && styles.labBlue)}
       data-leaving={leaving || undefined}
       style={{ "--showcase-accent": accent } as CSSProperties}
     >
@@ -278,7 +284,7 @@ export default function ShowcaseQuestionPanel({
             {/* Post-it decorativo (asset aprovado, texto já faz parte da arte) — nunca recebe
                 clique, então nunca bloqueia uma opção mesmo quando encosta nela. */}
             <Image
-              src={isLab ? "/assets/builder/special-question/sticky-note-purple.png" : "/assets/builder/special-question/sticky-note.png"}
+              src={labVariant ? SHOWCASE_LAB_POST_IT[labVariant] : "/assets/builder/special-question/sticky-note.png"}
               alt=""
               aria-hidden="true"
               width={560}
