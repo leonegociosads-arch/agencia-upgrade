@@ -2057,3 +2057,12 @@ Formato: `[Fase X] Decisão — justificativa`
 
 *Decisões futuras devem ser adicionadas ao final de sua seção correspondente (ou em nova seção, se
 necessário), sempre indicando a fase em que foram tomadas.*
+
+## Tela de dados/envio — identidade visual (só aparência)
+
+- **O que mudou:** fundo com o desenho da Upgrade atravessando a tela na horizontal (`LeadFormBackdrop`), título com destaque verde e sublinhado desenhado, campos com foco verde discreto, seta no botão "Enviar meu projeto", entrada curta de título/campos/botões. Nenhum campo, validação, estado, navegação, envio ou tela de sucesso foi alterado.
+- **Asset:** não existia um "desenho passando" dedicado no projeto. Foram reaproveitados assets reais da identidade: marca "U" (`public/logo-mark.png`), estrelas verdes (`service-complete/stars-green.png`) e o mascote do resumo (`project-summary/summary-mascot.png`). Para trocar o desenho, basta trocar as imagens em `MarqueeGroup`.
+- **Loop:** GSAP, `xPercent: 0 → -50`, `ease: "none"`, `repeat: -1` (38 s no desktop, 52 s no mobile) sobre uma faixa com DOIS grupos idênticos, cada um com no mínimo a largura da viewport — a emenda é exata e nunca há quadro vazio.
+- **Legibilidade:** véu preto estático em degradê (e não `mask-image`, que custou ~12 ms/quadro em teste). O desenho fica forte nas laterais e recua atrás do formulário.
+- **Reduced motion:** o desenho fica parado (deslocado 14%), sem animação de entrada.
+- **Montagem:** pelo `BuilderShell`, fora do `SceneTransition` (um `position: fixed` dentro de um elemento com `transform` andaria junto com ele).

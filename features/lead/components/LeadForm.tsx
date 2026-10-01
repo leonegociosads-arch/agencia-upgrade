@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import { useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import gsap from "gsap";
 import { useBuilder } from "@/features/builder/state/BuilderContext";
 import { buildProjectSnapshot } from "@/features/builder/logic/buildProjectSnapshot";
 import { useLeadDraft } from "../state/LeadContext";
@@ -15,6 +16,7 @@ import Heading from "@/features/design-system/components/Heading";
 import Text from "@/features/design-system/components/Text";
 import Button from "@/features/design-system/components/Button";
 import { useSceneNavigation } from "@/features/design-system/motion/SceneTransition";
+import { useReducedMotion } from "@/features/design-system/motion/useReducedMotion";
 import { playSound } from "@/features/design-system/motion/sound";
 import LeadField from "./LeadField";
 import styles from "./LeadForm.module.css";
@@ -41,6 +43,12 @@ export default function LeadForm() {
    * lugar nenhum. Só um `ref` lido no momento do envio; ler via RHF (`register`) faria o valor
    * viajar pelo `LeadFormSchemaOutput` sem necessidade. */
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
+  /** A entrada só toca na tela de contato de verdade. Durante a troca de cena o `SceneTransition`
+   * remonta uma cópia deste componente como "cena que sai", já com `step` de outra tela (sucesso,
+   * resumo…): essa cópia não deve reanimar a entrada enquanto desaparece. */
+  const playEntryRef = useRef(state.step === "contact");
 
   const {
     register,
@@ -63,6 +71,23 @@ export default function LeadForm() {
     // contato de novo depois.
     trackFunnelMilestone("contact_started", {});
   }, []);
+
+  // Entrada discreta (só transform/opacity, nunca bloqueia a interação): título, campos e botões
+  // sobem poucos pixels em sequência curta. `useLayoutEffect` para o estado inicial valer antes do
+  // primeiro paint (sem piscar). `clearProps` devolve os elementos ao CSS ao terminar.
+  useLayoutEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper || reducedMotion || !playEntryRef.current) return;
+
+    const title = wrapper.querySelector("h2");
+    const items = wrapper.querySelectorAll("fieldset > *");
+    const ctx = gsap.context(() => {
+      const timeline = gsap.timeline({ defaults: { ease: "power3.out" } });
+      if (title) timeline.from(title, { opacity: 0, y: 15, duration: 0.5, clearProps: "opacity,transform" }, 0);
+      timeline.from(items, { opacity: 0, y: 10, duration: 0.42, stagger: 0.05, clearProps: "opacity,transform" }, 0.08);
+    }, wrapper);
+    return () => ctx.revert();
+  }, [reducedMotion]);
 
   function withLiveErrorClearing(field: FieldPath<LeadFormSchemaInput>) {
     const registration = register(field);
@@ -121,10 +146,10 @@ export default function LeadForm() {
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} ref={wrapperRef}>
       <Heading variant="h2" as="h2" className={styles.title}>
-        {/* Antes: "Deixe seus dados para analisarmos seu projeto." */}
-        Falta pouco: deixe seus dados para a Upgrade analisar o seu projeto.
+        {/* Antes: "Deixe seus dados para analisarmos seu projeto." (mesmo texto; só o destaque é visual) */}
+        Falta pouco: deixe seus dados para a Upgrade <span className={styles.highlight}>analisar o seu projeto.</span>
       </Heading>
 
       <form
@@ -214,6 +239,11 @@ export default function LeadForm() {
             </Button>
             <Button type="submit" onClick={() => playSound("ui_press")}>
               {isSubmitting ? "Enviando..." : "Enviar meu projeto"}
+              {!isSubmitting && (
+                <svg className={styles.arrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 12h15M13 5.5 19.5 12 13 18.5" />
+                </svg>
+              )}
             </Button>
           </div>
         </fieldset>

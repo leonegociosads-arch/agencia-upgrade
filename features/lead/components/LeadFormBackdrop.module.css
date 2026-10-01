@@ -1,0 +1,119 @@
+/* Cenário da tela de dados/envio (ver `LeadFormBackdrop.tsx`). Fica atrás de tudo (z-index -1), como
+ * `ServiceCompleteBackdrop`; o `#000` mantém o preto da identidade quando o shell é transparente. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  /* Um respiro verde bem discreto no canto inferior esquerdo (ambiente, não elemento), no próprio
+   * background para não criar uma camada extra a cada frame. */
+  background:
+    radial-gradient(55% 45% at 8% 105%, rgba(45, 185, 88, 0.1), transparent 70%),
+    #000;
+}
+
+/* Palco: centraliza a faixa na vertical (sem `transform` em CSS, que o GSAP sobrescreveria). */
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Legibilidade: um véu preto ESTÁTICO por cima da faixa — o desenho aparece forte nas laterais
+ * vazias e recua atrás do formulário (centralizado, ~610px). É um gradiente comum, não uma máscara:
+ * `mask-image` sobre uma camada em movimento custou ~12ms por frame em teste. Sem caixa preta em
+ * volta dos campos: as bordas do véu são degradês. */
+.veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent calc(50% - 520px),
+    rgba(0, 0, 0, 0.8) calc(50% - 340px),
+    rgba(0, 0, 0, 0.8) calc(50% + 340px),
+    transparent calc(50% + 520px)
+  );
+}
+
+/* Faixa com DOIS grupos iguais; o GSAP move -50% (exatamente um grupo) em loop. */
+.track {
+  display: flex;
+  flex: none;
+  width: max-content;
+  will-change: transform;
+}
+
+/* Cada grupo tem, no mínimo, a largura da viewport: nunca há quadro vazio na emenda. */
+.group {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-around;
+  gap: 6vw;
+  min-width: 100vw;
+  padding-inline: 4vw;
+}
+
+/* O reset global limita toda <img> a 100% da largura — aqui elas PRECISAM passar das laterais. */
+.mark {
+  flex: none;
+  width: auto;
+  max-width: none;
+  height: clamp(300px, 76vh, 880px);
+  opacity: 0.16;
+}
+
+.stars {
+  flex: none;
+  align-self: flex-start;
+  width: clamp(220px, 26vw, 460px);
+  max-width: none;
+  height: auto;
+  margin-top: 6vh;
+  opacity: 0.42;
+}
+
+.mascot {
+  flex: none;
+  align-self: flex-end;
+  width: clamp(90px, 8vw, 150px);
+  max-width: none;
+  height: auto;
+  margin-bottom: 8vh;
+  opacity: 0.3;
+  transform: rotate(14deg);
+}
+
+/* Notebook de pouca altura: a marca não precisa ocupar a tela toda. */
+@media (max-height: 760px) {
+  .mark {
+    height: clamp(260px, 70vh, 880px);
+  }
+}
+
+/* Telas que não comportam "laterais vazias": o formulário ocupa quase tudo, então o desenho vira
+ * uma textura única e discreta atrás dele. */
+@media (max-width: 1000px) {
+  .veil {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 640px) {
+  .mark {
+    height: clamp(240px, 56vh, 520px);
+    opacity: 0.12;
+  }
+
+  .stars {
+    width: 56vw;
+    opacity: 0.3;
+  }
+
+  .mascot {
+    width: 84px;
+    opacity: 0.22;
+  }
+}

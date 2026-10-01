@@ -139,7 +139,9 @@ describe("ProjectReview — integração (Etapa 11)", () => {
   it("'Quero receber um retorno' avança para o contato", () => {
     renderWithState(reviewingWithSite());
     fireEvent.click(screen.getByRole("button", { name: /Quero receber um retorno/ }));
-    expect(screen.getByText("Falta pouco: deixe seus dados para a Upgrade analisar o seu projeto.")).toBeTruthy();
+    // Por role/nome: o final do título ("analisar o seu projeto.") ganhou um <span> só de destaque
+    // visual, então o texto já não está num único nó — o nome acessível continua o mesmo.
+    expect(screen.getByRole("heading", { name: "Falta pouco: deixe seus dados para a Upgrade analisar o seu projeto." })).toBeTruthy();
   });
 
   it("'Adicionar outro serviço' volta ao seletor, sem perder os serviços confirmados", () => {

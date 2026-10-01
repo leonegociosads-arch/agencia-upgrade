@@ -62,3 +62,125 @@
     width: 100%;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Identidade visual (só aparência — nenhuma lógica). O desenho que atravessa o fundo vem de
+ * `LeadFormBackdrop`; aqui ficam título, campos e botões. Seletores de elemento ficam presos a
+ * classes locais para NÃO alterar `Input`/`Button` nas outras telas do Design System.
+ * ------------------------------------------------------------------------- */
+.wrapper {
+  position: relative;
+}
+
+.title {
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+}
+
+/* Destaque verde no pedido ("analisar o seu projeto") + sublinhado desenhado, que "se traça" na
+ * entrada. O sublinhado é um background (e não um ::after), então acompanha a quebra de linha. */
+.highlight {
+  color: var(--ds-color-accent-text);
+  background: linear-gradient(100deg, var(--ds-color-accent), rgba(45, 185, 88, 0.35)) 0 100% / 100% 0.12em no-repeat;
+  padding-bottom: 0.06em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: draw-underline 0.9s var(--ds-easing-emphasized) 0.35s both;
+}
+
+@keyframes draw-underline {
+  from {
+    background-size: 0% 0.12em;
+  }
+  to {
+    background-size: 100% 0.12em;
+  }
+}
+
+/* Campos: fundo levemente translúcido (o desenho passa por trás sem competir com o texto). */
+.fieldset input {
+  background: rgba(9, 13, 17, 0.78);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border-color: var(--ds-color-border);
+  transition:
+    border-color var(--ds-duration-normal) var(--ds-easing-base),
+    box-shadow var(--ds-duration-normal) var(--ds-easing-base),
+    background-color var(--ds-duration-normal) var(--ds-easing-base);
+}
+
+.fieldset input:hover:not(:disabled):not(:focus-visible) {
+  border-color: var(--ds-color-border-strong);
+  background: rgba(13, 18, 23, 0.85);
+}
+
+/* Foco: borda verde + halo curtinho. O anel de foco padrão (outline) é trocado pela própria borda
+ * verde + halo, que têm contraste de sobra contra o preto. */
+.fieldset input:focus-visible {
+  outline: none;
+  border-color: var(--ds-color-accent);
+  box-shadow:
+    0 0 0 3px rgba(45, 185, 88, 0.16),
+    0 0 18px rgba(45, 185, 88, 0.12);
+}
+
+/* Erro continua dominando o foco (não fica verde sobre um campo inválido). */
+.fieldset input[aria-invalid="true"] {
+  border-color: var(--ds-color-error);
+}
+
+.fieldset input[aria-invalid="true"]:focus-visible {
+  border-color: var(--ds-color-error);
+  box-shadow: 0 0 0 3px var(--ds-color-error-soft);
+}
+
+/* Rótulo acende em verde junto com o campo em foco. */
+.fieldset label {
+  transition: color var(--ds-duration-normal) var(--ds-easing-base);
+}
+
+.fieldset div:focus-within > label {
+  color: var(--ds-color-accent-text);
+}
+
+/* Botões. Principal: verde dominante, sobe 1px (já vem do Design System), ganha halo e a seta
+ * avança. Secundário: contorno escuro; no hover o contorno clareia de leve. */
+.actions button[type="submit"] {
+  transition:
+    background-color var(--ds-duration-fast) var(--ds-easing-base),
+    transform var(--ds-duration-fast) var(--ds-easing-base),
+    box-shadow var(--ds-duration-normal) var(--ds-easing-base);
+}
+
+.actions button[type="submit"]:hover:not(:disabled) {
+  box-shadow: 0 8px 26px rgba(45, 185, 88, 0.28);
+}
+
+/* O Button do Design System embrulha o texto num <span> inline; o reset global faz todo <svg>
+ * virar `display: block` — aqui ele precisa ficar na mesma linha do texto. */
+.arrow {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  margin-left: var(--ds-space-2);
+  vertical-align: -0.18em;
+  transition: transform var(--ds-duration-normal) var(--ds-easing-emphasized);
+}
+
+.actions button[type="submit"]:hover:not(:disabled) .arrow {
+  transform: translateX(4px);
+}
+
+.actions button[type="button"] {
+  background: rgba(9, 13, 17, 0.6);
+}
+
+.actions button[type="button"]:hover:not(:disabled) {
+  border-color: var(--ds-color-text-secondary);
+}
+
+/* Linha de privacidade um pouco mais legível sobre o fundo com desenho. */
+.privacyNote a {
+  color: var(--ds-color-accent-text);
+  text-underline-offset: 3px;
+}

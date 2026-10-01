@@ -19,6 +19,7 @@ import ServiceCompleteScene, { ServiceCompleteBackdrop } from "./serviceComplete
 import ProjectReview from "./ProjectReview";
 import MyUpgrade from "./MyUpgrade";
 import LeadForm from "@/features/lead/components/LeadForm";
+import LeadFormBackdrop from "@/features/lead/components/LeadFormBackdrop";
 import SubmissionSuccess from "@/features/lead/components/SubmissionSuccess";
 import SubmissionError from "@/features/lead/components/SubmissionError";
 import styles from "./BuilderShell.module.css";
@@ -117,9 +118,14 @@ export default function BuilderShell() {
   const isServiceComplete = state.step === "service_complete" && state.activeService !== null;
   const isThirdStep = isQuestionScreen && state.activeService !== null && getProgress(state.activeService, state.serviceDraft).current === 1;
 
+  // Tela de dados/envio: o desenho da Upgrade atravessa o fundo (só visual). Também fora da
+  // transição de cena, e continua montado de "contact" para "submitting" (mesmo formulário).
+  const isLeadForm = state.step === "contact" || state.step === "submitting";
+
   return (
     <SceneCutsceneProvider>
-      <div className={isQuestionScreen || isServiceComplete ? `${styles.shell} ${styles.shellTransparent}` : styles.shell}>
+      <div className={isQuestionScreen || isServiceComplete || isLeadForm ? `${styles.shell} ${styles.shellTransparent}` : styles.shell}>
+        {isLeadForm && <LeadFormBackdrop />}
         {isQuestionScreen && <BuilderMovingBackground theme={state.activeService ?? undefined} />}
         {isQuestionScreen && <ParticleNucleusBackground active={isThirdStep} theme={state.activeService ?? undefined} />}
         {isServiceComplete && <ServiceCompleteBackdrop />}
