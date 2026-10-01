@@ -1,5 +1,6 @@
 import Link from "next/link";
 import OpenConsentPreferencesButton from "@/features/privacy/components/OpenConsentPreferencesButton";
+import { getWhatsAppLink } from "@/lib/contact/siteContact";
 import styles from "./SiteFooter.module.css";
 
 /** Footer enxuto (Fase 19, Seção 28: "não transformar em sitemap gigante") — só o essencial: marca,
@@ -15,6 +16,9 @@ import styles from "./SiteFooter.module.css";
  * também são Server Components). */
 export default function SiteFooter() {
   const year = new Date().getFullYear();
+  // WhatsApp oficial vem de `NEXT_PUBLIC_WHATSAPP_NUMBER` — sem ele, o link simplesmente não existe
+  // (nenhum número foi inventado; ver `lib/contact/siteContact.ts`).
+  const whatsappLink = getWhatsAppLink();
 
   return (
     <footer className={styles.footer}>
@@ -24,6 +28,11 @@ export default function SiteFooter() {
           <Link href="/projetos" className={styles.link}>
             Projetos
           </Link>
+          {whatsappLink && (
+            <a href={whatsappLink} className={styles.link} target="_blank" rel="noopener noreferrer">
+              WhatsApp
+            </a>
+          )}
           <Link href="/privacidade" className={styles.link}>
             Privacidade
           </Link>

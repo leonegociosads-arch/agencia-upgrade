@@ -60,3 +60,34 @@
   color: var(--ds-color-accent);
   margin-bottom: var(--ds-space-2);
 }
+
+/* Nome da frente (Site / Tráfego Pago / Design e Social Media) acima do título do card. */
+.frontName {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* "Para quê" e "Quando faz sentido": duas linhas curtas, escaneáveis, sem virar texto corrido. */
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin: var(--ds-space-2) 0 0;
+  padding-top: var(--ds-space-3);
+  border-top: var(--ds-border-width) solid var(--ds-color-border);
+}
+
+.facts dt {
+  font-size: var(--ds-font-size-caption);
+  font-weight: var(--ds-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ds-color-text-secondary);
+}
+
+.facts dd {
+  margin: 2px 0 0;
+  font-size: var(--ds-font-size-body-sm);
+  line-height: 1.45;
+  color: var(--ds-color-text-primary);
+}

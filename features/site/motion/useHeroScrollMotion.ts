@@ -31,7 +31,7 @@ export function useHeroScrollMotion(sectionRef: RefObject<HTMLElement | null>) {
 
     const ScrollTrigger = getScrollTrigger();
     const query = (value: string) => gsap.utils.toArray<Element>(value, section);
-    const content = [...query(`.${styles.badge}`), ...query(`.${styles.heroTitle}`), ...query(`.${styles.heroSubtitle}`), ...query(`.${styles.heroActions}`)];
+    const content = [...query(`.${styles.badge}`), ...query(`.${styles.heroTitle}`), ...query(`.${styles.heroSubtitle}`), ...query(`.${styles.heroActions}`), ...query(`.${styles.heroNote}`)];
     const graphic = query(`.${styles.heroGraphic}`);
 
     // Scroll: o Hero "abre espaço" para a seção seguinte (Seção 4) — desktop recebe mais

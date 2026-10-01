@@ -8,6 +8,7 @@ import Heading from "@/features/design-system/components/Heading";
 import Text from "@/features/design-system/components/Text";
 import Button from "@/features/design-system/components/Button";
 import { playSound } from "@/features/design-system/motion/sound";
+import { getResponseTimeLabel, getWhatsAppLink } from "@/lib/contact/siteContact";
 import styles from "./SubmissionSuccess.module.css";
 
 /**
@@ -41,6 +42,10 @@ export default function SubmissionSuccess({ onStartNewProject }: SubmissionSucce
   const { leadDraft } = useLeadDraft();
   const summaries = buildProjectSummary(state.confirmedServices);
   const firstName = leadDraft.name.trim().split(/\s+/)[0] || "";
+  // [PENDENTE — PRAZO E WHATSAPP] Os dois vêm de configuração (`lib/contact/siteContact.ts`) e só
+  // aparecem quando a Upgrade os definir; sem isso, nenhum prazo nem número é inventado.
+  const responseTime = getResponseTimeLabel();
+  const whatsappLink = getWhatsAppLink();
 
   useEffect(() => {
     // Toca ao CHEGAR nesta tela (o momento real do sucesso) — mesmo padrão de `service_complete`
@@ -62,15 +67,29 @@ export default function SubmissionSuccess({ onStartNewProject }: SubmissionSucce
         </Text>
       )}
 
+      <Text as="p" size="label" color="secondary" className={styles.listLabel}>
+        O que você montou
+      </Text>
       <ul className={styles.list}>
         {summaries.map((summary) => (
           <li key={summary.serviceId}>{summary.title}</li>
         ))}
       </ul>
 
+      {/* Antes: "Próximo passo: nossa equipe vai analisar seu projeto e entrar em contato em breve." */}
       <Text as="p" size="sm" color="secondary" className={styles.note}>
-        Próximo passo: nossa equipe vai analisar seu projeto e entrar em contato em breve.
+        O que acontece agora: a equipe da Upgrade analisa o que você montou e entra em contato pelos dados
+        que você informou{responseTime ? `, ${responseTime}` : ""}.
       </Text>
+      {whatsappLink && (
+        <Text as="p" size="sm" color="secondary" className={styles.note}>
+          Prefere falar agora?{" "}
+          <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+            Chame a Upgrade no WhatsApp
+          </a>
+          .
+        </Text>
+      )}
 
       <Button onClick={onStartNewProject}>Iniciar novo projeto</Button>
     </div>

@@ -22,7 +22,7 @@ describe("FinalCtaSection (Fase ScrollTrigger e Storytelling)", () => {
   it("renderiza o convite final e o CTA para /builder (motion reduzido, padrão do ambiente de teste)", () => {
     render(<FinalCtaSection />);
 
-    expect(screen.getByText("Pronto para dar o próximo passo?")).not.toBeNull();
+    expect(screen.getByText("Pronto para montar o seu Upgrade?")).not.toBeNull();
     expect(screen.getByRole("link", { name: "Monte seu Upgrade" }).getAttribute("href")).toBe("/builder");
   });
 
@@ -30,7 +30,7 @@ describe("FinalCtaSection (Fase ScrollTrigger e Storytelling)", () => {
     mockMatchMedia(false);
     const { unmount } = render(<FinalCtaSection />);
 
-    expect(screen.getByText("Pronto para dar o próximo passo?")).not.toBeNull();
+    expect(screen.getByText("Pronto para montar o seu Upgrade?")).not.toBeNull();
     expect(() => unmount()).not.toThrow();
   });
 });

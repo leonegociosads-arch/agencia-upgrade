@@ -52,3 +52,9 @@
 .cta {
   display: inline-flex;
 }
+
+/* Frase de apoio do CTA final (seletor estável para o motion de revelação). */
+.support {
+  display: block;
+  max-width: 46ch;
+}

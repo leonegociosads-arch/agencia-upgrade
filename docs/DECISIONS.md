@@ -2034,6 +2034,25 @@ Formato: `[Fase X] Decisão — justificativa`
     overflow horizontal nem erro de console em 390×844/375×667, e o desktop (1440×900) permanece
     pixel-a-pixel o mesmo de antes.
 
+## Comunicação (copy) da Home e do fluxo
+
+- **[Rodada de copy com a skill `copychief`] O papel da `copychief` é só comunicação** — melhora como o que já
+  foi definido é comunicado (palavras, hierarquia de mensagem, CTAs, microcopy, argumentação, estrutura da
+  Home como landing page). Estratégia, modelo de negócio, serviços, categorias, perguntas, funil e o Builder
+  são decisões do dono do projeto e não são redefinidos por ela.
+- **[Rodada de copy] Site e Design não ganham pergunta de orçamento do projeto** — decisão já tomada. Tráfego
+  Pago mantém a pergunta de **investimento mensal em anúncios**, que não é o orçamento para contratar a Upgrade.
+- **[Rodada de copy] O Builder é o principal mecanismo comercial e um diferencial de comunicação** — a Home
+  explica por que entrar nele ("Como funciona"); não existe diagnóstico, quiz ou captura antes dele.
+  "Monte seu Upgrade" continua sendo o CTA principal.
+- **[Rodada de copy] `/projetos` fica** — é parte do site final. Enquanto não há cases, o texto da página é
+  honesto e leva ao Builder; links e sitemap não foram removidos.
+- **[Rodada de copy] Nada é inventado e imagens dependem do dono** — sem clientes, números, depoimentos, logos,
+  prazos, contatos ou garantias fictícios; sem imagens de banco ou geradas. O que falta fica em
+  `docs/CONTENT-TODO.md`, com especificação do asset, e em placeholders identificados no código. WhatsApp e
+  prazo de retorno vêm de variáveis de ambiente (`lib/contact/siteContact.ts`) e só aparecem quando
+  preenchidos.
+
 ---
 
 *Decisões futuras devem ser adicionadas ao final de sua seção correspondente (ou em nova seção, se

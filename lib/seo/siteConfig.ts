@@ -12,10 +12,11 @@ export const SITE_NAME = "Agência Upgrade";
 
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 
-/** Mesma frase já usada como subtítulo do Hero (`HeroSection.tsx`) e como `description` original do
- * `app/layout.tsx` — reaproveitada aqui, nunca reescrita só por causa de SEO (briefing, Seção 29). */
+/** Descrição da Home (meta description). Diz o que a Upgrade faz e o que dá para fazer no site, com a
+ * mesma ideia do subtítulo do Hero (`HeroSection.tsx`) — antes repetia o subtítulo antigo, que
+ * falava de "processo claro" sem dizer o que a agência faz. */
 export const SITE_DESCRIPTION =
-  "Sites, tráfego pago e design trabalhando juntos — com um processo claro do primeiro clique ao projeto entregue.";
+  "A Upgrade cria sites, gerencia tráfego pago e cuida de design e social media. Escolha o que a sua empresa precisa e monte o seu Upgrade.";
 
 export const SITE_TITLE = `${SITE_NAME} — Sites, Tráfego Pago e Design`;
 

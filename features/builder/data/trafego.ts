@@ -12,7 +12,7 @@ const TRAFEGO_NEGOCIO: Question = {
     { id: "servicos", label: "Serviços", description: "Profissionais, empresas e prestadores de serviço." },
     { id: "ecommerce", label: "E-commerce", description: "Venda de produtos pela internet." },
     { id: "evento", label: "Evento", description: "Shows, festas, cursos, lançamentos ou eventos presenciais." },
-    { id: "outro", label: "Outro" },
+    { id: "outro", label: "Outro", description: "Algo diferente das opções acima. A Upgrade conversa com você sobre os detalhes." },
   ],
 };
 

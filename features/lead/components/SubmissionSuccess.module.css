@@ -51,3 +51,7 @@
 .note {
   max-width: 40ch;
 }
+
+.listLabel {
+  margin-top: var(--ds-space-2);
+}

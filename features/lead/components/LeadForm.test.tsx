@@ -195,3 +195,43 @@ describe("LeadForm — integração (Etapa 12)", () => {
     expect(honeypotValue).toBeFalsy();
   });
 });
+
+describe("LeadForm e tela de sucesso — comunicação (copy)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("o aviso de privacidade tem link funcional para a página de privacidade", () => {
+    renderWithState(inContactWithSite());
+    const link = screen.getByRole("link", { name: "Política de Privacidade" });
+    expect(link.getAttribute("href")).toBe("/privacidade");
+    expect(link.getAttribute("rel")).toContain("noopener");
+  });
+
+  it("sem prazo nem WhatsApp configurados, a tela de sucesso não promete prazo nem mostra WhatsApp", async () => {
+    vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "");
+    vi.stubEnv("NEXT_PUBLIC_RESPONSE_TIME", "");
+    renderWithState(inContactWithSite());
+    fillValidForm();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar meu projeto" }));
+    await screen.findByText("Recebemos seu projeto.");
+
+    expect(screen.getByText(/O que acontece agora: a equipe da Upgrade analisa o que você montou/)).toBeTruthy();
+    expect(screen.getByText("O que você montou")).toBeTruthy();
+    expect(screen.queryByText(/WhatsApp/)).toBeNull();
+    expect(screen.queryByText(/em até/)).toBeNull();
+  });
+
+  it("com prazo e WhatsApp configurados, ambos aparecem (e só então)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_WHATSAPP_NUMBER", "5511912345678");
+    vi.stubEnv("NEXT_PUBLIC_RESPONSE_TIME", "em até 1 dia útil");
+    renderWithState(inContactWithSite());
+    fillValidForm();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar meu projeto" }));
+    await screen.findByText("Recebemos seu projeto.");
+
+    expect(screen.getByText(/pelos dados que você informou, em até 1 dia útil\./)).toBeTruthy();
+    const whatsapp = screen.getByRole("link", { name: "Chame a Upgrade no WhatsApp" });
+    expect(whatsapp.getAttribute("href")).toContain("https://wa.me/5511912345678");
+  });
+});

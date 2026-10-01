@@ -12,15 +12,17 @@ afterEach(cleanup);
  * lançar erro — o comportamento de cada seção isolada já é coberto pelos testes próprios delas.
  */
 describe("Home (Fase ScrollTrigger e Storytelling)", () => {
-  it("renderiza header, as 4 seções e o footer sem lançar erro", () => {
+  it("renderiza header, as 6 seções (hero, serviços, como funciona, projetos, perguntas, CTA final) e o footer sem lançar erro", () => {
     const { unmount } = render(<Home />);
 
     expect(screen.getByText("Um upgrade real na presença digital da sua empresa.")).not.toBeNull();
     expect(screen.getByText("O que fazemos")).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "Como funciona" })).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "Perguntas frequentes" })).not.toBeNull();
     // "Projetos" aparece duas vezes (título da seção-teaser e link do rodapé) — mais específico
     // checar o heading da seção em vez do texto solto.
     expect(screen.getByRole("heading", { name: "Projetos" })).not.toBeNull();
-    expect(screen.getByText("Pronto para dar o próximo passo?")).not.toBeNull();
+    expect(screen.getByText("Pronto para montar o seu Upgrade?")).not.toBeNull();
     expect(() => unmount()).not.toThrow();
   });
 });

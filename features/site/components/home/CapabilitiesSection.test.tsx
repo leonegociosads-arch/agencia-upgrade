@@ -28,6 +28,16 @@ describe("CapabilitiesSection (Fase ScrollTrigger e Storytelling)", () => {
     }
   });
 
+  it("cada frente diz o que fazemos, para quê serve e quando faz sentido (não só a lista de itens)", () => {
+    render(<CapabilitiesSection />);
+
+    expect(screen.getAllByText("Para quê")).toHaveLength(SERVICE_IDS.length);
+    expect(screen.getAllByText("Quando faz sentido")).toHaveLength(SERVICE_IDS.length);
+    expect(screen.getByText("Site")).not.toBeNull();
+    expect(screen.getByText("Tráfego Pago")).not.toBeNull();
+    expect(screen.getByText("Design e Social Media")).not.toBeNull();
+  });
+
   it("com motion reduzido, os cards nunca ficam ocultos (sem pin/scrub aplicado)", () => {
     mockMatchMedia({ "(prefers-reduced-motion: reduce)": true });
     render(<CapabilitiesSection />);

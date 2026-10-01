@@ -46,7 +46,8 @@
 .badge,
 .heroTitle,
 .heroSubtitle,
-.heroActions {
+.heroActions,
+.heroNote {
   animation: heroReveal var(--ds-duration-slow) var(--ds-easing-emphasized) both;
 }
 
@@ -72,6 +73,15 @@
   gap: var(--ds-space-4);
   margin-top: var(--ds-space-4);
   animation-delay: calc(var(--ds-stagger-md) + var(--ds-stagger-sm) + var(--ds-stagger-sm));
+}
+
+/* Microcopy abaixo dos CTAs: diz o que esperar antes do clique (só fatos do fluxo real — poucas
+ * perguntas, resumo revisável antes de enviar). Mesma entrada em cascata do restante do hero. */
+.heroNote {
+  margin: calc(var(--ds-space-2) * -1) 0 0;
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+  animation-delay: calc(var(--ds-stagger-md) + var(--ds-stagger-sm) * 3);
 }
 
 /* Grafismo (Fase 19, Seção 22): um recorte diagonal + um bloco geométrico, verde só como acento
@@ -154,6 +164,18 @@
    * desktop continua exatamente igual. */
   .heroAccentGraphic {
     display: none;
+  }
+}
+
+/* Correção de primeira dobra (celular em pé): a cena da logo em partículas (acima: `85svh`)
+ * empurrava a headline para fora da primeira tela — o visitante via só o desenho. Mantém a logo
+ * como PRIMEIRA cena (pedido anterior) e o mesmo layout, apenas com altura menor, para a headline,
+ * o subtítulo e os botões começarem dentro da viewport. Só vale em tela estreita em pé: o celular
+ * deitado (regra acima) segue exatamente como estava. */
+@media (max-width: 640px) {
+  .heroGraphic {
+    height: clamp(200px, 30svh, 280px);
+    min-height: 0;
   }
 }
 

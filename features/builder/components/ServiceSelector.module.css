@@ -156,6 +156,18 @@
   text-decoration: underline;
 }
 
+/* Contato direto ativo (só existe com `NEXT_PUBLIC_WHATSAPP_NUMBER` preenchido): mesmo link, agora
+ * clicável — cor legível e cursor de link. */
+.secondaryLinkActive {
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+}
+
+.secondaryLinkActive:hover,
+.secondaryLinkActive:focus-visible {
+  color: var(--ds-color-text-primary);
+}
+
 /* Entrada (Seção 12) — estas 5 classes existem só para o GSAP em `ServiceSelector.tsx` ter um
  * seletor estável de cada elemento da sequência (header → eyebrow → title → subtitle → cards); a
  * animação em si (opacity + y + scale) é feita inteiramente por `gsap.context(...).from(...)`, não

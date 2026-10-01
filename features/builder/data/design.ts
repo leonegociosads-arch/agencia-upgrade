@@ -187,7 +187,7 @@ const VIDEO_STEPS: DesignStep[] = [
         { id: "redes_sociais_reels", label: "Redes sociais / Reels" },
         { id: "anuncios", label: "Anúncios" },
         { id: "apresentacao_produto_servico", label: "Apresentação de produto ou serviço" },
-        { id: "outro", label: "Outro" },
+        { id: "outro", label: "Outro", description: "Algo diferente das opções acima. A Upgrade conversa com você sobre os detalhes." },
       ],
     }),
   },

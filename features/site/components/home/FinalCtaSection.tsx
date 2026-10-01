@@ -4,6 +4,7 @@ import { useRef } from "react";
 import dynamic from "next/dynamic";
 import SectionContainer from "@/features/design-system/components/SectionContainer";
 import Heading from "@/features/design-system/components/Heading";
+import Text from "@/features/design-system/components/Text";
 import LinkButton from "@/features/design-system/components/LinkButton";
 import { useRevealScrollMotion } from "../../motion/useRevealScrollMotion";
 import { useMagneticHover } from "@/features/design-system/motion/useMagneticHover";
@@ -26,7 +27,7 @@ const ProceduralAura = dynamic(() => import("@/features/design-system/webgl/Proc
 export default function FinalCtaSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
   useRevealScrollMotion(sectionRef, {
-    itemSelectors: [`.${styles.heading}`, `.${styles.cta}`],
+    itemSelectors: [`.${styles.heading}`, `.${styles.support}`, `.${styles.cta}`],
   });
   const ctaRef = useMagneticHover<HTMLAnchorElement>();
   const [, nearViewport] = useInViewport<HTMLElement>("200px", sectionRef);
@@ -37,9 +38,13 @@ export default function FinalCtaSection() {
         <div className={styles.finalGraphicFallback} />
         {nearViewport && <ProceduralAura />}
       </div>
+      {/* Antes: "Pronto para dar o próximo passo?" — genérico, sem dizer qual é o passo. */}
       <Heading variant="h2" className={styles.heading}>
-        Pronto para dar o próximo passo?
+        Pronto para montar o seu Upgrade?
       </Heading>
+      <Text color="secondary" className={styles.support}>
+        Escolha o que precisa, responda poucas perguntas e revise tudo antes de enviar.
+      </Text>
       <LinkButton ref={ctaRef} href="/builder" size="lg" className={styles.cta}>
         Monte seu Upgrade
       </LinkButton>

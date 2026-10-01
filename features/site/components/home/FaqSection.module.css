@@ -1,0 +1,75 @@
+.section {
+  padding-block: var(--ds-space-16);
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding-block: var(--ds-space-8);
+  }
+}
+
+.heading {
+  display: block;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  max-width: 760px;
+  margin-top: var(--ds-space-6);
+}
+
+.item {
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface);
+  transition: border-color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.item[open] {
+  border-color: var(--ds-color-accent);
+}
+
+/* `summary` é o botão de abrir/fechar: foco visível, alvo de toque grande, marcador próprio (+ / –). */
+.question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-4);
+  font-family: var(--ds-font-display);
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--ds-color-text-primary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.question::-webkit-details-marker {
+  display: none;
+}
+
+.question::after {
+  content: "+";
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--ds-color-accent);
+}
+
+.item[open] .question::after {
+  content: "\2013";
+}
+
+.question:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--ds-radius-md);
+}
+
+.answer {
+  margin: 0;
+  padding: 0 var(--ds-space-4) var(--ds-space-4);
+  color: var(--ds-color-text-secondary);
+  line-height: 1.55;
+}

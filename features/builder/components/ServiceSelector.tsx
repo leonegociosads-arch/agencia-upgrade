@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { SERVICE_IDS, SERVICES } from "../data/services";
+import { getWhatsAppLink } from "@/lib/contact/siteContact";
 import { useBuilder } from "../state/BuilderContext";
 import { trackEvent } from "@/lib/analytics/trackEvent";
 import { playSound } from "@/features/design-system/motion/sound";
@@ -85,6 +86,7 @@ export interface ServiceSelectorProps {
  * no clique, o contrato que `BuilderShell*.test.tsx`/`MyUpgrade.test.tsx` verificam.
  */
 export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: ServiceSelectorProps) {
+  const whatsappLink = getWhatsAppLink();
   const { state, startNewService, startEditingService } = useBuilder();
   const { isTransitioning, markForward, markInstant } = useSceneNavigation();
   const { play: playCutscene, isPlaying: isCutscenePlaying } = useSceneCutscene();
@@ -259,9 +261,18 @@ export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: S
           </div>
         )}
 
-        <button type="button" className={styles.secondaryLink} disabled title="Canal de contato — Etapa 9+">
-          Não sabe exatamente do que precisa? Fale com a Upgrade
-        </button>
+        {/* [PENDENTE — WHATSAPP OFICIAL] O link só existe quando `NEXT_PUBLIC_WHATSAPP_NUMBER` estiver
+            preenchido (`lib/contact/siteContact.ts`, `docs/CONTENT-TODO.md`). Sem o número, o botão
+            continua desativado como antes — nenhum número foi inventado. */}
+        {whatsappLink ? (
+          <a className={cx(styles.secondaryLink, styles.secondaryLinkActive)} href={whatsappLink} target="_blank" rel="noopener noreferrer">
+            Não sabe exatamente do que precisa? Fale com a Upgrade
+          </a>
+        ) : (
+          <button type="button" className={styles.secondaryLink} disabled title="Canal de contato em breve">
+            Não sabe exatamente do que precisa? Fale com a Upgrade
+          </button>
+        )}
       </div>
     </div>
   );

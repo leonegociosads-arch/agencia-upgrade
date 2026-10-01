@@ -15,6 +15,13 @@ import styles from "./ProjectsTeaserSection.module.css";
  * usar scroll horizontal só porque parece sofisticado"); por isso, uma revelação simples é a
  * escolha certa aqui, não uma ausência de motion.
  */
+/*
+ * [FUTURO CASE — PROVA] Esta seção é o lugar da prova da Home. Quando houver projetos reais
+ * autorizados, ela vira uma vitrine de até 3 cases (imagem principal + cliente/segmento + o desafio
+ * + a solução + serviços usados + resultado real, SÓ se houver número verificável + CTA para o
+ * caso completo em `/projetos`). Nada disso pode ser inventado. Assets e informações necessários:
+ * `docs/CONTENT-TODO.md` (itens "Case 01..03 — Home" e "Prova/depoimentos").
+ */
 export default function ProjectsTeaserSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
   // `scaleFrom` (Etapa 36 — Award-Level): diferencia esta entrada da de `FinalCtaSection`, que usa
@@ -32,9 +39,11 @@ export default function ProjectsTeaserSection() {
         <Heading variant="h3" as="h2">
           Projetos
         </Heading>
+        {/* Antes: "Os primeiros cases da Upgrade estão a caminho — em breve, projetos reais entregues
+            pela agência aparecem aqui." */}
         <Text color="secondary">
-          Os primeiros cases da Upgrade estão a caminho — em breve, projetos reais entregues pela
-          agência aparecem aqui.
+          Estamos organizando os primeiros projetos para publicar aqui, com o desafio de cada cliente
+          e a solução da Upgrade.
         </Text>
         <LinkButton href="/projetos" variant="secondary" size="sm">
           Ver projetos

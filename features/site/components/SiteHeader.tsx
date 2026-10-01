@@ -22,7 +22,7 @@ import styles from "./SiteHeader.module.css";
  * links de navegação simplesmente desapareciam abaixo de 768px, sem nenhuma forma de alcançá-los
  * a não ser rolar até o footer. `"use client"` só por causa deste estado local de aberto/fechado.
  *
- * Só linka para rotas que realmente existem hoje (`/`, `/projetos`) — nunca um item de menu morto
+ * Só linka para rotas e âncoras que realmente existem hoje (`/`, `/#como-funciona`, `/projetos`) — nunca um item de menu morto
  * (ex.: "Sobre", que não tem página própria ainda).
  */
 export default function SiteHeader() {
@@ -50,6 +50,9 @@ export default function SiteHeader() {
       <nav className={styles.nav} aria-label="Navegação principal">
         <Link href="/" className={styles.navLink}>
           Início
+        </Link>
+        <Link href="/#como-funciona" className={styles.navLink}>
+          Como funciona
         </Link>
         <Link href="/projetos" className={styles.navLink}>
           Projetos
@@ -79,6 +82,9 @@ export default function SiteHeader() {
         <nav id="site-mobile-menu" className={styles.mobileMenu} aria-label="Navegação principal (mobile)">
           <Link href="/" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>
             Início
+          </Link>
+          <Link href="/#como-funciona" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>
+            Como funciona
           </Link>
           <Link href="/projetos" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>
             Projetos

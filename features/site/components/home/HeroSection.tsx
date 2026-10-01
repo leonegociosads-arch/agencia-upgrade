@@ -62,15 +62,20 @@ export default function HeroSection() {
 
   return (
     <SectionContainer as="section" ref={sectionRef} className={styles.hero}>
+      {/* Copy (registro em `docs/CONTENT-TODO.md`): antes "Estúdio digital de performance" — o nome
+          do site é "Agência Upgrade" e "performance" promete resultado mensurável sem prova. */}
       <Badge tone="accent" className={styles.badge}>
-        Estúdio digital de performance
+        Agência digital
       </Badge>
       <Heading variant="display" className={styles.heroTitle}>
         Um upgrade real na presença digital da sua empresa.
       </Heading>
+      {/* A headline é a frase de posicionamento da marca e foi mantida; quem responde "o que faz,
+          para quem e o que posso fazer aqui" é este subtítulo (antes: "Sites, tráfego pago e design
+          trabalhando juntos — com um processo claro do primeiro clique ao projeto entregue."). */}
       <Text size="lg" color="secondary" className={styles.heroSubtitle}>
-        Sites, tráfego pago e design trabalhando juntos — com um processo claro do primeiro clique
-        ao projeto entregue.
+        Sites, tráfego pago, design e social media para a sua empresa. Escolha o que precisa,
+        responda poucas perguntas e monte o seu Upgrade.
       </Text>
       <div className={styles.heroActions}>
         <LinkButton ref={ctaRef} href="/builder" size="lg">
@@ -80,6 +85,7 @@ export default function HeroSection() {
           Ver projetos
         </LinkButton>
       </div>
+      <p className={styles.heroNote}>Poucas perguntas · você revisa tudo antes de enviar</p>
       <div className={styles.heroAccentGraphic} aria-hidden="true" />
       <div className={styles.heroGraphic} aria-hidden="true">
         <div className={styles.heroGraphicFallback} />

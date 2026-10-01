@@ -3,7 +3,9 @@ import SiteHeader from "@/features/site/components/SiteHeader";
 import SiteFooter from "@/features/site/components/SiteFooter";
 import HeroSection from "@/features/site/components/home/HeroSection";
 import CapabilitiesSection from "@/features/site/components/home/CapabilitiesSection";
+import HowItWorksSection from "@/features/site/components/home/HowItWorksSection";
 import ProjectsTeaserSection from "@/features/site/components/home/ProjectsTeaserSection";
+import FaqSection from "@/features/site/components/home/FaqSection";
 import FinalCtaSection from "@/features/site/components/home/FinalCtaSection";
 import { getOrganizationJsonLd, getWebSiteJsonLd, toJsonLd } from "@/lib/seo/structuredData";
 import styles from "./page.module.css";
@@ -34,7 +36,9 @@ export default function Home() {
       <main className={styles.main}>
         <HeroSection />
         <CapabilitiesSection />
+        <HowItWorksSection />
         <ProjectsTeaserSection />
+        <FaqSection />
         <FinalCtaSection />
       </main>
       <SiteFooter />

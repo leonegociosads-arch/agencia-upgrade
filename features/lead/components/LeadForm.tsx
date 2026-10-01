@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { useForm, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBuilder } from "@/features/builder/state/BuilderContext";
@@ -122,7 +123,8 @@ export default function LeadForm() {
   return (
     <div className={styles.wrapper}>
       <Heading variant="h2" as="h2" className={styles.title}>
-        Deixe seus dados para analisarmos seu projeto.
+        {/* Antes: "Deixe seus dados para analisarmos seu projeto." */}
+        Falta pouco: deixe seus dados para a Upgrade analisar o seu projeto.
       </Heading>
 
       <form
@@ -190,7 +192,13 @@ export default function LeadForm() {
           />
 
           <Text as="p" size="caption" color="secondary" className={styles.privacyNote}>
-            Ao enviar, você autoriza a Upgrade a utilizar estes dados para entrar em contato sobre este projeto.
+            Ao enviar, você autoriza a Upgrade a utilizar estes dados para entrar em contato sobre este projeto.{" "}
+            {/* Link para a página que já existe (`/privacidade`); abre em outra aba para o visitante não
+                perder o projeto que está montando. */}
+            <Link href="/privacidade" target="_blank" rel="noopener noreferrer">
+              Política de Privacidade
+            </Link>
+            .
           </Text>
 
           <div className={styles.actions}>
