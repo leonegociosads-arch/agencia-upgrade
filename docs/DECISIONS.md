@@ -2066,3 +2066,12 @@ necessário), sempre indicando a fase em que foram tomadas.*
 - **Legibilidade:** véu preto estático em degradê (e não `mask-image`, que custou ~12 ms/quadro em teste). O desenho fica forte nas laterais e recua atrás do formulário.
 - **Reduced motion:** o desenho fica parado (deslocado 14%), sem animação de entrada.
 - **Montagem:** pelo `BuilderShell`, fora do `SceneTransition` (um `position: fixed` dentro de um elemento com `transform` andaria junto com ele).
+
+## Preparação para a Hostinger (build sem SWC nativo)
+
+- `next.config.ts` virou `next.config.mjs` (mesmas opções) para o Next não precisar do SWC só para ler a
+  configuração; `next.config.test.ts` passou a importar `./next.config.mjs`.
+- Novo script `build:webpack` (`next build --webpack`) para servidores onde o SWC nativo não carrega e o Next
+  usa o SWC em WebAssembly (que não suporta Turbopack). O `build` padrão não mudou.
+- `engines.node` passou de `>=20.9.0` para `>=22.0.0`: o Supabase exige Node 22+ (no 20 o cliente lança erro).
+- Detalhes, evidências e o que depende do servidor: `docs/DEPLOY-HOSTINGER.md`.

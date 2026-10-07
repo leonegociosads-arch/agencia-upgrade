@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import nextConfig from "./next.config";
+import nextConfig from "./next.config.mjs";
 
 /** Etapa 29 — Segurança, Seções 50-56/107: garante que os cabeçalhos de segurança/CSP não regridem
- * silenciosamente numa mudança futura de `next.config.ts`. */
-describe("next.config.ts — cabeçalhos de segurança (Etapa 29)", () => {
+ * silenciosamente numa mudança futura de `next.config.mjs`. */
+describe("next.config.mjs — cabeçalhos de segurança (Etapa 29)", () => {
   it("declara headers() aplicados a todas as rotas", async () => {
     expect(nextConfig.headers).toBeTypeOf("function");
     const rules = await nextConfig.headers!();
@@ -54,7 +54,7 @@ describe("next.config.ts — cabeçalhos de segurança (Etapa 29)", () => {
  * página inteira quebrava ("SSL connect error"). Corrigido tornando os dois condicionais a
  * `NODE_ENV !== "development"`; este teste garante que a condição nunca regride.
  */
-describe("next.config.ts — HSTS/upgrade-insecure-requests só fora de desenvolvimento (Etapa 31)", () => {
+describe("next.config.mjs — HSTS/upgrade-insecure-requests só fora de desenvolvimento (Etapa 31)", () => {
   const originalNodeEnv = process.env.NODE_ENV;
 
   afterEach(() => {
@@ -65,7 +65,7 @@ describe("next.config.ts — HSTS/upgrade-insecure-requests só fora de desenvol
   it("em desenvolvimento, nenhum dos dois cabeçalhos é enviado", async () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.resetModules();
-    const { default: devConfig } = await import("./next.config");
+    const { default: devConfig } = await import("./next.config.mjs");
     const [{ headers }] = await devConfig.headers!();
     expect(headers.some((h) => h.key === "Strict-Transport-Security")).toBe(false);
     const csp = headers.find((h) => h.key === "Content-Security-Policy")!.value;
@@ -75,7 +75,7 @@ describe("next.config.ts — HSTS/upgrade-insecure-requests só fora de desenvol
   it("fora de desenvolvimento, os dois continuam presentes", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.resetModules();
-    const { default: prodConfig } = await import("./next.config");
+    const { default: prodConfig } = await import("./next.config.mjs");
     const [{ headers }] = await prodConfig.headers!();
     expect(headers.some((h) => h.key === "Strict-Transport-Security")).toBe(true);
     const csp = headers.find((h) => h.key === "Content-Security-Policy")!.value;

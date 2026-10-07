@@ -1,6 +1,10 @@
-import type { NextConfig } from "next";
-
 /**
+ * Configuração do Next.js em `.mjs` (e não `.ts`) de propósito: um `next.config.ts` precisa ser
+ * COMPILADO pelo SWC do Next toda vez que o Next inicia (`next build` E `next start`). Em servidores
+ * onde o binário nativo do SWC não carrega (ex.: glibc antigo, sem GLIBC_2.29), isso derruba até o
+ * `next start`. Um `.mjs` é lido direto pelo Node, sem compilar nada. As opções são exatamente as
+ * mesmas de antes; o tipo vem do JSDoc abaixo (continua checado pelo `tsc`, `allowJs`).
+ *
  * Cabeçalhos de segurança + CSP (Etapa 29 — Segurança, Seções 50-56).
  *
  * CSP SEM nonce, de propósito: a maioria das rotas do site é estática (`next build` já mostra
@@ -63,7 +67,8 @@ const securityHeaders = [
   ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]),
 ];
 
-const nextConfig: NextConfig = {
+/** @type {import("next").NextConfig} */
+const nextConfig = {
   // Some expor "X-Powered-By: Next.js" (Seção 58/62 — não revelar detalhes internos desnecessários).
   poweredByHeader: false,
   async headers() {
