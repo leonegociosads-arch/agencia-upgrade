@@ -55,3 +55,37 @@ engine no `npm install`; não afetam build nem execução.
 - Acesso de saída ao npm para baixar o SWC WASM, e gravação no diretório de cache.
 - Se o painel permite escolher Node 22+.
 - Memória disponível para o build com webpack (mais pesada que a do Turbopack).
+
+## Supabase na Hostinger
+
+O projeto já usa `@supabase/supabase-js` e `@supabase/ssr`; **não há `db.js` nem conexão duplicada**: toda
+a integração passa por três módulos em `lib/supabase/` (e a `proxy.ts`, que usa a mesma chave pública).
+
+| Módulo | Cliente | Chave | Onde roda |
+|---|---|---|---|
+| `lib/supabase/server.ts` (`getSupabaseServerClient`) | `createClient` | **service role** (secreta) | só servidor (`import "server-only"`): envio do lead, analytics interno, CRM |
+| `lib/supabase/serverSessionClient.ts` | `createServerClient` | anon + cookie de sessão | só servidor: login e leitura do `/admin` (valem as regras de RLS) |
+| `proxy.ts` | `createServerClient` | anon + cookie de sessão | servidor: protege `/admin/**` |
+| `lib/supabase/client.ts` | `createBrowserClient` | anon | navegador (hoje nenhum componente o usa) |
+
+### Variáveis (nomes exatos)
+- `NEXT_PUBLIC_SUPABASE_URL` — pública.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — pública (a segurança vem do RLS).
+- `SUPABASE_SERVICE_ROLE_KEY` — **secreta**, sem `NEXT_PUBLIC_`, nunca vai ao navegador.
+- Outras: `NEXT_PUBLIC_SITE_URL`; opcionais `NEXT_PUBLIC_GA4_MEASUREMENT_ID`, `NEXT_PUBLIC_META_PIXEL_ID`,
+  `NEXT_PUBLIC_WHATSAPP_NUMBER`, `NEXT_PUBLIC_RESPONSE_TIME`. `E2E_TEST_MODE` é só de teste: **não** definir em produção.
+
+### Atenção
+- Variáveis `NEXT_PUBLIC_*` são **gravadas no build**: cadastre-as no painel **antes** de rodar o build e refaça
+  o build se mudar alguma. `SUPABASE_SERVICE_ROLE_KEY` é lida em tempo de execução (precisa estar no ambiente
+  do `npm run start`).
+- Node 22+ é obrigatório (no 20 o cliente do Supabase lança erro ao ser criado; ver acima).
+- Nunca subir `.env.local` ao GitHub (já é ignorado; só `.env.example` é versionado, sem valores).
+
+### Conferido localmente (sem imprimir valores)
+- As três variáveis existem no `.env.local`; a URL tem o formato `https://<ref>.supabase.co`.
+- Chave pública válida (`/auth/v1/settings` = 200); `upgrade_leads` acessível com a service role (200);
+  a chave pública **não** lê `upgrade_leads` (401, RLS).
+- `analytics_events` e `admin_users` respondem 403 à service role em leitura, **como o desenho prevê**
+  (a service role só tem INSERT em `analytics_events`; `admin_users` é lida pelo usuário logado).
+- O bundle público do navegador (`.next/static`) **não contém** a service role, nem o nome dela.
