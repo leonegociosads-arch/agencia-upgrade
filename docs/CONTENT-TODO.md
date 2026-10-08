@@ -87,7 +87,7 @@ versão para desktop e para mobile quando a proporção muda.
 - **Localização / área de atendimento**, se for usada na comunicação.
 - **Políticas comerciais ainda não definidas** (alimentam a FAQ, ver seção 4): contratação, tipos de projeto
   atendidos, prazos de entrega, preço.
-- **Domínio próprio de produção** (`NEXT_PUBLIC_SITE_URL`): hoje o endereço público é `agencia-upgrade.vercel.app`.
+- **Domínio de produção** (`NEXT_PUBLIC_SITE_URL`): o oficial é `https://somosupgrade.com.br` (sem www; o www redireciona). Falta só a variável estar com `https://` na Hostinger.
 - **Confirmar textos** marcados como proposta: badge "Agência digital" (antes "Estúdio digital de
   performance"); a frase da FAQ "a equipe da Upgrade … continua a conversa com você".
 - **Página de privacidade:** o link do formulário agora aponta para `/privacidade` (página existente). A

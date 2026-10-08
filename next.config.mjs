@@ -67,6 +67,16 @@ const securityHeaders = [
   ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]),
 ];
 
+/**
+ * Endereço oficial: https://somosupgrade.com.br (SEM www). Quem chega por www.somosupgrade.com.br é
+ * mandado, de forma permanente (308), para o mesmo caminho no endereço oficial — o caminho e a query
+ * string são preservados. O redirecionamento só vale quando o Host é o `www`; o destino é o domínio
+ * sem `www`, que não casa com a regra, então não existe ciclo. Os valores ficam aqui (e não em
+ * variável de ambiente) de propósito: é uma decisão de domínio, não de configuração por ambiente.
+ */
+const WWW_HOST = "www.somosupgrade.com.br";
+const OFFICIAL_ORIGIN = "https://somosupgrade.com.br";
+
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   // Some expor "X-Powered-By: Next.js" (Seção 58/62 — não revelar detalhes internos desnecessários).
@@ -76,6 +86,16 @@ const nextConfig = {
       {
         source: "/(.*)",
         headers: securityHeaders,
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: WWW_HOST }],
+        destination: `${OFFICIAL_ORIGIN}/:path*`,
+        permanent: true,
       },
     ];
   },

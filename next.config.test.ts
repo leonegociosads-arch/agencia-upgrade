@@ -82,3 +82,30 @@ describe("next.config.mjs — HSTS/upgrade-insecure-requests só fora de desenvo
     expect(csp).toContain("upgrade-insecure-requests");
   });
 });
+
+/** Endereço oficial sem www: o redirecionamento do www tem que ser permanente, preservar caminho/query e
+ * nunca casar com o próprio domínio oficial (senão viraria um ciclo). */
+describe("next.config.mjs — redirecionamento de www para o domínio oficial", () => {
+  it("declara um único redirecionamento permanente, só para o Host www", async () => {
+    expect(nextConfig.redirects).toBeTypeOf("function");
+    const rules = await nextConfig.redirects!();
+    expect(rules).toHaveLength(1);
+    const [rule] = rules;
+    expect(rule.permanent).toBe(true);
+    expect(rule.has).toEqual([{ type: "host", value: "www.somosupgrade.com.br" }]);
+  });
+
+  it("preserva o caminho e leva ao domínio oficial sem www", async () => {
+    const [rule] = await nextConfig.redirects!();
+    expect(rule.source).toBe("/:path*");
+    expect(rule.destination).toBe("https://somosupgrade.com.br/:path*");
+  });
+
+  it("sem ciclo: o destino não é um Host que a regra aceita", async () => {
+    const [rule] = await nextConfig.redirects!();
+    const hostRule = rule.has![0] as { value: string };
+    const destinationHost = new URL(rule.destination.replace(":path*", "")).host;
+    expect(destinationHost).not.toBe(hostRule.value);
+    expect(destinationHost.startsWith("www.")).toBe(false);
+  });
+});

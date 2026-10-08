@@ -89,3 +89,20 @@ a integração passa por três módulos em `lib/supabase/` (e a `proxy.ts`, que 
 - `analytics_events` e `admin_users` respondem 403 à service role em leitura, **como o desenho prevê**
   (a service role só tem INSERT em `analytics_events`; `admin_users` é lida pelo usuário logado).
 - O bundle público do navegador (`.next/static`) **não contém** a service role, nem o nome dela.
+
+## Domínio oficial e variáveis de contato
+
+- **Endereço oficial:** `https://somosupgrade.com.br` (sem `www`). O `next.config.mjs` redireciona
+  `www.somosupgrade.com.br` → `https://somosupgrade.com.br` (308, permanente), preservando caminho e query. A regra só
+  casa com o Host `www`, então o domínio oficial nunca redireciona (sem ciclo). Se o painel da Hostinger também
+  tiver um redirecionamento próprio de `www`, mantenha só um dos dois.
+- **`NEXT_PUBLIC_SITE_URL`:** `https://somosupgrade.com.br` (https, sem barra no final). Alimenta canonical, `og:url`,
+  imagem de compartilhamento, `sitemap.xml` e `robots.txt`. É gravada **no build**: depois de mudar, refaça o build.
+- **`NEXT_PUBLIC_WHATSAPP_NUMBER`** (opcional): só dígitos, com DDI e DDD, ex.: formato `5511999999999`
+  (55 = Brasil, 11 = DDD, depois o número com 9). Símbolos e espaços são ignorados, mas **menos de 10 dígitos conta
+  como "não definido"**. Preenchida, o botão "Fale com a Upgrade" vira link `wa.me`, e o WhatsApp aparece no rodapé
+  e na tela de sucesso. Vazia, nada disso aparece.
+- **`NEXT_PUBLIC_RESPONSE_TIME`** (opcional): um **trecho de frase**, sem ponto final, que complete "…entra em contato
+  pelos dados que você informou, ___." Só preencha com um prazo que a Upgrade cumpre de verdade. Vazia, nenhum prazo
+  é prometido. Aparece na tela de sucesso e na FAQ.
+- As duas são gravadas **no build**: refaça o build depois de preenchê-las.
