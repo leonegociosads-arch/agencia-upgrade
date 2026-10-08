@@ -106,3 +106,20 @@ a integração passa por três módulos em `lib/supabase/` (e a `proxy.ts`, que 
   pelos dados que você informou, ___." Só preencha com um prazo que a Upgrade cumpre de verdade. Vazia, nenhum prazo
   é prometido. Aparece na tela de sucesso e na FAQ.
 - As duas são gravadas **no build**: refaça o build depois de preenchê-las.
+
+## CDN da Hostinger e páginas "presas" na versão antiga
+
+**Sintoma (visto em produção):** depois de um deploy, a Home continuava com `http://` no canonical, mesmo com
+`NEXT_PUBLIC_SITE_URL` correta. O servidor já gerava o HTML novo (com um parâmetro qualquer na URL, ex.:
+`/?x=1`, vinha certo), mas a CDN (`Server: hcdn`) devolvia a cópia antiga: `x-hcdn-cache-status: HIT`,
+`Age` de horas.
+
+**Causa:** página estática do Next sai com `Cache-Control: s-maxage=31536000` (1 ano) e a CDN obedece. Um
+deploy novo não limpa a CDN sozinho.
+
+**Correção no código:** `export const revalidate = 300` em `app/layout.tsx` + `expireTime: 3600` no
+`next.config.mjs`. As páginas passam a sair com `s-maxage=300, stale-while-revalidate=3300`: depois de um
+deploy, a versão nova aparece em minutos e, no pior caso, em até 1 hora. `/admin` continua dinâmico.
+
+**Na hora (quando precisar ver a mudança já):** hPanel → site → Performance/CDN → **limpar cache (Flush cache)**.
+Para conferir sem cache, abra a página com um parâmetro qualquer, ex.: `https://somosupgrade.com.br/?teste=1`.
