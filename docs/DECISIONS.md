@@ -2075,3 +2075,10 @@ necessário), sempre indicando a fase em que foram tomadas.*
   usa o SWC em WebAssembly (que não suporta Turbopack). O `build` padrão não mudou.
 - `engines.node` passou de `>=20.9.0` para `>=22.0.0`: o Supabase exige Node 22+ (no 20 o cliente lança erro).
 - Detalhes, evidências e o que depende do servidor: `docs/DEPLOY-HOSTINGER.md`.
+
+## Correção de alertas de segurança das dependências (08/10/2026)
+
+- Next/eslint-config-next 16.3.8, sharp 0.35.5, source-map-js 1.2.2, brace-expansion atualizado, Vitest 4.1.11 e Vite 7 explícito.
+  `braces` (sem correção publicada) é o único aviso restante, só em ferramenta de lint.
+- Script `build` continua `next build --webpack` (Hostinger). CI e Dependabot adicionados em `.github/`.
+- Detalhes, evidências de exposição e limites: `docs/SECURITY-DEPENDENCIES.md`.

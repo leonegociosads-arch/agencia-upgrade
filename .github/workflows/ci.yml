@@ -1,0 +1,58 @@
+name: CI
+
+# Roda a cada push/PR na master e, toda segunda-feira, só a auditoria de segurança (novos avisos
+# aparecem mesmo sem commits). Explicação em docs/SECURITY-DEPENDENCIES.md.
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, testes, build e tipos
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Valores FICTÍCIOS, só para o `next build` não reclamar de variável ausente (o /admin lê o
+      # Supabase ao pré-renderizar). Nenhum segredo real é usado ou necessário no CI.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      # Depois do build: o `tsc` precisa dos tipos que o Next gera em .next/types.
+      - run: npm run typecheck
+
+  audit:
+    name: Auditoria de segurança das dependências
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # O que vai para o servidor: qualquer aviso ALTO ou CRÍTICO derruba a verificação.
+      - name: Dependências de produção (alto ou crítico bloqueia)
+        run: npm audit --omit=dev --audit-level=high
+      # Tudo, inclusive ferramentas de desenvolvimento: só CRÍTICO bloqueia. Avisos menores ficam
+      # visíveis no log sem travar (ex.: o `braces` hoje não tem versão corrigida publicada).
+      - name: Todas as dependências (crítico bloqueia)
+        run: npm audit --audit-level=critical

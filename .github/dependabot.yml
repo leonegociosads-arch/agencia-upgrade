@@ -1,0 +1,34 @@
+# Dependabot: abre pull requests sozinho quando uma dependência tem versão nova ou correção de
+# segurança. Ele NÃO aplica nada sozinho — cada PR precisa ser revisado e passar no CI
+# (.github/workflows/ci.yml) antes de ser aceito. Explicação em docs/SECURITY-DEPENDENCIES.md.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    groups:
+      # Next.js e o plugin de lint dele andam sempre na mesma versão (package.json fixa as duas).
+      next:
+        patterns:
+          - "next"
+          - "eslint-config-next"
+      # Ferramentas só de desenvolvimento/teste: atualizações pequenas juntas, em um único PR.
+      ferramentas-de-dev:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+        exclude-patterns:
+          - "eslint-config-next"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci"
