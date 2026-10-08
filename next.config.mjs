@@ -81,6 +81,9 @@ const OFFICIAL_ORIGIN = "https://somosupgrade.com.br";
 const nextConfig = {
   // Some expor "X-Powered-By: Next.js" (Seção 58/62 — não revelar detalhes internos desnecessários).
   poweredByHeader: false,
+  // Teto do `stale-while-revalidate` das páginas ISR (ver `revalidate` em app/layout.tsx): a CDN da
+  // Hostinger pode servir uma versão velha por no máximo 1 hora depois de um deploy.
+  expireTime: 3600,
   async headers() {
     return [
       {

@@ -35,6 +35,16 @@ const inter = Inter({
  * `robots` aqui é o padrão para páginas PÚBLICAS (index/follow) — `/admin` e `/builder` sobrescrevem
  * isso com o próprio `metadata.robots` (ver `docs/SEO.md`, Seção "Indexação por rota").
  */
+/**
+ * Página estática, por padrão, sai com `Cache-Control: s-maxage=31536000` (1 ano). A CDN da Hostinger
+ * respeita isso e continuava entregando o HTML ANTIGO depois de um novo deploy (visto em produção:
+ * `x-hcdn-cache-status: HIT`, enquanto o servidor já gerava o HTML novo). Com `revalidate` a página
+ * vira ISR: `s-maxage=300` + `stale-while-revalidate` limitado por `expireTime` (next.config.mjs), então
+ * um deploy novo aparece para todos em minutos, sem precisar limpar o cache da CDN à mão.
+ * Rotas dinâmicas (`/admin`) continuam dinâmicas: isto só vale para o que já era estático.
+ */
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
