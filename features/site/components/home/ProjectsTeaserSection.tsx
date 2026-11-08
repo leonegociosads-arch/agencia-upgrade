@@ -39,11 +39,12 @@ export default function ProjectsTeaserSection() {
         <Heading variant="h3" as="h2">
           Projetos
         </Heading>
-        {/* Antes: "Os primeiros cases da Upgrade estão a caminho — em breve, projetos reais entregues
-            pela agência aparecem aqui." */}
+        {/* Antes: "Estamos organizando os primeiros projetos para publicar aqui, com o desafio de cada
+            cliente e a solução da Upgrade." — deixou de ser verdade quando `/projetos` ganhou os dois
+            cases reais (Etapa "Ver Projetos"); só o texto mudou, a seção continua a mesma. */}
         <Text color="secondary">
-          Estamos organizando os primeiros projetos para publicar aqui, com o desafio de cada cliente
-          e a solução da Upgrade.
+          Uma loja virtual de motocross e um cardápio digital com pedido online: veja o que cada negócio
+          precisava e o que a Upgrade construiu.
         </Text>
         <LinkButton href="/projetos" variant="secondary" size="sm">
           Ver projetos

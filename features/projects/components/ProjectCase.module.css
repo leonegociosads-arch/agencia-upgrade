@@ -1,0 +1,400 @@
+/* Um case de /projetos em composição editorial (ver comentário em ProjectCase.tsx).
+ * Mobile primeiro: mídia → cabeçalho → contexto → camadas → rodapé. Do tablet para cima a ordem
+ * de leitura muda via grid-template-areas, sem duplicar nenhum conteúdo no DOM. */
+
+.case {
+  padding-block: var(--ds-space-12);
+  border-top: var(--ds-border-width) solid var(--ds-color-border);
+  /* Âncora (#sm-design / #kai-hikari) não fica escondida atrás do header fixo. */
+  scroll-margin-top: 72px;
+}
+
+@media (min-width: 768px) {
+  .case {
+    padding-block: var(--ds-space-16);
+  }
+}
+
+@media (min-width: 1024px) {
+  .case {
+    padding-block: var(--ds-space-24);
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "media"
+    "header"
+    "context"
+    "layers"
+    "footer";
+  gap: var(--ds-space-8);
+}
+
+/* Tablet: o cabeçalho volta para o topo (há largura para a mídia vir logo depois, grande). */
+@media (min-width: 768px) {
+  .grid {
+    grid-template-areas:
+      "header"
+      "context"
+      "media"
+      "layers"
+      "footer";
+    gap: var(--ds-space-12);
+  }
+}
+
+/* Desktop: cabeçalho e contexto lado a lado, mídia ocupando a largura, camadas em duas colunas. */
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "header context"
+      "media media"
+      "layers layers"
+      "footer footer";
+    column-gap: var(--ds-space-16);
+    row-gap: var(--ds-space-12);
+    align-items: end;
+  }
+}
+
+.header {
+  grid-area: header;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  min-width: 0;
+}
+
+.context {
+  grid-area: context;
+}
+
+.mediaArea {
+  grid-area: media;
+  min-width: 0;
+}
+
+.layers {
+  grid-area: layers;
+}
+
+.footer {
+  grid-area: footer;
+}
+
+/* ---------- Cabeçalho ---------- */
+
+.eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin: 0 0 var(--ds-space-1);
+}
+
+/* "01" / "02": ordem de leitura, no verde da marca, mesma família dos títulos. */
+.index {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-body-lg);
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--ds-color-accent);
+  letter-spacing: 0.04em;
+}
+
+.headline {
+  max-width: 34ch;
+  color: var(--ds-color-text-primary);
+}
+
+.summary {
+  max-width: 62ch;
+}
+
+/* ---------- A necessidade · O que construímos ---------- */
+
+.context {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  margin: 0;
+  padding: var(--ds-space-4) 0;
+  border-block: var(--ds-border-width) solid var(--ds-color-border);
+}
+
+.context > div {
+  display: grid;
+  gap: var(--ds-space-1);
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .context > div {
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: var(--ds-space-4);
+  }
+}
+
+.context dt {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-caption);
+  font-weight: var(--ds-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ds-color-accent-text);
+  padding-top: 3px;
+}
+
+.context dd {
+  margin: 0;
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body);
+  line-height: var(--ds-line-height-relaxed);
+  color: var(--ds-color-text-primary);
+}
+
+/* ---------- Mídia ---------- */
+
+/* A mídia é a peça grande do case, mas não estica até a borda: largura máxima confortável e
+ * centralizada (o vídeo futuro também não deve passar disso). */
+.media {
+  display: block;
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+/* ---------- Camadas: Na tela (front-end) × Nos bastidores (back-end) ---------- */
+
+.layers {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ds-space-4);
+}
+
+@media (min-width: 768px) {
+  .layers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ds-space-6);
+  }
+}
+
+.layer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-6);
+  border: var(--ds-border-width) solid var(--ds-color-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface);
+}
+
+@media (min-width: 1024px) {
+  .layer {
+    padding: var(--ds-space-8);
+  }
+}
+
+.term {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.explanation {
+  margin-bottom: var(--ds-space-2);
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  margin: 0;
+  padding: var(--ds-space-4) 0 0;
+  list-style: none;
+  border-top: var(--ds-border-width) solid var(--ds-color-border);
+}
+
+.features li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: var(--ds-space-4);
+}
+
+/* Marcador: traço curto em verde (linguagem das barras da marca, sem ícone genérico). */
+.features li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 8px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ds-color-accent);
+}
+
+.featureTitle {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body);
+  font-weight: var(--ds-font-weight-semibold);
+  line-height: var(--ds-line-height-snug);
+  color: var(--ds-color-text-primary);
+}
+
+.featureText {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
+  line-height: var(--ds-line-height-relaxed);
+  color: var(--ds-color-text-secondary);
+  text-wrap: pretty;
+}
+
+/* "Ver como funciona": só no celular. Lá, recolhido = só os títulos (lista escaneável); aberto =
+ * títulos + explicação. Do tablet para cima, tudo visível e o botão some. */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--ds-space-2);
+  min-height: 44px;
+  margin-top: var(--ds-space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ds-color-accent-text);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
+  font-weight: var(--ds-font-weight-semibold);
+  cursor: pointer;
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--ds-radius-sm);
+}
+
+.toggleIcon {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.toggle[aria-expanded="true"] .toggleIcon {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+@media (max-width: 767px) {
+  .features {
+    gap: var(--ds-space-3);
+  }
+
+  .features[data-expanded="false"] .featureText {
+    display: none;
+  }
+
+  .features[data-expanded="true"] {
+    gap: var(--ds-space-4);
+  }
+}
+
+@media (min-width: 768px) {
+  .toggle {
+    display: none;
+  }
+}
+
+/* ---------- Rodapé do case: tecnologias + CTA ---------- */
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-6);
+  padding-top: var(--ds-space-6);
+  border-top: var(--ds-border-width) solid var(--ds-color-border);
+}
+
+@media (min-width: 1024px) {
+  .footer {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--ds-space-12);
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  max-width: 640px;
+}
+
+.stackTitle {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stackList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stackList li {
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-font-size-body-sm);
+  line-height: var(--ds-line-height-normal);
+  color: var(--ds-color-text-secondary);
+  /* Evita uma palavra sozinha na última linha (ex.: "usa" no tablet). */
+  text-wrap: pretty;
+}
+
+.techName {
+  color: var(--ds-color-text-primary);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.techName::after {
+  content: " — ";
+  color: var(--ds-color-text-secondary);
+  font-weight: var(--ds-font-weight-regular);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .actions {
+    align-items: flex-end;
+  }
+}
+
+.externalIcon {
+  flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .actions {
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .cta {
+    width: 100%;
+  }
+}

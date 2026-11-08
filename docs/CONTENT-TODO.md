@@ -50,11 +50,27 @@ versão para desktop e para mobile quando a proporção muda.
 - **Prioridade:** alta.
 - **Status:** aguardando conteúdo real e autorização do cliente.
 
-### IMAGEM NECESSÁRIA — Páginas de cada case (`/projetos`)
-- **Tipo:** imagem principal 16:9 + galeria de 3–6 imagens 4:3; par antes/depois (4:3 cada) quando houver.
-- **Objetivo:** contar o projeto: desafio → solução → resultado.
+### VÍDEO NECESSÁRIO — Demonstração de cada case (`/projetos`)
+- **Seção:** `/projetos` → área de mídia de cada case (SM Design e Kai Hikari).
+- **Hoje:** capturas reais dos sites no ar (feitas em 08/11/2026), em
+  `public/assets/projects/<case>/desktop.webp` (1600×1000) e `mobile.webp` (600×1298). São provisórias.
+- **Tipo:** gravação de tela da navegação real, sem áudio. Sugestão: SM Design = filtro → produto → escolha
+  de material → carrinho; Kai Hikari = cardápio → ficha do prato → sacola.
+- **Formato:** 16:10 (a moldura do navegador), 1600×1000 ou 1920×1200, 15–30 s, em loop sem corte brusco.
+  Exportar em MP4 (H.264) e, se possível, WebM; até ~4 MB por vídeo.
+- **Como trocar:** coloque os arquivos em `public/assets/projects/<case>/` e preencha `media.video` do case em
+  `features/projects/data/projects.ts` (`sources`, `label` e `autoplay`). A captura atual vira o pôster.
+  Nada no componente muda.
+- **Se o vídeo tiver narração:** precisa de legenda (arquivo `.vtt`), e o player ganha uma `<track>`. Gravação
+  sem áudio dispensa.
+- **Prioridade:** média (a página já funciona com as capturas).
+- **Status:** aguardando gravação.
+
+### CONTEÚDO PENDENTE — Site do Kai Hikari no ar (fora deste repositório)
+- O CTA "Ver projeto ao vivo" leva o visitante ao site do Kai Hikari, que ainda mostra `[INSERIR NOME DO PRATO
+  ASSINATURA]`, `[FOTO DO PRATO ASSINATURA]`, `[INSERIR RESUMO DA HISTÓRIA …]` e `[INSERIR INSTAGRAM]`.
+- Preencher em `src/config/site.ts` do projeto `kaihikari` antes de divulgar `/projetos`.
 - **Prioridade:** alta.
-- **Status:** aguardando conteúdo real.
 
 ### IMAGEM NECESSÁRIA — Prova social (depoimentos e logos)
 - **Seção:** Home (bloco novo depois de "Projetos", quando houver material).
@@ -110,17 +126,17 @@ editar antes de enviar; o que acontece depois de enviar.
 
 ---
 
-## 5. Estrutura futura de `/projetos`
+## 5. `/projetos` (publicada com 2 cases em 08/11/2026)
 
-A rota fica e é parte do site final. Cada projeto poderá ter: imagem principal · cliente · segmento ·
-problema/desafio · solução · serviços usados (Site / Tráfego Pago / Design e Social Media) · tecnologias
-(só se relevante) · antes/depois (quando houver) · resultado real (só com número verificável) · galeria ·
-CTA "Monte seu Upgrade". Nada disso é preenchido sem dado real.
+A página tem os dois cases reais (SM Design e Kai Hikari): intro com índice, um case por seção (necessidade,
+o que construímos, "Na tela" × "Nos bastidores", tecnologias, CTA para o site ao vivo) e o CTA final para o
+Builder. O que foi conferido em cada case: `docs/PROJECTS-CASES.md`.
 
-**Experiência provisória identificada (não alterada):** enquanto não há projetos, estes pontos levam à página
-ainda vazia: CTA secundário "Ver projetos" do hero, link "Projetos" no menu e no rodapé, botão do card
-"Projetos" da Home e a entrada em `sitemap.xml`. Mantidos de propósito. O texto da própria `/projetos` foi
-reescrito para ser honesto e oferecer o caminho "Monte seu Upgrade".
+Ainda pendente:
+- vídeos de demonstração (seção 2, "Vídeo necessário");
+- resultados com número verificável (só entram com dado real e autorização do cliente);
+- páginas individuais de cada case ("Ver detalhes") — fora do escopo atual;
+- resultados de tráfego pago — decididos para outra área (provas sociais/página própria), não aqui.
 
 ---
 
@@ -147,6 +163,8 @@ Não foi mexido por ser componente de privacidade; vale uma versão compacta no 
 | FAQ | (não existia) | 5 perguntas respondidas com fatos do produto | Tira dúvidas que travam o clique |
 | CTA final | "Pronto para dar o próximo passo?" | "Pronto para montar o seu Upgrade?" + frase de apoio | Diz qual é o passo |
 | `/projetos` | "Página institucional provisória. …" | Texto honesto + botão "Monte seu Upgrade" | Tira o texto de bastidor e dá saída ao visitante |
+| `/projetos` (08/11/2026) | Texto honesto "Estamos organizando os primeiros projetos…" | Intro "Dois negócios diferentes. Duas soluções sob medida." + 2 cases + "Seu projeto pode ser o próximo." | Os cases reais existem; a página vira prova de capacidade |
+| Projetos (teaser da Home, 08/11/2026) | "Estamos organizando os primeiros projetos para publicar aqui…" | "Uma loja virtual de motocross e um cardápio digital com pedido online: veja o que cada negócio precisava e o que a Upgrade construiu." | A frase antiga deixou de ser verdade |
 | Formulário — título | "Deixe seus dados para analisarmos seu projeto." | "Falta pouco: deixe seus dados para a Upgrade analisar o seu projeto." | Progresso e clareza |
 | Formulário — aviso | Sem link | Com link para a Política de Privacidade | Confiança; link funcional |
 | Sucesso — próximo passo | "Próximo passo: nossa equipe vai analisar seu projeto e entrar em contato em breve." | "O que acontece agora: a equipe da Upgrade analisa o que você montou e entra em contato pelos dados que você informou" (+ prazo e WhatsApp só se configurados) | Expectativa clara sem prazo inventado |

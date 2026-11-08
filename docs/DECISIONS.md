@@ -2082,3 +2082,40 @@ necessário), sempre indicando a fase em que foram tomadas.*
   `braces` (sem correção publicada) é o único aviso restante, só em ferramenta de lint.
 - Script `build` continua `next build --webpack` (Hostinger). CI e Dependabot adicionados em `.github/`.
 - Detalhes, evidências de exposição e limites: `docs/SECURITY-DEPENDENCIES.md`.
+
+## Ver Projetos — cases reais em `/projetos` (08/11/2026)
+
+- **Escopo:** só `/projetos` + a frase do teaser "Projetos" da Home, que deixava de ser verdade. Builder, Meu
+  Upgrade, Supabase, CRM, leads, header e footer não foram tocados.
+- **Conteúdo:** só os dois cases reais (SM Design e Kai Hikari), nenhum número de portfólio nem "em breve".
+  Cada recurso citado foi conferido no site ao vivo e/ou no código de cada projeto. O registro do que foi
+  confirmado e do que ficou de fora (por não estar confirmado) está em `docs/PROJECTS-CASES.md`.
+- **Composição (alternativas comparadas):** blocos alternados com mídia fixa (sticky) ao lado do texto ·
+  showcase editorial · case ocupando a viewport · cards expansíveis · transição horizontal/cinematográfica.
+  - Primeiro foi implementado **mídia fixa ao lado + texto**. A validação visual derrubou: a mídia ficava com
+    metade da largura e o texto virava uma coluna longa demais (a página parecia documentação).
+  - Ficou o **editorial**: cabeçalho e contexto lado a lado, mídia grande (até 1040px) na largura da página e
+    as duas camadas lado a lado. Venceu em presença da mídia, rolagem mais curta e leitura em duas colunas
+    naturais. Também não usa JS de pin e só reaproveita componentes do Design System.
+  - Transição horizontal e case de viewport inteira ficaram de fora: são caras em performance, frágeis no
+    mobile e seguem a regra antiga de "não usar scroll horizontal só porque parece sofisticado".
+- **Argumento central:** cada case divide os recursos em **"Na tela do cliente" (front-end)** e **"Nos
+  bastidores" (back-end)**, sempre com a tradução do termo ao lado. É o que mostra, com recursos reais, por que
+  um projeto completo vale mais do que uma página simples. Tecnologias aparecem só no rodapé do case
+  ("Estruturado com"), cada uma com o papel que tem no projeto.
+- **Celular:** a mídia vem primeiro. Cada recurso mostra só o título, e a explicação abre em "Ver como
+  funciona" (`aria-expanded`). Do tablet para cima, tudo fica visível. A página caiu de ~7.000px para
+  ~5.800px de altura em 360px.
+- **Mídia (`ProjectMedia`):** moldura de navegador em CSS + celular sobreposto, com capturas reais dos sites
+  como pôster provisório (`public/assets/projects/`). O lado do celular é escolhido pelo conteúdo da captura
+  (`media.phoneSide`); no Kai Hikari, do lado esquerdo ele cobria o título da captura.
+  - Vídeo futuro: basta preencher `media.video` nos dados. O pôster sai do `next/image`, e o arquivo só é
+    pedido perto da tela (`useInViewport`) ou no clique.
+  - Autoplay só sem movimento reduzido; o vídeo pausa fora da tela. Botão de play só existe quando há vídeo
+    (nada de play falso sobre imagem).
+- **Reuso:** `FinalCtaSection` ganhou `heading`/`support` opcionais (a Home continua idêntica) e é o CTA
+  final de `/projetos`. O reveal é o mesmo `useRevealScrollMotion` da Home. Os componentes base são `Badge`,
+  `Heading`, `Text`, `LinkButton` e `SectionContainer`. Componentes novos: `ProjectCase` e `ProjectMedia`
+  (`features/projects/`).
+- **CTA dos cases:** "Ver projeto ao vivo", `target="_blank"` + `rel="noopener noreferrer"` e "(abre em nova
+  aba)" no nome acessível.

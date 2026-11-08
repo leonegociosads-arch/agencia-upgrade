@@ -24,7 +24,18 @@ const ProceduralAura = dynamic(() => import("@/features/design-system/webgl/Proc
  * briefing) — o CTA final fica abaixo da dobra, então `three`/o shader nunca entram no
  * carregamento inicial da Home.
  */
-export default function FinalCtaSection() {
+export interface FinalCtaSectionProps {
+  /** Título (padrão: o da Home). `/projetos` usa o mesmo bloco com o próprio texto — Etapa "Ver
+   * Projetos": reaproveitar a seção, nunca criar uma segunda versão do CTA final. */
+  heading?: string;
+  /** Frase de apoio abaixo do título (padrão: a da Home). */
+  support?: string;
+}
+
+const DEFAULT_HEADING = "Pronto para montar o seu Upgrade?";
+const DEFAULT_SUPPORT = "Escolha o que precisa, responda poucas perguntas e revise tudo antes de enviar.";
+
+export default function FinalCtaSection({ heading = DEFAULT_HEADING, support = DEFAULT_SUPPORT }: FinalCtaSectionProps = {}) {
   const sectionRef = useRef<HTMLElement | null>(null);
   useRevealScrollMotion(sectionRef, {
     itemSelectors: [`.${styles.heading}`, `.${styles.support}`, `.${styles.cta}`],
@@ -40,10 +51,10 @@ export default function FinalCtaSection() {
       </div>
       {/* Antes: "Pronto para dar o próximo passo?" — genérico, sem dizer qual é o passo. */}
       <Heading variant="h2" className={styles.heading}>
-        Pronto para montar o seu Upgrade?
+        {heading}
       </Heading>
       <Text color="secondary" className={styles.support}>
-        Escolha o que precisa, responda poucas perguntas e revise tudo antes de enviar.
+        {support}
       </Text>
       <LinkButton ref={ctaRef} href="/builder" size="lg" className={styles.cta}>
         Monte seu Upgrade
