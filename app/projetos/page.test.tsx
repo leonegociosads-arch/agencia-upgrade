@@ -31,3 +31,12 @@ describe("/projetos (Etapa Ver Projetos)", () => {
     expect(builderLinks.every((link) => link.getAttribute("href") === "/builder")).toBe(true);
   });
 });
+
+describe("/projetos — metadados de compartilhamento", () => {
+  it("tem og:title e twitter:title próprios (não os da Home)", async () => {
+    const { metadata } = await import("./page");
+    expect(metadata.openGraph?.title).toBe("Projetos | Agência Upgrade");
+    expect((metadata.openGraph as { url?: string } | undefined)?.url).toBe("/projetos");
+    expect(metadata.twitter?.title).toBe("Projetos | Agência Upgrade");
+  });
+});

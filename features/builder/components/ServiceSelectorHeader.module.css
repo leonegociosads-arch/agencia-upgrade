@@ -46,6 +46,8 @@
 }
 
 .resetLink {
+  /* Alvo de toque mínimo de 24px (WCAG 2.5.8) sem mudar o visual do link. */
+  min-height: 24px;
   background: none;
   border: none;
   padding: 0;

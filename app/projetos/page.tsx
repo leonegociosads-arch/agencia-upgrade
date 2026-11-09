@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_LOCALE, SITE_NAME } from "@/lib/seo/siteConfig";
 import SiteHeader from "@/features/site/components/SiteHeader";
 import SiteFooter from "@/features/site/components/SiteFooter";
 import SectionContainer from "@/features/design-system/components/SectionContainer";
@@ -11,11 +12,29 @@ import styles from "./page.module.css";
 
 /** Título/descrição descrevem exatamente o que a página mostra (mesmo padrão de SEO do resto do
  * site: claro, específico, sem promessa de conteúdo que não existe). Canonical continua o mesmo. */
+const PAGE_TITLE = "Projetos";
+const PAGE_DESCRIPTION =
+  "Cases reais da Agência Upgrade: o e-commerce da SM Design e o cardápio digital com pedido online do Kai Hikari. O que cada negócio precisava e o que foi construído, na tela e nos bastidores.";
+
 export const metadata: Metadata = {
-  title: "Projetos",
-  description:
-    "Cases reais da Agência Upgrade: o e-commerce da SM Design e o cardápio digital com pedido online do Kai Hikari. O que cada negócio precisava e o que foi construído, na tela e nos bastidores.",
+  title: PAGE_TITLE,
+  description: PAGE_DESCRIPTION,
   alternates: { canonical: "/projetos" },
+  // Título/descrição próprios ao compartilhar o link (antes herdava os da Home — auditoria de
+  // 09/11/2026). A imagem continua a de `app/opengraph-image.tsx`.
+  openGraph: {
+    type: "website",
+    locale: SITE_LOCALE,
+    siteName: SITE_NAME,
+    title: `${PAGE_TITLE} | ${SITE_NAME}`,
+    description: PAGE_DESCRIPTION,
+    url: "/projetos",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${PAGE_TITLE} | ${SITE_NAME}`,
+    description: PAGE_DESCRIPTION,
+  },
 };
 
 /**
@@ -30,7 +49,7 @@ export default function ProjetosPage() {
   return (
     <>
       <SiteHeader />
-      <main>
+      <main id="conteudo">
         <SectionContainer as="section" aria-labelledby="projetos-titulo" className={styles.intro}>
           <Text as="p" size="label" color="accent" className={styles.eyebrow}>
             Projetos

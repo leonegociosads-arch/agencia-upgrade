@@ -35,6 +35,11 @@ export default function SiteHeader() {
 
   return (
     <header className={cx(styles.header, scrolled && styles.headerScrolled)}>
+      {/* "Pular para o conteúdo" (acessibilidade, auditoria de 09/11/2026): invisível até receber foco
+          pelo teclado; leva ao `<main id="conteudo">` de cada página pública. */}
+      <a href="#conteudo" className={styles.skipLink}>
+        Pular para o conteúdo
+      </a>
       <Link href="/" className={styles.logo}>
         {/* Etapa 30 (Performance): dimensões intrínsecas = 2x o tamanho real exibido (`.logoMark`,
          * `height: 26px`), não o tamanho do arquivo-fonte (556×731, usado só pelas rotas de geração

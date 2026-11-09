@@ -189,3 +189,30 @@ Não foi mexido por ser componente de privacidade; vale uma versão compacta no 
 | Botão da tela de serviços | tooltip "Canal de contato — Etapa 9+" | "Canal de contato em breve" (botão preparado para o WhatsApp) | Remove texto de bastidor |
 | SEO — description | Repetia o subtítulo antigo | "A Upgrade cria sites, gerencia tráfego pago e cuida de design e social media. Escolha o que a sua empresa precisa e monte o seu Upgrade." | Diz o que a agência faz |
 | Menu | Início · Projetos | Início · **Como funciona** · Projetos | Orientação rápida |
+
+---
+
+## 8. Pendências do dono — rodada de correções da auditoria (09/11/2026)
+
+Nada abaixo foi inventado nem publicado vazio. Cada item só entra no site quando você fornecer o material.
+
+- **WhatsApp oficial** — falta somente informar o número em `NEXT_PUBLIC_WHATSAPP_NUMBER` (Hostinger → site →
+  variáveis de ambiente, só dígitos com DDI e DDD, ex.: `5511999999999`) e fazer um novo deploy. Com isso,
+  ligam sozinhos: o atalho "Fale com a Upgrade" do Builder, o WhatsApp no rodapé, "Continuar pelo WhatsApp" na
+  tela de sucesso e o plano B na tela de erro. Opcionais no mesmo lugar: `NEXT_PUBLIC_CONTACT_EMAIL` e
+  `NEXT_PUBLIC_INSTAGRAM`.
+- **Kai Hikari** — preencher os 9 marcadores `[INSERIR…]` (seção 2) no projeto `kaihikari` e depois trocar
+  `liveLinkStatus` para `"active"` (passo a passo em `docs/PROJECTS-CASES.md`).
+- **Provas de tráfego pago, design e social media** — não há material real no projeto, então nenhuma seção foi
+  criada (seção vazia ou "em breve" seria pior). Tipo de prova útil: tráfego = um criativo veiculado e/ou print
+  de painel sem dados sensíveis; design = uma identidade aplicada (logo + aplicações); social = uma grade real
+  de posts. Sempre com autorização do cliente. Lugar natural quando existir: logo depois de "Projetos" na Home.
+- **Depoimentos** — uma frase real de cada cliente (SM Design e Kai Hikari), com nome, cargo/empresa e
+  autorização. Lugar natural: dentro de cada case em `/projetos` e um destaque na Home.
+- **"Quem está por trás"** — não existe nome, foto, bio, cidade ou tempo de mercado no projeto, então nada foi
+  publicado. Se quiser: foto real (3:2 no computador, 4:5 no celular) + 2 ou 3 linhas de bio. Lugar natural:
+  bloco discreto antes do CTA final da Home.
+- **Privacidade (`/privacidade`) — decisão sua, não alterada:** citar ou não os nomes dos fornecedores e
+  corrigir a menção à hospedagem (Vercel × Hostinger). Nesta rodada só entrou uma correção técnica que não
+  depende dessa decisão: `/privacidade` e `/projetos` passaram a ter título e descrição próprios ao serem
+  compartilhados (antes herdavam os da Home). O texto da página não mudou.

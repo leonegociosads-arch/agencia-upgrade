@@ -232,3 +232,25 @@
   font-size: var(--ds-font-size-body-sm);
   color: var(--ds-color-text-secondary);
 }
+
+/* Link "Pular para o conteúdo": fora da tela até receber foco por Tab; aí aparece no canto, por cima. */
+.skipLink {
+  position: absolute;
+  top: var(--ds-space-2);
+  left: var(--ds-space-2);
+  z-index: 100;
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-color-accent);
+  color: var(--ds-color-on-accent);
+  font-weight: var(--ds-font-weight-semibold);
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.skipLink:focus-visible,
+.skipLink:focus {
+  transform: none;
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}

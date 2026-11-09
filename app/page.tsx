@@ -33,7 +33,7 @@ export default function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(getOrganizationJsonLd()) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(getWebSiteJsonLd()) }} />
       <SiteHeader />
-      <main className={styles.main}>
+      <main id="conteudo" className={styles.main}>
         <HeroSection />
         <CapabilitiesSection />
         <HowItWorksSection />

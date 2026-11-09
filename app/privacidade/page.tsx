@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_LOCALE, SITE_NAME } from "@/lib/seo/siteConfig";
 import SiteHeader from "@/features/site/components/SiteHeader";
 import SiteFooter from "@/features/site/components/SiteFooter";
 import SectionContainer from "@/features/design-system/components/SectionContainer";
@@ -9,10 +10,28 @@ import styles from "./page.module.css";
 
 /** Indexável (Fase SEO, Seção 15 do briefing: "pode ser indexável se pública... não precisa ser
  * otimizada para ranking") — só título/descrição/canonical claros, nada além disso. */
+const PAGE_TITLE = "Política de Privacidade";
+const PAGE_DESCRIPTION = "Como a Agência Upgrade coleta, usa e protege dados pessoais no site e no Builder.";
+
 export const metadata: Metadata = {
-  title: "Política de Privacidade",
-  description: "Como a Agência Upgrade coleta, usa e protege dados pessoais no site e no Builder.",
+  title: PAGE_TITLE,
+  description: PAGE_DESCRIPTION,
   alternates: { canonical: "/privacidade" },
+  // Título/descrição próprios ao compartilhar o link (antes herdava os da Home — auditoria de
+  // 09/11/2026). A imagem continua a de `app/opengraph-image.tsx`.
+  openGraph: {
+    type: "website",
+    locale: SITE_LOCALE,
+    siteName: SITE_NAME,
+    title: `${PAGE_TITLE} | ${SITE_NAME}`,
+    description: PAGE_DESCRIPTION,
+    url: "/privacidade",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${PAGE_TITLE} | ${SITE_NAME}`,
+    description: PAGE_DESCRIPTION,
+  },
 };
 
 /** Data em que este texto foi escrito/revisado pela última vez (Seção 25 do briefing: "última
@@ -35,7 +54,7 @@ export default function PrivacidadePage() {
   return (
     <>
       <SiteHeader />
-      <SectionContainer as="main" className={styles.main}>
+      <SectionContainer as="main" id="conteudo" className={styles.main}>
         <Heading variant="h1" as="h1">
           Política de Privacidade
         </Heading>

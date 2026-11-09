@@ -2192,3 +2192,27 @@ comunicação: perguntas, categorias, funil, valores salvos, payload do lead, Su
   de `projects.ts` (capturas reais, `next/image` preguiçoso). Cada case leva a `/projetos#<case>`; CTA geral
   "Ver projetos". Nenhum link para site de cliente. O selo "Projeto em finalização" não aparece na Home: o
   teaser não leva ao site ao vivo, então o aviso só aparece em `/projetos`, onde o link existiria.
+
+### Fase 3 — performance no celular
+
+- **Partículas no toque:** prévia estática (imagem gerada uma vez da mesma nuvem, ~26 KB, só CSS) até o primeiro
+  gesto; aí o efeito WebGL monta por cima, com a mesma física. A decisão aprovada ("a logo em partículas é a
+  primeira cena no celular") continua valendo: o que aparece primeiro é a mesma nuvem, só que parada até o toque.
+  Computador inalterado. Constantes compartilhadas em `features/design-system/webgl/logoParticlesConfig.ts`.
+- **Cartas do Builder:** sem `lazy`; carta central do carrossel com prioridade alta.
+- Números antes × depois e o que ficou de fora: `docs/PERFORMANCE.md`, "Rodada de 09/11/2026".
+
+### Fase 4 — pendências, acessibilidade e protótipo
+
+- **Provas (tráfego, design, social), depoimentos e "quem está por trás":** nenhum material real existe no
+  projeto, então nenhuma seção ou estrutura vazia foi publicada. Pendências registradas em
+  `docs/CONTENT-TODO.md` (seção 8), com o lugar natural de cada uma.
+- **Privacidade:** a decisão sobre nomes de fornecedores e Vercel × Hostinger continua com o dono. Só entrou a
+  correção técnica de `og:title`/`twitter:title` próprios em `/privacidade` e `/projetos`.
+- **Acessibilidade (só onde foi tocado ou trivial):** link "Pular para o conteúdo" no cabeçalho público (leva
+  ao `<main id="conteudo">` de Home, `/projetos`, `/privacidade` e 404); "Começar de novo" com alvo de 24px;
+  rodapé com contraste do "©" e alvos de 24px (Fase 1).
+- **Protótipo "O U que se monta" (`/lab/builder-logo`):** demonstração isolada da ideia E1 (1 serviço acende uma
+  parte do U, 3 completam). Não está ligado ao Builder nem à Home, usa a mesma amostragem da logo, tem
+  `noindex` e responde 404 em produção (mesmo padrão de `/builder/experiencia`). Mapeamento das partes
+  (Site = metade prata, Tráfego = metade verde, Design = base curva do U) é só para a demonstração.

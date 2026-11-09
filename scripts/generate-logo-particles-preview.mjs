@@ -27,8 +27,9 @@ const SOURCE = path.join(root, "public", "logo-mark.png");
 const OUTPUT = path.join(root, "public", "assets", "hero", "logo-particles-preview.webp");
 /** Altura da imagem final: 2x a maior altura em que a prévia aparece (~360px no tablet em pé). */
 const OUTPUT_HEIGHT = 720;
-/** Escala do ponto: a imagem é desenhada a 2x da altura típica de exibição. */
-const PIXEL_SCALE = 2;
+/** Pixels da imagem por pixel CSS na altura típica de exibição (~280px): mantém o ponto do mesmo
+ * tamanho APARENTE do efeito vivo (1,9px CSS), conferido lado a lado num celular de DPR 2,75. */
+const PIXEL_SCALE = OUTPUT_HEIGHT / 280;
 /** = `IDLE_AMPLITUDE` de `UpgradeLogoParticles.tsx`. */
 const IDLE_SCATTER = 0.012;
 

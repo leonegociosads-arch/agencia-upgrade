@@ -26,7 +26,7 @@ export default function NotFound() {
   return (
     <>
       <SiteHeader />
-      <SectionContainer as="main" className={styles.main}>
+      <SectionContainer as="main" id="conteudo" className={styles.main}>
         <Text as="span" size="label" color="secondary">
           Erro 404
         </Text>
