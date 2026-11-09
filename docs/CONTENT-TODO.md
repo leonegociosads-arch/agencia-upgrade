@@ -129,7 +129,7 @@ editar antes de enviar; o que acontece depois de enviar.
 ## 5. `/projetos` (publicada com 2 cases em 08/11/2026)
 
 A página tem os dois cases reais (SM Design e Kai Hikari): intro com índice, um case por seção (necessidade,
-o que construímos, "Na tela" × "Nos bastidores", tecnologias, CTA para o site ao vivo) e o CTA final para o
+o que construímos, "Na tela" × "Nos bastidores", CTA para o site ao vivo; sem nomes de ferramentas) e o CTA final para o
 Builder. O que foi conferido em cada case: `docs/PROJECTS-CASES.md`.
 
 Ainda pendente:
