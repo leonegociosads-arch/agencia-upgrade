@@ -86,12 +86,6 @@
   border-color: var(--ds-color-accent);
 }
 
-/* No resumo, o botão marca "você está aqui" (o resumo é a versão completa do Meu Upgrade). */
-.upgradeToggleCurrent {
-  border-color: var(--ds-color-accent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-color-accent) 45%, transparent);
-}
-
 .upgradeToggle:disabled {
   opacity: 0.6;
   cursor: progress;

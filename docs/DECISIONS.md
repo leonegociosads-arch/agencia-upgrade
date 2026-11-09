@@ -2144,9 +2144,10 @@ comunicação: perguntas, categorias, funil, valores salvos, payload do lead, Su
   para `"active"` (`docs/PROJECTS-CASES.md`). SM Design não mudou.
 - **"Meu Upgrade (n)" fora das telas do painel:** o painel continua só em escolha, perguntas e serviço
   adicionado (abrir o drawer por cima do resumo/formulário duplicaria editar/remover, decisão da Etapa 11).
-  Nas outras telas o botão **leva ao resumo**, que é a versão completa do Meu Upgrade:
-  - resumo: marcado como atual (`aria-current="page"`) e leva ao topo/título do resumo;
-  - formulário e erro de envio: volta ao resumo (o mesmo "Voltar ao projeto"; os dados digitados já ficam
+  Nas outras telas:
+  - resumo: o botão **não aparece**. Ali ele só levaria para a mesma tela, e o resumo já é a versão
+    completa do Meu Upgrade (decisão do dono em 09/11/2026: "prefiro remover o botão dali");
+  - formulário e erro de envio: o botão **leva ao resumo**; volta ao resumo (o mesmo "Voltar ao projeto"; os dados digitados já ficam
     salvos a cada tecla);
   - enviando: travado; projeto enviado: o botão some.
 - **"← Voltar" na 1ª pergunta:** faz o mesmo que "Escolher outra área" (ou "Cancelar edição", numa edição).

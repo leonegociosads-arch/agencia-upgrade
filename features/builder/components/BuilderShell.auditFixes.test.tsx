@@ -158,12 +158,10 @@ describe("Progresso: um sistema só (4 passos da Home + barra do serviço, sem n
 });
 
 describe("'Meu Upgrade (n)' fora das telas do painel", () => {
-  it("no resumo, marca 'você está aqui' (aria-current) e leva o foco ao título do resumo", () => {
+  it("no resumo, o botão não aparece (ali ele só levaria para a mesma tela)", () => {
     renderBuilder(reviewingWithTrafego());
-    const button = screen.getByRole("button", { name: /Meu Upgrade \(1\)/ });
-    expect(button.getAttribute("aria-current")).toBe("page");
-    fireEvent.click(button);
-    expect(document.activeElement?.textContent).toContain("Seu Upgrade");
+    expect(screen.getByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Meu Upgrade/ })).toBeNull();
   });
 
   it("no formulário de contato, leva de volta ao resumo (mesmo efeito de 'Voltar ao projeto')", () => {

@@ -5,21 +5,18 @@ import Link from "next/link";
 import { useBuilder } from "../state/BuilderContext";
 import SoundToggle from "@/features/design-system/components/SoundToggle";
 import { playSoundEffect, primeSoundEffect } from "@/features/design-system/motion/sound";
-import { cx } from "@/features/design-system/utils/cx";
 import BuilderJourneyProgress from "./BuilderJourneyProgress";
 import styles from "./BuilderNavigation.module.css";
 
 /**
  * O que o botão "Meu Upgrade (n)" faz em cada tela (decidido em `BuilderShell`):
  * - `"panel"`: abre/fecha o painel (escolha, perguntas, serviço adicionado);
- * - `"current"`: a pessoa JÁ está no resumo (a versão completa do Meu Upgrade) — o botão fica marcado
- *   como atual e leva ao topo do resumo;
  * - `"review"`: formulário de contato / erro de envio — leva de volta ao resumo (o mesmo
  *   "Voltar ao projeto" do formulário; os dados digitados continuam salvos);
  * - `"locked"`: enviando — fica visível, mas travado por um instante;
- * - `"hidden"`: projeto já enviado — não há mais o que montar.
+ * - `"hidden"`: no resumo (ali o botão só levaria para a mesma tela) e com o projeto já enviado.
  */
-export type MyUpgradeButtonMode = "panel" | "current" | "review" | "locked" | "hidden";
+export type MyUpgradeButtonMode = "panel" | "review" | "locked" | "hidden";
 
 interface BuilderNavigationProps {
   onToggleMyUpgrade: () => void;
@@ -68,17 +65,10 @@ export default function BuilderNavigation({ onToggleMyUpgrade, myUpgradeMode = "
         {myUpgradeMode !== "hidden" && (
           <button
             type="button"
-            className={cx(styles.upgradeToggle, myUpgradeMode === "current" && styles.upgradeToggleCurrent)}
+            className={styles.upgradeToggle}
             onClick={onToggleMyUpgrade}
             disabled={myUpgradeMode === "locked"}
-            aria-current={myUpgradeMode === "current" ? "page" : undefined}
-            title={
-              myUpgradeMode === "current"
-                ? "Você está no resumo do seu Upgrade"
-                : myUpgradeMode === "review"
-                  ? "Voltar ao resumo do seu Upgrade"
-                  : undefined
-            }
+            title={myUpgradeMode === "review" ? "Voltar ao resumo do seu Upgrade" : undefined}
           >
             Meu Upgrade {count > 0 ? `(${count})` : ""}
           </button>

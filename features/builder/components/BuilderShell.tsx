@@ -106,19 +106,17 @@ export default function BuilderShell() {
   // "Meu Upgrade (n)" na barra do Builder (achado A3 da auditoria: no resumo e no formulário o botão
   // existia mas não fazia nada). O painel continua só nas 3 telas de `canShowMyUpgradePanel` — abrir
   // o drawer por cima do resumo/formulário duplicaria editar/remover em dois lugares (decisão da
-  // Etapa 11). Nas outras telas o botão LEVA AO RESUMO, que é a versão completa do Meu Upgrade:
-  // no resumo ele marca "você está aqui" e sobe até o título; no formulário e no erro de envio faz o
-  // mesmo que "Voltar ao projeto" (os dados digitados já ficam salvos a cada tecla). Registro em
-  // `docs/DECISIONS.md` (Correções da auditoria, 09/11/2026).
+  // Etapa 11). No formulário e no erro de envio o botão LEVA AO RESUMO, que é a versão completa do Meu
+  // Upgrade (mesmo efeito de "Voltar ao projeto"; os dados digitados já ficam salvos a cada tecla). No
+  // próprio resumo o botão NÃO aparece: ali ele só levaria para a mesma tela (decisão do dono,
+  // 09/11/2026 — "prefiro remover o botão dali"). Registro em `docs/DECISIONS.md`.
   const myUpgradeMode: MyUpgradeButtonMode = canShowMyUpgradePanel
     ? "panel"
-    : state.step === "reviewing"
-      ? "current"
-      : state.step === "contact" || state.step === "error"
-        ? "review"
-        : state.step === "submitting"
-          ? "locked"
-          : "hidden";
+    : state.step === "contact" || state.step === "error"
+      ? "review"
+      : state.step === "submitting"
+        ? "locked"
+        : "hidden";
 
   function handleMyUpgradeButton() {
     if (myUpgradeMode === "panel") {
@@ -128,13 +126,6 @@ export default function BuilderShell() {
     if (myUpgradeMode === "review") {
       playSound("scene_back");
       backToReview();
-      return;
-    }
-    if (myUpgradeMode === "current") {
-      const title = document.querySelector<HTMLElement>("[data-review-title]");
-      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-      title?.focus({ preventScroll: true });
     }
   }
 

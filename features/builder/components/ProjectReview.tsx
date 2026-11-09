@@ -120,8 +120,7 @@ export default function ProjectReview() {
           </div>
 
           <div className={styles.content}>
-            {/* `data-review-title` + `tabIndex={-1}`: o botão "Meu Upgrade" da barra traz o foco para cá. */}
-            <h2 id={titleId} className={styles.title} data-review-title tabIndex={-1}>
+            <h2 id={titleId} className={styles.title}>
               Seu Upgrade <span className={styles.titleLine}>está quase pronto!</span>
             </h2>
             <Image
