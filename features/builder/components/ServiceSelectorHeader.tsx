@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import SoundToggle from "@/features/design-system/components/SoundToggle";
 import { playSoundEffect, primeSoundEffect } from "@/features/design-system/motion/sound";
-import { cx } from "@/features/design-system/utils/cx";
+import BuilderJourneyProgress from "./BuilderJourneyProgress";
 import styles from "./ServiceSelectorHeader.module.css";
 
 interface ServiceSelectorHeaderProps {
@@ -14,9 +14,6 @@ interface ServiceSelectorHeaderProps {
   onResetSession: () => void;
 }
 
-const TOTAL_STEPS = 4;
-const CURRENT_STEP = 1;
-
 /**
  * Cabeçalho da tela "Escolha o seu Upgrade" (WF-03, Seção 4 do briefing) — visual próprio desta
  * cena (substitui `BuilderNavigation` só aqui, ver `BuilderShell.tsx`), mas SEM nenhuma lógica
@@ -24,9 +21,9 @@ const CURRENT_STEP = 1;
  * por props exatamente como lá — só o botão redondo de menu é novo, e ele aciona o MESMO drawer do
  * "Meu Upgrade" que já existe (não há um segundo "menu" de verdade no Builder para abrir).
  *
- * "ETAPA 1/4" é só um rótulo desta cena (o Builder não tem hoje um contador de 4 macro-fases nas
- * outras telas) — nenhum estado real é lido para ele, de propósito: inventar uma contagem para as
- * telas seguintes não foi pedido nesta tarefa e mudaria a experiência delas.
+ * O centro mostra o progresso GERAL do Builder (`BuilderJourneyProgress`, os 4 passos de "Como
+ * funciona"): aqui sempre o primeiro, "Escolha o que precisa". Antes era um "ETAPA 1/4" fixo que
+ * nunca avançava; agora o mesmo componente aparece em `BuilderNavigation` e avança de verdade.
  */
 export default function ServiceSelectorHeader({ configuredCount, hasSomethingToReset, onToggleMyUpgrade, onResetSession }: ServiceSelectorHeaderProps) {
   function handleResetClick() {
@@ -46,14 +43,7 @@ export default function ServiceSelectorHeader({ configuredCount, hasSomethingToR
       </Link>
 
       <div className={styles.center}>
-        <span className={styles.stepLabel}>
-          Etapa {CURRENT_STEP}/{TOTAL_STEPS}
-        </span>
-        <div className={styles.progress} role="presentation">
-          {Array.from({ length: TOTAL_STEPS }, (_, index) => (
-            <span key={index} className={cx(styles.segment, index === 0 && styles.segmentActive)} />
-          ))}
-        </div>
+        <BuilderJourneyProgress step="choosing_service" />
       </div>
 
       <div className={styles.actions}>

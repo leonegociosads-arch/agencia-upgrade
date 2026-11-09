@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { buildServiceSummary } from "../logic/buildServiceSummary";
+import { getSummaryAnswerContext } from "../logic/summaryAnswerContext";
 import { SERVICES } from "../data/services";
 import Text from "@/features/design-system/components/Text";
 import TrashIcon from "@/features/design-system/components/TrashIcon";
@@ -49,7 +50,8 @@ export default function MyUpgradeItem({ serviceId, item, onEdit, onRemove }: MyU
           <ul className={styles.summaryList}>
             {visible.map((entry) => (
               <li key={entry.question} className={styles.summaryLine}>
-                {entry.question}: {entry.answer}
+                {/* Rótulo curto quando existe (ex.: "Investimento mensal em anúncios"), senão a pergunta. */}
+                {getSummaryAnswerContext(serviceId, entry) ?? entry.question}: {entry.answer}
               </li>
             ))}
           </ul>

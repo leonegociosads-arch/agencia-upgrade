@@ -64,6 +64,33 @@ Não citado:
 
 ## Pendência visível no site do Kai Hikari (fora desta página)
 
-O site ao vivo ainda mostra marcadores de conteúdo pendente: `[INSERIR NOME DO PRATO ASSINATURA]`,
-`[FOTO DO PRATO ASSINATURA]`, `[INSERIR RESUMO DA HISTÓRIA …]` e `[INSERIR INSTAGRAM]`. Como o CTA "Ver projeto
-ao vivo" leva o visitante até lá, vale preencher antes de divulgar `/projetos`. Ver `docs/CONTENT-TODO.md`.
+Conferido na auditoria de 09/11/2026 (script `kai.mjs`, no site ao vivo): o site do Kai Hikari ainda mostra
+**9 marcadores** de conteúdo pendente no texto visível:
+
+1. `[INSERIR NOME DO PRATO ASSINATURA]` (página inicial)
+2. `[INSERIR DESCRIÇÃO…]` do prato assinatura (página inicial)
+3. `[FOTO DO PRATO ASSINATURA]` (página inicial)
+4. `[INSERIR TEXTO SOBRE O AMBIENTE…]` (página inicial)
+5. `[FOTO DO AMBIENTE]` (página inicial)
+6. `[FOTO VERTICAL (preparo)]` (página inicial)
+7. `[FOTO DA EQUIPE / CHEF]` (página inicial)
+8. `[INSERIR RESUMO DA HISTÓRIA (origem, quem está por trás, o que move a casa)]` (página inicial)
+9. `[INSERIR INSTAGRAM]` (página inicial e `/menu`)
+
+O conteúdo é preenchido em `src/config/site.ts` do projeto `kaihikari` (outro repositório; não é alterado daqui).
+
+### Link ao vivo desativado temporariamente (09/11/2026)
+
+Para o case não levar o visitante a um site "pela metade", o botão "Ver projeto ao vivo" do Kai Hikari foi
+**desativado por dado**, sem tirar o case do ar:
+
+- `features/projects/data/projects.ts` → case `kai-hikari` → `liveLinkStatus: "finalizing"`.
+- No lugar do botão aparece o selo discreto **"Projeto em finalização"** (`ProjectStatusBadge`). O domínio fica
+  só como texto (não é link). Capturas, textos e recursos do case continuam iguais.
+- O teaser de projetos da Home usa o mesmo dado: o Kai Hikari leva a `/projetos#kai-hikari`, nunca ao site.
+- SM Design continua com `liveLinkStatus: "active"` e o link funcionando.
+
+**Como reativar:** quando os 9 marcadores estiverem preenchidos no site do Kai Hikari, troque
+`liveLinkStatus: "finalizing"` por `liveLinkStatus: "active"` no case `kai-hikari` e atualize o teste
+`features/projects/data/projects.test.ts` ("status do link ao vivo"). O botão volta sozinho; nenhum
+componente precisa mudar.

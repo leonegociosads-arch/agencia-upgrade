@@ -19,7 +19,7 @@ import type { ServiceId } from "../types";
 import styles from "./ProjectReview.module.css";
 
 /**
- * Resumo do Projeto — WF-09 (Etapa 11), aberto por "Ver resumo do projeto" (tela "Serviço
+ * Resumo do Projeto — WF-09 (Etapa 11), aberto por "Finalizar meu projeto" (tela "Serviço
  * adicionado") ou por "Finalizar projeto" (Meu Upgrade). Painel branco estilo janela sobre o fundo
  * escuro, na direção de arte aprovada ("Seu Upgrade está quase pronto!").
  *
@@ -120,7 +120,8 @@ export default function ProjectReview() {
           </div>
 
           <div className={styles.content}>
-            <h2 id={titleId} className={styles.title}>
+            {/* `data-review-title` + `tabIndex={-1}`: o botão "Meu Upgrade" da barra traz o foco para cá. */}
+            <h2 id={titleId} className={styles.title} data-review-title tabIndex={-1}>
               Seu Upgrade <span className={styles.titleLine}>está quase pronto!</span>
             </h2>
             <Image

@@ -2122,3 +2122,50 @@ necessário), sempre indicando a fase em que foram tomadas.*
   (`features/projects/`).
 - **CTA dos cases:** "Ver projeto ao vivo", `target="_blank"` + `rel="noopener noreferrer"` e "(abre em nova
   aba)" no nome acessível.
+
+## Correções da auditoria de 09/11/2026
+
+Base: relatório da auditoria (achados C1, C2, A2, A3, A9, A10 e a nota sobre a Fase 4). Só acabamento e
+comunicação: perguntas, categorias, funil, valores salvos, payload do lead, Supabase e rotas não mudaram.
+
+### Fase 1 — bugs e conversão
+
+- **Contato numa configuração só (`lib/contact/siteContact.ts`).** WhatsApp (`NEXT_PUBLIC_WHATSAPP_NUMBER`),
+  e-mail (`NEXT_PUBLIC_CONTACT_EMAIL`) e Instagram (`NEXT_PUBLIC_INSTAGRAM`), todos vazios até a Upgrade informar
+  o dado real (nenhum contato oficial existe no projeto, na memória ou nos docs; o número `wa.me` que aparece em
+  relatórios antigos do Playwright é do Kai Hikari, não da Upgrade). `getContactChannels()` lista só o que
+  existe; `getPrimaryContactChannel()` escolhe WhatsApp → Instagram → e-mail.
+- **"Não sabe exatamente do que precisa? Fale com a Upgrade" some sem canal.** Antes era um botão cinza
+  desativado ("Canal de contato em breve"). Ausente é melhor do que "em breve". Com canal, vira um link ativo
+  (ícone do canal, hover, foco visível, alvo de 44px) que abre a conversa.
+- **Rodapé:** os canais configurados aparecem com ícone + texto, numa linha. Sem canal, nada aparece.
+- **Kai Hikari em finalização:** `liveLinkStatus` nos dados do case (`"active" | "finalizing"`). O Kai está em
+  `"finalizing"`: selo "Projeto em finalização" no lugar do botão e domínio só como texto. Reativar = trocar
+  para `"active"` (`docs/PROJECTS-CASES.md`). SM Design não mudou.
+- **"Meu Upgrade (n)" fora das telas do painel:** o painel continua só em escolha, perguntas e serviço
+  adicionado (abrir o drawer por cima do resumo/formulário duplicaria editar/remover, decisão da Etapa 11).
+  Nas outras telas o botão **leva ao resumo**, que é a versão completa do Meu Upgrade:
+  - resumo: marcado como atual (`aria-current="page"`) e leva ao topo/título do resumo;
+  - formulário e erro de envio: volta ao resumo (o mesmo "Voltar ao projeto"; os dados digitados já ficam
+    salvos a cada tecla);
+  - enviando: travado; projeto enviado: o botão some.
+- **"← Voltar" na 1ª pergunta:** faz o mesmo que "Escolher outra área" (ou "Cancelar edição", numa edição).
+  Usa a ação que já existia (`goToEntry`/`cancelServiceDraft`); nenhuma experiência nova.
+- **Investimento em anúncios com rótulo:** no resumo e no Meu Upgrade, a resposta de `trafego_investimento`
+  aparece como "Investimento mensal em anúncios: R$ 1.000 a R$ 3.000"
+  (`features/builder/logic/summaryAnswerContext.ts`). Só apresentação: a pergunta, os ids salvos, o
+  `buildServiceSummary` (usado também pelo admin) e o payload do lead são os mesmos.
+- **Progresso: um sistema só, coerente com a Fase 3 (rótulo contextual + barra não numérica).**
+  - Progresso GERAL = os 4 passos que a Home promete em "Como funciona" (Escolha o que precisa → Responda
+    poucas perguntas → Monte e revise o seu Upgrade → Envie e receba o retorno). Aparece no cabeçalho das duas
+    barras do Builder (`BuilderJourneyProgress`), com o nome do passo + 4 traços que avançam de verdade. Os
+    textos vêm de uma fonte só (`features/builder/data/journeySteps.ts`), usada também pela Home.
+  - Progresso DENTRO do serviço = a barra do serviço + o rótulo contextual (nome do serviço, ou "Só mais uma
+    coisa" na última pergunta). Mesmo cálculo nas duas apresentações (`getQuestionProgress`, pela posição
+    real da pergunta no caminho).
+  - Saíram: "Etapa 1/4" fixo, "1 de 3", "03. Pergunta do Builder (Site)" e "2/3". Leitores de tela continuam
+    ouvindo a posição ("passo 2 de 4", `aria-valuenow`).
+  - O "Etapa x/4" numérico sugerido como direção foi trocado pelo nome do passo para não contrariar a decisão
+    da Fase 3, que proíbe "X de Y" na tela.
+- **CTA da tela "Serviço adicionado":** restaurada a decisão "Fase 4 - revisão": **"Finalizar meu projeto"** é o
+  principal (leva ao resumo, o que "Ver resumo do projeto" fazia) e **"Adicionar outro serviço"** é o secundário.

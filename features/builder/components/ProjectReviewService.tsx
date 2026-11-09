@@ -5,7 +5,8 @@ import ServiceIcon from "@/features/design-system/components/ServiceIcon";
 import TrashIcon from "@/features/design-system/components/TrashIcon";
 import { playSound } from "@/features/design-system/motion/sound";
 import { isRepeatedClick } from "../logic/repeatedClick";
-import type { ServiceId, ServiceReviewSummary } from "../types";
+import { getSummaryAnswerContext } from "../logic/summaryAnswerContext";
+import type { ServiceId, ServiceReviewSummary, SummaryItem } from "../types";
 import styles from "./ProjectReviewService.module.css";
 
 /** Nome da categoria como aparece no card do Resumo (direção de arte aprovada: "Site", "Tráfego
@@ -63,7 +64,9 @@ export default function ProjectReviewService({ summary, onEdit, onRemove }: Proj
                     •
                   </span>
                 )}
-                <span className={styles.answer}>{entry.answer}</span>
+                {/* Respostas que sozinhas confundem ganham um rótulo curto (ex.: "Investimento mensal
+                    em anúncios: R$ 1.000 a R$ 3.000" — nunca lido como preço da Upgrade). */}
+                <AnswerText serviceId={summary.serviceId} entry={entry} />
               </Fragment>
             ))}
           </p>
@@ -88,5 +91,17 @@ export default function ProjectReviewService({ summary, onEdit, onRemove }: Proj
         </button>
       </div>
     </article>
+  );
+}
+
+/** Uma resposta do card. Com rótulo de contexto, o valor ("R$ 1.000 a R$ 3.000") nunca quebra no
+ * meio — "R$" e o número ficam sempre juntos. */
+function AnswerText({ serviceId, entry }: { serviceId: ServiceId; entry: SummaryItem }) {
+  const context = getSummaryAnswerContext(serviceId, entry);
+  if (!context) return <span className={styles.answer}>{entry.answer}</span>;
+  return (
+    <span className={styles.answer}>
+      {context}: <span className={styles.answerValue}>{entry.answer}</span>
+    </span>
   );
 }

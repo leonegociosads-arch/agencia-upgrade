@@ -41,13 +41,23 @@ describe("Tela 'Serviço adicionado' (ServiceCompleteScene)", () => {
     await completeSiteQuickly();
     expect(screen.getByText(/Seu serviço de Site foi configurado com sucesso/)).toBeTruthy();
     expect(screen.getByRole("button", { name: /Adicionar outro serviço/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Ver resumo do projeto" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Finalizar meu projeto" })).toBeTruthy();
   });
 
-  it("'Ver resumo do projeto' abre o Resumo do Projeto de sempre, com o serviço já salvo", async () => {
+  it("CTA principal é 'Finalizar meu projeto'; 'Adicionar outro serviço' é o secundário (DECISIONS, Fase 4 - revisão)", async () => {
     renderBuilder();
     await completeSiteQuickly();
-    fireEvent.click(screen.getByRole("button", { name: "Ver resumo do projeto" }));
+    const actions = screen.getByRole("button", { name: "Finalizar meu projeto" }).parentElement as HTMLElement;
+    const buttons = Array.from(actions.querySelectorAll("button"));
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(["Finalizar meu projeto", "Adicionar outro serviço"]);
+    expect(buttons[0].className).toMatch(/primary/);
+    expect(buttons[1].className).toMatch(/secondary/);
+  });
+
+  it("'Finalizar meu projeto' abre o Resumo do Projeto de sempre, com o serviço já salvo", async () => {
+    renderBuilder();
+    await completeSiteQuickly();
+    fireEvent.click(screen.getByRole("button", { name: "Finalizar meu projeto" }));
     expect(await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Site" })).toBeTruthy();
     // Só o serviço configurado aparece (nunca os três fixos da arte de referência).
@@ -67,7 +77,7 @@ describe("Tela 'Serviço adicionado' (ServiceCompleteScene)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Adicionar outro serviço/ }));
     await completeTrafego();
     expect(screen.getByText(/Seu serviço de Tráfego pago foi configurado com sucesso/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Ver resumo do projeto" }));
+    fireEvent.click(screen.getByRole("button", { name: "Finalizar meu projeto" }));
     expect(await screen.findByRole("heading", { name: "Seu Upgrade está quase pronto!" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Site" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Tráfego Pago" })).toBeTruthy();

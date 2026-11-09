@@ -1,0 +1,51 @@
+/* Mesmo desenho do antigo "ETAPA 1/4" da tela de escolha (rótulo em caixa-alta + 4 traços de 40px),
+ * agora com o nome do passo no lugar do número e os traços avançando de verdade. */
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.label {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-caption);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ds-color-text-secondary);
+  white-space: nowrap;
+}
+
+.track {
+  display: flex;
+  gap: var(--ds-space-2);
+}
+
+.segment {
+  width: 40px;
+  height: 3px;
+  border-radius: var(--ds-radius-full);
+  background: rgba(255, 255, 255, 0.16);
+  transition: background-color var(--ds-duration-normal) var(--ds-easing-base);
+}
+
+.segmentDone {
+  background: color-mix(in srgb, var(--ds-color-accent) 55%, transparent);
+}
+
+.segmentCurrent {
+  background: var(--ds-color-accent);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -48,7 +48,8 @@
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--ds-space-6);
+  column-gap: var(--ds-space-6);
+  row-gap: var(--ds-space-1);
 }
 
 /* Sublinhado animado (briefing Microinterações, Seção 27/28) — mesma técnica de
@@ -69,7 +70,12 @@
   background-repeat: no-repeat;
   background-position: left bottom -2px;
   background-size: 0% 1px;
-  padding-bottom: 2px;
+  /* Alvo de toque mínimo de 24px de altura (WCAG 2.5.8) sem mudar o visual: o texto continua no
+   * mesmo lugar, só a área clicável cresce. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding-block: 2px;
   transition:
     color var(--ds-duration-fast) var(--ds-easing-base),
     background-size var(--ds-duration-normal) var(--ds-easing-emphasized);
@@ -81,7 +87,47 @@
   background-size: 100% 1px;
 }
 
+/* Contatos REAIS configurados (ícone + texto, uma linha só) — não existe quando nenhum canal foi
+ * configurado. */
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2) var(--ds-space-6);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.contact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-height: 32px;
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+  text-decoration: none;
+  transition: color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.contactIcon {
+  flex: none;
+  color: var(--ds-color-accent);
+}
+
+.contact:hover,
+.contact:focus-visible {
+  color: var(--ds-color-text-primary);
+}
+
+.contact:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Contraste: `--ds-color-text-disabled` dava 3,54:1 (abaixo do mínimo de 4,5:1 para texto). */
 .copy {
   font-size: var(--ds-font-size-caption);
-  color: var(--ds-color-text-disabled);
+  color: var(--ds-color-text-secondary);
 }

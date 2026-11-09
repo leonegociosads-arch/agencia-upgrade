@@ -1,0 +1,35 @@
+/* Status discreto (não é botão): contorno fino, ponto da cor da marca com um halo suave, texto em
+ * caixa normal. Mesma altura visual de um selo, bem abaixo do peso do botão principal. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-height: 36px;
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-width) solid var(--ds-color-border-strong);
+  background: rgba(255, 255, 255, 0.03);
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-body-sm);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.01em;
+  color: var(--ds-color-text-primary);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.small {
+  min-height: 28px;
+  padding: var(--ds-space-1) var(--ds-space-3);
+  font-size: var(--ds-font-size-caption);
+}
+
+.dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-color-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-color-accent) 22%, transparent);
+}

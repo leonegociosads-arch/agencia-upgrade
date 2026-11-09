@@ -98,7 +98,7 @@ export async function continueFromServiceComplete(page: Page) {
 
 /** A partir da tela "Serviço adicionado!", abre o Resumo do Projeto. */
 export async function viewSummaryFromServiceComplete(page: Page) {
-  await page.getByRole("button", { name: "Ver resumo do projeto" }).click();
+  await page.getByRole("button", { name: "Finalizar meu projeto" }).click();
 }
 
 export async function openMyUpgrade(page: Page) {

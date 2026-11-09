@@ -145,27 +145,60 @@
   }
 }
 
-.secondaryLink {
+/* Atalho para quem chega indeciso (só existe com um canal REAL configurado — ver
+ * `lib/contact/siteContact.ts`). Secundário de propósito: não compete com as cartas, mas é
+ * claramente clicável (ícone do canal, contraste legível, sublinhado no destaque, hover e foco) e
+ * tem alvo de toque de 44px. */
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  min-height: 44px;
+  max-width: calc(100% - 2 * var(--ds-space-4));
   margin-top: var(--ds-space-2);
-  text-align: center;
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-width) solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
   font-size: var(--ds-font-size-body-sm);
-  color: var(--ds-color-text-disabled);
-  background: none;
-  border: none;
-  cursor: not-allowed;
-  text-decoration: underline;
-}
-
-/* Contato direto ativo (só existe com `NEXT_PUBLIC_WHATSAPP_NUMBER` preenchido): mesmo link, agora
- * clicável — cor legível e cursor de link. */
-.secondaryLinkActive {
+  line-height: 1.35;
+  text-align: center;
   color: var(--ds-color-text-secondary);
-  cursor: pointer;
+  text-decoration: none;
+  transition:
+    color var(--ds-duration-fast) var(--ds-easing-base),
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    background-color var(--ds-duration-fast) var(--ds-easing-base);
 }
 
-.secondaryLinkActive:hover,
-.secondaryLinkActive:focus-visible {
+.contactStrong {
   color: var(--ds-color-text-primary);
+  font-weight: var(--ds-font-weight-semibold);
+  text-decoration: underline;
+  text-decoration-color: var(--ds-color-accent);
+  text-underline-offset: 3px;
+}
+
+.contactIcon {
+  flex: none;
+  color: var(--ds-color-accent);
+}
+
+.contactLink:hover {
+  color: var(--ds-color-text-primary);
+  border-color: var(--ds-color-accent);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.contactLink:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 3px;
+  color: var(--ds-color-text-primary);
+}
+
+.contactLink:active {
+  transform: scale(0.98);
 }
 
 /* Entrada (Seção 12) — estas 5 classes existem só para o GSAP em `ServiceSelector.tsx` ter um

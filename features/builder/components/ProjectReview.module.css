@@ -350,3 +350,14 @@
     height: 20px;
   }
 }
+
+/* Foco programático vindo do botão "Meu Upgrade" (barra do Builder): contorno só para teclado. */
+.title:focus {
+  outline: none;
+}
+
+.title:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 4px;
+  border-radius: 4px;
+}

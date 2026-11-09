@@ -521,6 +521,10 @@
   .backHeader {
     padding-right: 84px;
     margin-bottom: 12px;
+    /* Mesma altura do rótulo antigo em 2 linhas: o post-it (posicionado a partir do painel) continua
+     * pousando no mesmo lugar, sem cobrir "Escolher outra área". */
+    min-height: 2.1rem;
+    align-items: flex-end;
   }
 
   .stepLabel {

@@ -63,6 +63,7 @@ export const PROJECT_CASES: readonly ProjectCase[] = [
       },
     ],
     liveUrl: "https://www.smdesignoficial.com/",
+    liveLinkStatus: "active",
     media: {
       domain: "smdesignoficial.com",
       desktop: {
@@ -134,6 +135,10 @@ export const PROJECT_CASES: readonly ProjectCase[] = [
       },
     ],
     liveUrl: "https://kaihikari.somosupgrade.com.br/",
+    // Link ao vivo desativado TEMPORARIAMENTE (09/11/2026): o site do Kai Hikari ainda mostra
+    // marcadores de conteúdo pendente ([INSERIR …], ver `docs/PROJECTS-CASES.md`). Quando o conteúdo
+    // estiver preenchido, troque para "active" e o botão "Ver projeto ao vivo" volta sozinho.
+    liveLinkStatus: "finalizing",
     media: {
       domain: "kaihikari.somosupgrade.com.br",
       desktop: {

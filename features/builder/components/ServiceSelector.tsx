@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { SERVICE_IDS, SERVICES } from "../data/services";
-import { getWhatsAppLink } from "@/lib/contact/siteContact";
+import { getPrimaryContactChannel } from "@/lib/contact/siteContact";
+import ContactIcon from "@/features/design-system/components/ContactIcon";
 import { useBuilder } from "../state/BuilderContext";
 import { trackEvent } from "@/lib/analytics/trackEvent";
 import { playSound } from "@/features/design-system/motion/sound";
@@ -86,7 +87,8 @@ export interface ServiceSelectorProps {
  * no clique, o contrato que `BuilderShell*.test.tsx`/`MyUpgrade.test.tsx` verificam.
  */
 export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: ServiceSelectorProps) {
-  const whatsappLink = getWhatsAppLink();
+  // Canal REAL configurado (WhatsApp de preferência; senão Instagram ou e-mail) ou `null`.
+  const contactChannel = getPrimaryContactChannel();
   const { state, startNewService, startEditingService } = useBuilder();
   const { isTransitioning, markForward, markInstant } = useSceneNavigation();
   const { play: playCutscene, isPlaying: isCutscenePlaying } = useSceneCutscene();
@@ -261,17 +263,22 @@ export default function ServiceSelector({ onToggleMyUpgrade, onResetSession }: S
           </div>
         )}
 
-        {/* [PENDENTE — WHATSAPP OFICIAL] O link só existe quando `NEXT_PUBLIC_WHATSAPP_NUMBER` estiver
-            preenchido (`lib/contact/siteContact.ts`, `docs/CONTENT-TODO.md`). Sem o número, o botão
-            continua desativado como antes — nenhum número foi inventado. */}
-        {whatsappLink ? (
-          <a className={cx(styles.secondaryLink, styles.secondaryLinkActive)} href={whatsappLink} target="_blank" rel="noopener noreferrer">
-            Não sabe exatamente do que precisa? Fale com a Upgrade
+        {/* [PENDENTE — WHATSAPP OFICIAL] O atalho só existe quando algum canal REAL estiver
+            configurado (`lib/contact/siteContact.ts`, `docs/CONTENT-TODO.md`): WhatsApp de preferência,
+            senão Instagram ou e-mail. Sem nenhum canal, o atalho NÃO aparece (antes ficava um botão
+            cinza desativado, "em breve" — pior do que não mostrar). Nenhum contato foi inventado. */}
+        {contactChannel && (
+          <a
+            className={styles.contactLink}
+            href={contactChannel.href}
+            {...(contactChannel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            aria-label={`Não sabe exatamente do que precisa? Fale com a Upgrade pelo ${contactChannel.label}${contactChannel.external ? " (abre em nova aba)" : ""}`}
+          >
+            <ContactIcon kind={contactChannel.kind} className={styles.contactIcon} />
+            <span>
+              Não sabe exatamente do que precisa? <span className={styles.contactStrong}>Fale com a Upgrade</span>
+            </span>
           </a>
-        ) : (
-          <button type="button" className={styles.secondaryLink} disabled title="Canal de contato em breve">
-            Não sabe exatamente do que precisa? Fale com a Upgrade
-          </button>
         )}
       </div>
     </div>

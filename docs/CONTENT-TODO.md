@@ -13,14 +13,22 @@
   imagem real (`ProjectsTeaserSection.tsx`, `HowItWorksSection.tsx`, `app/projetos/page.tsx`).
 - `[PENDENTE — WHATSAPP OFICIAL]`, `[PENDENTE — PRAZO E WHATSAPP]` — pontos que só aparecem quando a Upgrade
   preencher a configuração (`lib/contact/siteContact.ts`).
-- Variáveis de ambiente novas (documentadas em `.env.example`, **vazias de propósito**):
+- Variáveis de ambiente de contato (documentadas em `.env.example`, **vazias de propósito**). Todas são
+  `NEXT_PUBLIC_*`: depois de preencher na Hostinger (painel → site → variáveis de ambiente), é preciso um novo
+  build/deploy para o valor entrar no site.
   - `NEXT_PUBLIC_WHATSAPP_NUMBER` — WhatsApp oficial, só dígitos, com DDI e DDD (ex.: `5511999999999`).
-    Quando preenchida: o botão "Não sabe exatamente do que precisa? Fale com a Upgrade" (tela de serviços)
-    vira link, e o rodapé e a tela de sucesso passam a mostrar o WhatsApp. Enquanto vazia, o botão fica
-    desativado como antes.
+    Quando preenchida: o atalho "Não sabe exatamente do que precisa? Fale com a Upgrade" (tela de serviços)
+    aparece e abre a conversa; o rodapé mostra o WhatsApp com ícone; a tela de sucesso ganha "Continuar pelo
+    WhatsApp"; a tela de erro de envio oferece o WhatsApp como plano B. **Enquanto vazia, o atalho não
+    aparece** (antes ficava um botão cinza desativado, "em breve").
+  - `NEXT_PUBLIC_CONTACT_EMAIL` — e-mail oficial (opcional). Aparece no rodapé; se for o único canal, vira o
+    destino do atalho "Fale com a Upgrade".
+  - `NEXT_PUBLIC_INSTAGRAM` — perfil oficial, `@perfil` ou o link (opcional). Mesmo comportamento do e-mail
+    (preferência dos atalhos: WhatsApp → Instagram → e-mail).
   - `NEXT_PUBLIC_RESPONSE_TIME` — prazo **real** de retorno, já como trecho de frase (ex.: `em até 1 dia útil`
     é só o formato, não um prazo combinado). Quando preenchida: aparece na tela de sucesso e na FAQ.
     Enquanto vazia, nenhum prazo é prometido.
+  - Tudo é lido em um único lugar: `lib/contact/siteContact.ts`.
 
 ---
 
@@ -67,9 +75,20 @@ versão para desktop e para mobile quando a proporção muda.
 - **Status:** aguardando gravação.
 
 ### CONTEÚDO PENDENTE — Site do Kai Hikari no ar (fora deste repositório)
-- O CTA "Ver projeto ao vivo" leva o visitante ao site do Kai Hikari, que ainda mostra `[INSERIR NOME DO PRATO
-  ASSINATURA]`, `[FOTO DO PRATO ASSINATURA]`, `[INSERIR RESUMO DA HISTÓRIA …]` e `[INSERIR INSTAGRAM]`.
-- Preencher em `src/config/site.ts` do projeto `kaihikari` antes de divulgar `/projetos`.
+- O site do Kai Hikari ainda mostra **9 marcadores** visíveis (auditoria de 09/11/2026):
+  1. `[INSERIR NOME DO PRATO ASSINATURA]` (página inicial)
+  2. `[INSERIR DESCRIÇÃO…]` do prato assinatura (página inicial)
+  3. `[FOTO DO PRATO ASSINATURA]` (página inicial)
+  4. `[INSERIR TEXTO SOBRE O AMBIENTE…]` (página inicial)
+  5. `[FOTO DO AMBIENTE]` (página inicial)
+  6. `[FOTO VERTICAL (preparo)]` (página inicial)
+  7. `[FOTO DA EQUIPE / CHEF]` (página inicial)
+  8. `[INSERIR RESUMO DA HISTÓRIA (origem, quem está por trás, o que move a casa)]` (página inicial)
+  9. `[INSERIR INSTAGRAM]` (página inicial e `/menu`)
+- Preencher em `src/config/site.ts` do projeto `kaihikari` (outro repositório).
+- **Enquanto isso:** o botão "Ver projeto ao vivo" do Kai Hikari está desativado por dado
+  (`liveLinkStatus: "finalizing"` em `features/projects/data/projects.ts`), com o selo "Projeto em finalização".
+  Depois de preencher, troque para `"active"` (passo a passo em `docs/PROJECTS-CASES.md`).
 - **Prioridade:** alta.
 
 ### IMAGEM NECESSÁRIA — Prova social (depoimentos e logos)

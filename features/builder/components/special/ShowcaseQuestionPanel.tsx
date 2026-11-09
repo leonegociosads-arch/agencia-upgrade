@@ -5,7 +5,8 @@ import Image from "next/image";
 import gsap from "gsap";
 import { validateAnswer } from "../../logic/validateAnswer";
 import { isRepeatedClick } from "../../logic/repeatedClick";
-import type { DraftProgress } from "../../logic/getProgress";
+import type { QuestionProgress } from "../../logic/getProgress";
+import { SERVICES } from "../../data/services";
 import type { AnswerValue, Question, QuestionOption, ServiceId } from "../../types";
 import { playSound } from "@/features/design-system/motion/sound";
 import { useSceneNavigation } from "@/features/design-system/motion/SceneTransition";
@@ -27,14 +28,12 @@ export interface ShowcaseQuestionPanelProps {
   serviceId: ServiceId;
   question: Question;
   options: QuestionOption[];
-  /** "Etapa geral" mostrada no cabeçalho escuro (etapa 1 = escolha do caminho). */
-  stepNumber: number;
-  /** O mesmo progresso da tela normal (`getProgress`) — integrado ao painel, nunca duplicado. */
-  progress: DraftProgress;
+  /** O mesmo progresso da tela normal (`getQuestionProgress`) — integrado ao painel, nunca duplicado. */
+  progress: QuestionProgress;
   /** "Escolher outra área"/"Cancelar edição" — os mesmos controles da tela normal. */
   exitControls: ReactNode;
-  canGoBack: boolean;
-  /** Exatamente o "voltar" da tela normal (som, direção da transição, `backDraft`). */
+  /** Exatamente o "voltar" da tela normal (som, direção da transição, `backDraft` ou, na 1ª
+   * pergunta, a mesma saída de "Escolher outra área"). */
   onBack: () => void;
   /** Grava a resposta pelo mesmo caminho da tela normal (`updateDraftAnswer`). `enterFromLeft`:
    * a cena saiu pela direita, então a próxima deve chegar pela esquerda (só escolhe o lado do
@@ -57,10 +56,8 @@ export default function ShowcaseQuestionPanel({
   serviceId,
   question,
   options,
-  stepNumber,
   progress,
   exitControls,
-  canGoBack,
   onBack,
   onSubmit,
 }: ShowcaseQuestionPanelProps) {
@@ -162,7 +159,8 @@ export default function ShowcaseQuestionPanel({
     onBack();
   }
 
-  const stepLabel = `${String(stepNumber).padStart(2, "0")}.`;
+  // Rótulo contextual (o mesmo da tela normal), sem número nem o termo interno "Builder".
+  const contextLabel = progress.isLast ? "Só mais uma coisa" : SERVICES[serviceId].label;
 
   return (
     <div
@@ -178,22 +176,17 @@ export default function ShowcaseQuestionPanel({
               integrada à composição (a tela normal não mostra a própria barra nesta cena). */}
           <div className={styles.backPanel}>
             <div className={styles.backHeader}>
-              <span className={styles.stepLabel}>
-                {stepLabel} Pergunta do Builder ({theme.tag})
-              </span>
-              <span className={styles.progressCount}>
-                {progress.current + 1}/{progress.total}
-              </span>
+              <span className={styles.stepLabel}>{contextLabel}</span>
             </div>
             <div
               className={styles.progressTrack}
               role="progressbar"
-              aria-label="Progresso deste caminho"
+              aria-label={`Progresso em ${SERVICES[serviceId].label}`}
               aria-valuemin={0}
               aria-valuemax={progress.total}
-              aria-valuenow={progress.current + 1}
+              aria-valuenow={progress.position}
             >
-              <div className={styles.progressFill} style={{ width: `${Math.max(progress.percentage, 4)}%` }} />
+              <div className={styles.progressFill} style={{ width: `${progress.percentage}%` }} />
             </div>
           </div>
 
@@ -261,7 +254,7 @@ export default function ShowcaseQuestionPanel({
                     type="button"
                     className={styles.backButton}
                     onClick={handleBack}
-                    disabled={!canGoBack || isTransitioning}
+                    disabled={isTransitioning}
                   >
                     <ArrowIcon direction="left" />
                     Voltar

@@ -172,7 +172,7 @@ describe("ProjectReview — integração (Etapa 11)", () => {
     renderWithState(reviewingWithSiteAndTrafego());
     const card = screen.getByRole("heading", { name: "Tráfego Pago" }).closest("article")!;
     const line = card.querySelector("p")!.textContent!;
-    expect(line).toBe("Serviços•WhatsApp•Nunca anunciei•Até R$ 1.000");
+    expect(line).toBe("Serviços•WhatsApp•Nunca anunciei•Investimento mensal em anúncios: Até R$ 1.000");
     expect(line).not.toMatch(/undefined|null|nunca_anunciei|••/);
   });
 });

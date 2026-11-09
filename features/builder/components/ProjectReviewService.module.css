@@ -156,3 +156,8 @@
     flex: 1;
   }
 }
+
+/* Valor com rótulo de contexto (ex.: investimento em anúncios): nunca separa "R$" do número. */
+.answerValue {
+  white-space: nowrap;
+}

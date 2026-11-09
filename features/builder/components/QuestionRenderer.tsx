@@ -5,8 +5,8 @@ import Image from "next/image";
 import gsap from "gsap";
 import { getNextQuestion } from "../logic/flow";
 import { getOptionAsset, type OptionAsset } from "../data/optionAssets";
-import { getProgress } from "../logic/getProgress";
-import { getQuestionLayout, getQuestionNumber } from "../logic/getQuestionLayout";
+import { getProgress, getQuestionProgress } from "../logic/getProgress";
+import { getQuestionLayout } from "../logic/getQuestionLayout";
 import { isRepeatedClick } from "../logic/repeatedClick";
 import ShowcaseQuestionPanel from "./special/ShowcaseQuestionPanel";
 import TrafficOptionCard, { getOptionCardTone, usesLabOptionCard } from "./optionCards/TrafficOptionCard";
@@ -57,7 +57,7 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
   const introRef = useRef<HTMLDivElement | null>(null);
 
   const question = getNextQuestion(serviceId, state.serviceDraft);
-  const { current, total, percentage } = getProgress(serviceId, state.serviceDraft);
+  const { current } = getProgress(serviceId, state.serviceDraft);
   const isEditing = state.editingService !== null;
 
   // "ETAPA GERAL 2" (pedido do usuário): a primeira pergunta de QUALQUER categoria — Site, Tráfego
@@ -78,12 +78,29 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
     }
   }, [state, isEditing, saveServiceDraft, serviceId]);
 
-  // Mesmo "voltar" nas duas apresentações (tela normal e cena especial `ShowcaseQuestionPanel`).
+  // Sair do caminho: "Escolher outra área" (configuração nova) ou "Cancelar edição" (edição) — a
+  // mesma ação de sempre, agora também usada pelo "Voltar" quando não há pergunta anterior.
+  function exitPath() {
+    if (isEditing) {
+      cancelServiceDraft();
+    } else {
+      goToEntry();
+    }
+  }
+
+  // Mesmo "voltar" nas duas apresentações (tela normal e cena especial `ShowcaseQuestionPanel`). Na
+  // PRIMEIRA pergunta não existe resposta anterior no histórico: "Voltar" faz o mesmo que "Escolher
+  // outra área"/"Cancelar edição" (volta para a escolha de serviço ou para onde a edição começou) —
+  // antes ficava desativado, e era o primeiro "voltar" que a pessoa tentava (achado A9 da auditoria).
   function handleBack(event?: MouseEvent) {
     if (isTransitioning || isRepeatedClick(event)) return;
     playSound("scene_back");
     markBackward();
-    backDraft();
+    if (canGoBackDraft()) {
+      backDraft();
+    } else {
+      exitPath();
+    }
   }
 
   const editingBadge = isEditing && <Badge tone="warning">Editando {SERVICES[serviceId].label}</Badge>;
@@ -94,11 +111,7 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
       onClick={(event) => {
         if (isTransitioning || isRepeatedClick(event)) return;
         markForward();
-        if (isEditing) {
-          cancelServiceDraft();
-        } else {
-          goToEntry();
-        }
+        exitPath();
       }}
       disabled={isTransitioning}
     >
@@ -108,7 +121,12 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
 
   const topBar = (
     <div className={styles.topRow}>
-      <button type="button" className={styles.backButton} onClick={handleBack} disabled={!canGoBackDraft() || isTransitioning}>
+      <button
+        type="button"
+        className={styles.backButton}
+        onClick={handleBack}
+        disabled={isTransitioning}
+      >
         ← Voltar
       </button>
       {editingBadge}
@@ -180,26 +198,22 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
   // mesma pergunta, mesmas opções, mesmos callbacks; muda só a apresentação.
   if (getQuestionLayout(question, state.serviceDraft) === "browser-panel") {
     const options = typeof question.options === "function" ? question.options(state.serviceDraft) : question.options;
-    // Posição REAL da pergunta no caminho. `current` (contagem de respostas) só coincide com ela
-    // num fluxo novo — ao reabrir uma resposta na revisão de uma edição, as respostas SEGUINTES já
-    // existem e o painel mostrava "3/3" numa pergunta que é a 2ª (bug real).
-    const questionNumber = getQuestionNumber(question, state.serviceDraft);
-    const answeredBefore = Math.max(questionNumber - 1, 0);
+    // Mesmo progresso da tela normal (`getQuestionProgress`): posição real da pergunta no caminho,
+    // sem número na tela — só o rótulo contextual e a barra.
+    const questionProgress = getQuestionProgress(question, state.serviceDraft);
     return (
       <ShowcaseQuestionPanel
         key={question.id}
         serviceId={serviceId}
         question={question}
         options={options}
-        stepNumber={questionNumber + 1}
-        progress={{ current: answeredBefore, total, percentage: total > 0 ? Math.round((answeredBefore / total) * 100) : 0 }}
+        progress={questionProgress}
         exitControls={
           <div className={styles.topRow}>
             {editingBadge}
             {exitButton}
           </div>
         }
-        canGoBack={canGoBackDraft()}
         onBack={handleBack}
         onSubmit={(value, options) => {
           if (isTransitioning) return;
@@ -213,10 +227,11 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
   }
 
   const usesAnswerMotion = usesLabOptionCard(question);
+  const questionProgress = getQuestionProgress(question, state.serviceDraft);
   const questionIntro = (
     <>
       <Text as="span" size="label" color="secondary" className={styles.contextLabel}>
-        {current >= total - 1 ? "Só mais uma coisa" : SERVICES[serviceId].label}
+        {questionProgress.isLast ? "Só mais uma coisa" : SERVICES[serviceId].label}
       </Text>
 
       <Heading variant="h2" as="h2" className={styles.title}>
@@ -229,13 +244,19 @@ export default function QuestionRenderer({ serviceId }: QuestionRendererProps) {
     <div className={styles.wrapper}>
       {topBar}
 
+      {/* Progresso DENTRO do serviço: só a barra (sem "1 de 3" — decisão da Fase 3, rótulo contextual
+          + barra não numérica). O progresso geral fica no cabeçalho (`BuilderJourneyProgress`). */}
       <div className={styles.progressRow}>
-        <div className={styles.progressTrack}>
-          <div className={styles.progressFill} style={{ width: `${percentage}%` }} />
+        <div
+          className={styles.progressTrack}
+          role="progressbar"
+          aria-label={`Progresso em ${SERVICES[serviceId].label}`}
+          aria-valuemin={0}
+          aria-valuemax={questionProgress.total}
+          aria-valuenow={questionProgress.position}
+        >
+          <div className={styles.progressFill} style={{ width: `${questionProgress.percentage}%` }} />
         </div>
-        <Text as="span" size="caption" color="secondary" className={styles.progressCount}>
-          {current + 1} de {total}
-        </Text>
       </div>
 
       {usesAnswerMotion ? (

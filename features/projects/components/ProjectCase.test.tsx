@@ -37,6 +37,30 @@ describe("ProjectCase (Etapa Ver Projetos)", () => {
     expect(link.getAttribute("rel")).toBe("noopener noreferrer");
   });
 
+  it("Kai Hikari em finalização: nenhum link para o site ao vivo, selo de status e domínio só como texto", () => {
+    const { container } = render(<ProjectCase project={KAI_HIKARI} />);
+
+    expect(screen.queryByRole("link", { name: /ver projeto ao vivo/i })).toBeNull();
+    expect(container.querySelector('a[href*="kaihikari"]')).toBeNull();
+    expect(screen.getByText("Projeto em finalização")).not.toBeNull();
+    // O selo é status, não controle: nada focável/clicável com esse nome.
+    expect(screen.queryByRole("button", { name: /projeto em finalização/i })).toBeNull();
+    expect(screen.queryByText(/abre em nova aba/i)).toBeNull();
+  });
+
+  it("reativar o link é só trocar o dado: com liveLinkStatus 'active' o botão volta", () => {
+    render(<ProjectCase project={{ ...KAI_HIKARI, liveLinkStatus: "active" }} />);
+
+    const link = screen.getByRole("link", { name: /ver projeto ao vivo: kai hikari \(abre em nova aba\)/i });
+    expect(link.getAttribute("href")).toBe("https://kaihikari.somosupgrade.com.br/");
+    expect(screen.queryByText("Projeto em finalização")).toBeNull();
+  });
+
+  it("SM Design continua com o link ao vivo e sem selo de finalização", () => {
+    render(<ProjectCase project={SM_DESIGN} />);
+    expect(screen.queryByText("Projeto em finalização")).toBeNull();
+  });
+
   it("mostra o domínio na moldura e as telas com texto alternativo", () => {
     const { container } = render(<ProjectCase project={KAI_HIKARI} />);
     const figure = container.querySelector("figure");

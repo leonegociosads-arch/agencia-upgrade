@@ -16,6 +16,13 @@ describe("PROJECT_CASES (Etapa Ver Projetos)", () => {
     ]);
   });
 
+  it("status do link ao vivo: SM Design ativo; Kai Hikari em finalização (sem link até o conteúdo ficar pronto)", () => {
+    expect(PROJECT_CASES.map((project) => [project.slug, project.liveLinkStatus])).toEqual([
+      ["sm-design", "active"],
+      ["kai-hikari", "finalizing"],
+    ]);
+  });
+
   it("mostra o domínio do próprio link na moldura do navegador", () => {
     for (const project of PROJECT_CASES) {
       expect(new URL(project.liveUrl).hostname.replace(/^www\./, "")).toBe(project.media.domain);

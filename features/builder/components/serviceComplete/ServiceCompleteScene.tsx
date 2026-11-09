@@ -32,8 +32,8 @@ const ENTRY_DELAY = 0.08;
  * Tráfego Pago, Design e Social Media) — um único componente para os três. Não salva nada: o
  * serviço já está em `confirmedServices` quando ela monta. As duas ações usam o que já existia:
  * "Adicionar outro serviço" = `goToEntry()` (volta à escolha de categoria, mantendo tudo o que já
- * foi configurado — nunca o "Começar de novo"); "Ver resumo do projeto" = `finalizeProject()`, o
- * mesmo caminho do "Finalizar projeto" do Meu Upgrade, que leva ao Resumo do Projeto de sempre.
+ * foi configurado — nunca o "Começar de novo"); "Finalizar meu projeto" (o CTA principal) =
+ * `finalizeProject()`, o mesmo caminho do "Finalizar projeto" do Meu Upgrade, que leva ao Resumo.
  *
  * Cena deliberadamente calma (preto, terreno fixo embaixo — `ServiceCompleteBackdrop`); o único
  * movimento é o card atravessando a tela desde FORA da viewport, pela esquerda.
@@ -125,14 +125,17 @@ export default function ServiceCompleteScene({ serviceId }: ServiceCompleteScene
           <p className={styles.subtitle}>Seu serviço de {tag} foi configurado com sucesso.</p>
 
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={handleAddAnother} disabled={locked}>
-              Adicionar outro serviço
+            {/* Hierarquia da decisão "Fase 4 - revisão" (`docs/DECISIONS.md`): concluir é o principal,
+                para não pressionar a pessoa a configurar mais serviços do que veio buscar; adicionar
+                outro continua fácil e visível, só não compete visualmente. */}
+            <button type="button" className={styles.primary} onClick={handleViewSummary} disabled={locked}>
+              Finalizar meu projeto
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M4 12h15M13 5.5 19.5 12 13 18.5" />
               </svg>
             </button>
-            <button type="button" className={styles.secondary} onClick={handleViewSummary} disabled={locked}>
-              Ver resumo do projeto
+            <button type="button" className={styles.secondary} onClick={handleAddAnother} disabled={locked}>
+              Adicionar outro serviço
             </button>
           </div>
         </div>

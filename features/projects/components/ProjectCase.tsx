@@ -9,6 +9,7 @@ import LinkButton from "@/features/design-system/components/LinkButton";
 import { useRevealScrollMotion } from "@/features/site/motion/useRevealScrollMotion";
 import type { ProjectCase as ProjectCaseData, ProjectFeature } from "../types";
 import ProjectMedia from "./ProjectMedia";
+import ProjectStatusBadge from "./ProjectStatusBadge";
 import styles from "./ProjectCase.module.css";
 
 export interface ProjectCaseProps {
@@ -110,22 +111,35 @@ export default function ProjectCase({ project }: ProjectCaseProps) {
             precisa dela e a agência não expõe a própria stack. O valor fica explicado por recurso. */}
         <div className={styles.footer}>
           <div className={styles.actions}>
-            {/* `aria-label` (e não texto escondido): dentro do `inline-flex` do botão o navegador
-                junta os pedaços com espaço ("ao vivo : SM Design"). Começa pelo texto visível. */}
-            <LinkButton
-              href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              size="lg"
-              className={styles.cta}
-              aria-label={`Ver projeto ao vivo: ${project.name} (abre em nova aba)`}
-            >
-              Ver projeto ao vivo
-              <ExternalIcon />
-            </LinkButton>
-            <Text as="span" size="caption" color="secondary">
-              {project.media.domain} · abre em nova aba
-            </Text>
+            {project.liveLinkStatus === "active" ? (
+              <>
+                {/* `aria-label` (e não texto escondido): dentro do `inline-flex` do botão o navegador
+                    junta os pedaços com espaço ("ao vivo : SM Design"). Começa pelo texto visível. */}
+                <LinkButton
+                  href={project.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="lg"
+                  className={styles.cta}
+                  aria-label={`Ver projeto ao vivo: ${project.name} (abre em nova aba)`}
+                >
+                  Ver projeto ao vivo
+                  <ExternalIcon />
+                </LinkButton>
+                <Text as="span" size="caption" color="secondary">
+                  {project.media.domain} · abre em nova aba
+                </Text>
+              </>
+            ) : (
+              <>
+                {/* Link ao vivo desativado por dado (`liveLinkStatus: "finalizing"`): selo de status no
+                    lugar do botão e o domínio só como texto, sem link. */}
+                <ProjectStatusBadge />
+                <Text as="span" size="caption" color="secondary">
+                  {project.media.domain}
+                </Text>
+              </>
+            )}
           </div>
         </div>
       </SectionContainer>

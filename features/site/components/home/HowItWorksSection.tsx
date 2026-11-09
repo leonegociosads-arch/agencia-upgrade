@@ -8,32 +8,16 @@ import Card from "@/features/design-system/components/Card";
 import LinkButton from "@/features/design-system/components/LinkButton";
 import { useMagneticHover } from "@/features/design-system/motion/useMagneticHover";
 import { useRevealScrollMotion } from "../../motion/useRevealScrollMotion";
+import { JOURNEY_STEPS } from "@/features/builder/data/journeySteps";
 import styles from "./HowItWorksSection.module.css";
 
 /**
  * Os 4 passos REAIS do fluxo (escolher → responder → montar e revisar → enviar). Nenhuma etapa
- * inventada: cada frase descreve algo que o Builder de fato faz (escolha única ou combinada de
- * serviços, perguntas curtas por serviço, resumo com editar/remover/adicionar antes do contato,
- * envio dos dados no final). "Poucas perguntas" descreve o fluxo real: perguntas curtas, uma de cada vez.
+ * inventada: cada frase descreve algo que o Builder de fato faz. A lista vive em
+ * `features/builder/data/journeySteps.ts` porque o Builder usa os MESMOS 4 passos como progresso
+ * geral no cabeçalho — a promessa da Home e a experiência nunca divergem.
  */
-const STEPS = [
-  {
-    title: "Escolha o que precisa",
-    text: "Site, tráfego pago, design e social media: um serviço ou uma combinação deles.",
-  },
-  {
-    title: "Responda poucas perguntas",
-    text: "Cada serviço tem perguntas curtas, que ajudam a Upgrade a entender o que você precisa de verdade.",
-  },
-  {
-    title: "Monte e revise o seu Upgrade",
-    text: "Veja tudo o que selecionou, adicione outro serviço ou edite uma resposta antes de enviar.",
-  },
-  {
-    title: "Envie e receba o retorno",
-    text: "Você deixa seus dados e a equipe da Upgrade analisa o projeto e entra em contato.",
-  },
-] as const;
+const STEPS = JOURNEY_STEPS;
 
 /**
  * "Como funciona" (Home como landing page comercial) — torna o Builder o diferencial: em vez de um

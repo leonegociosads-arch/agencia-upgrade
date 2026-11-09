@@ -59,6 +59,11 @@ export interface ProjectFeature {
   text: string;
 }
 
+export type ProjectLiveLinkStatus = "active" | "finalizing";
+
+/** Texto do selo mostrado no lugar do link quando `liveLinkStatus` é `"finalizing"`. */
+export const PROJECT_FINALIZING_LABEL = "Projeto em finalização";
+
 export interface ProjectCase {
   /** Também é o `id` da seção (âncora `#sm-design`). */
   slug: string;
@@ -77,6 +82,14 @@ export interface ProjectCase {
   // Sem campo de tecnologias de propósito (08/11/2026): a página não nomeia ferramentas nem
   // fornecedores. Ver `docs/DECISIONS.md`, "Ver Projetos".
   liveUrl: string;
+  /**
+   * Estado do botão "Ver projeto ao vivo":
+   * - `"active"`: o botão leva ao site real (nova aba);
+   * - `"finalizing"`: o site do cliente ainda tem conteúdo pendente, então o case NÃO linka para ele —
+   *   no lugar do botão aparece o selo discreto "Projeto em finalização" e o domínio fica só como texto.
+   * Para reativar o link basta trocar o valor para `"active"` (nada no componente muda).
+   */
+  liveLinkStatus: ProjectLiveLinkStatus;
   media: ProjectMediaConfig;
   /** Cor da marca do cliente, usada SÓ no brilho atrás da mídia (o resto é Design System Upgrade). */
   accent: string;
