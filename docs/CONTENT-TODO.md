@@ -48,15 +48,13 @@ versão para desktop e para mobile quando a proporção muda.
 - **Prioridade:** alta.
 - **Status:** aguardando decisão/produção.
 
-### IMAGEM NECESSÁRIA — Case 01, 02 e 03 (Home)
-- **Seção:** Home → "Projetos" (hoje um card de aviso).
-- **Tipo:** mockup/screenshot real do projeto (notebook + celular) para cada case.
-- **Objetivo:** prova visual de desenvolvimento web/design/campanha real da Upgrade.
-- **Conteúdo ideal:** tela real do projeto no notebook e a versão mobile no celular; para tráfego, um painel
-  real (sem expor dados sensíveis) ou o criativo da campanha.
-- **Proporção:** 4:3 (desktop); 1:1 ou 4:3 (mobile).
-- **Prioridade:** alta.
-- **Status:** aguardando conteúdo real e autorização do cliente.
+### Home — "Projetos" (resolvido em 09/11/2026 com o que já existia)
+- A seção deixou de ser um cartão de texto: mostra os dois cases reais (SM Design e Kai Hikari) com as mesmas
+  capturas de `/projetos` (`public/assets/projects/<case>/desktop.webp` e `mobile.webp`), cada um levando ao
+  seu trecho de `/projetos`. Nenhuma imagem nova foi criada ou capturada.
+- **Ainda pendente (para um 3º case ou prova de outros serviços):** mockup/print real do projeto, com
+  autorização do cliente. Para tráfego: um painel real (sem dados sensíveis) ou o criativo da campanha.
+- **Prioridade:** média. **Status:** aguardando conteúdo real e autorização do cliente.
 
 ### VÍDEO NECESSÁRIO — Demonstração de cada case (`/projetos`)
 - **Seção:** `/projetos` → área de mídia de cada case (SM Design e Kai Hikari).

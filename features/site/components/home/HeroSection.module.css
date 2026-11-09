@@ -101,13 +101,18 @@
  * atrás do texto/CTA e nunca intercepta clique, então a leitura da headline e a usabilidade do CTA
  * não mudam, só a área que o grafismo ocupa ao redor/atrás delas. */
 .heroGraphic {
+  /* Correção da auditoria (09/11/2026, A4): antes `right: -15%` + 720px deixavam o envelope sair do
+   * Hero, e o `overflow: hidden` do `.hero` cortava a metade verde do "U" num traço reto. Agora o
+   * envelope fica INTEIRO dentro do Hero (encostado à direita, centralizado na altura do texto) e
+   * cresce com a tela até 620px — o "U" (80% da altura do envelope, centralizado pela câmera em
+   * `UpgradeLogoParticles`) cabe inteiro e nunca encosta no título (conferido de 900 a 1920px). Mesma
+   * logo, mesma física, mesma interação; só posição e escala. */
+  --hero-graphic-size: clamp(420px, 46vw, 620px);
   position: absolute;
-  top: -20%;
-  right: -15%;
-  width: 720px;
-  height: 720px;
-  max-width: 85vw;
-  max-height: 85vw;
+  top: calc(50% - var(--hero-graphic-size) / 2);
+  right: 0;
+  width: var(--hero-graphic-size);
+  height: var(--hero-graphic-size);
   z-index: -1;
   pointer-events: none;
 }
@@ -134,7 +139,10 @@
  * testar. `(max-height: 500px) and (orientation: landscape)` cobre celulares deitados (altura de tela
  * pequena) sem capturar monitores widescreen de desktop de verdade (altura tipicamente >= 700px).
  */
-@media (max-width: 640px), (max-height: 500px) and (orientation: landscape) {
+/* Tablet em pé (641–899px) entra aqui também (auditoria de 09/11/2026, A4): com a logo atrás do
+ * texto, ela ficava sob "presença digital da sua". Agora o tablet usa o MESMO arranjo do celular — a
+ * logo como primeira cena, acima do título — com uma altura própria (regra mais abaixo). */
+@media (max-width: 899px), (max-height: 500px) and (orientation: landscape) {
   .heroGraphic {
     position: relative;
     inset: auto;
@@ -176,6 +184,22 @@
   .heroGraphic {
     height: clamp(200px, 30svh, 280px);
     min-height: 0;
+  }
+}
+
+/* Tablet em pé: a logo como primeira cena, maior que no celular, mas deixando título, subtítulo e
+ * botões ainda na primeira tela (768×1024 e 820×1180). Tablet deitado (≥900px de largura) usa o
+ * arranjo do computador, com a logo ao lado do texto. */
+@media (min-width: 641px) and (max-width: 899px) and (min-height: 501px) {
+  .heroGraphic {
+    height: clamp(260px, 30svh, 360px);
+    min-height: 0;
+  }
+
+  /* Caixa bem mais larga que alta: o brilho circular passava das bordas de cima/baixo e desenhava um
+   * retângulo visível. Elipse que termina dentro da caixa — mesmo brilho, sem borda. */
+  .heroGraphicFallback {
+    background: radial-gradient(ellipse 42% 58% at 50% 45%, var(--ds-color-surface-elevated) 0%, transparent 100%);
   }
 }
 

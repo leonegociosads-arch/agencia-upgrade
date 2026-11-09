@@ -1,55 +1,92 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import SectionContainer from "@/features/design-system/components/SectionContainer";
 import Heading from "@/features/design-system/components/Heading";
 import Text from "@/features/design-system/components/Text";
-import Card from "@/features/design-system/components/Card";
 import LinkButton from "@/features/design-system/components/LinkButton";
+import { PROJECT_CASES } from "@/features/projects/data/projects";
+import ProjectMedia from "@/features/projects/components/ProjectMedia";
 import { useRevealScrollMotion } from "../../motion/useRevealScrollMotion";
 import styles from "./ProjectsTeaserSection.module.css";
 
 /**
- * Teaser de "Projetos/Prova" (briefing, Seção 14) — ainda sem cases reais para uma apresentação
- * mais rica (carrossel, scroll horizontal — Seção 15 do briefing: só se houver caso real, "não
- * usar scroll horizontal só porque parece sofisticado"); por isso, uma revelação simples é a
- * escolha certa aqui, não uma ausência de motion.
- */
-/*
- * [FUTURO CASE — PROVA] Esta seção é o lugar da prova da Home. Quando houver projetos reais
- * autorizados, ela vira uma vitrine de até 3 cases (imagem principal + cliente/segmento + o desafio
- * + a solução + serviços usados + resultado real, SÓ se houver número verificável + CTA para o
- * caso completo em `/projetos`). Nada disso pode ser inventado. Assets e informações necessários:
- * `docs/CONTENT-TODO.md` (itens "Case 01..03 — Home" e "Prova/depoimentos").
+ * "Projetos" na Home — teaser de AUTORIDADE VISUAL (correção da auditoria de 09/11/2026, achado A1):
+ * antes era um cartão só de texto, a seção mais fraca da Home e a única com prova real.
+ *
+ * Agora mostra os dois cases reais (SM Design e Kai Hikari) com a MESMA mídia já aprovada em
+ * `/projetos` (`ProjectMedia`: moldura de navegador + celular, capturas reais em
+ * `public/assets/projects/<case>/`) e os dados de `features/projects/data/projects.ts` — nada de tela
+ * nova, nada inventado. Não reconstrói `/projetos`: cada case mostra só nome, categoria e a headline, e
+ * leva ao seu trecho da página (`/projetos#sm-design`, `/projetos#kai-hikari`). Nenhum link vai para o
+ * site ao vivo de um cliente (o do Kai Hikari está em finalização — `liveLinkStatus`).
+ *
+ * Imagens: `next/image` sem `priority` (seção abaixo da dobra → carregamento preguiçoso) e `sizes`
+ * do tamanho real do card. Motion: a mesma revelação simples de antes (`useRevealScrollMotion`).
  */
 export default function ProjectsTeaserSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  // `scaleFrom` (Etapa 36 — Award-Level): diferencia esta entrada da de `FinalCtaSection`, que usa
-  // o mesmo hook sem escala — as duas seções "leves" da Home deixam de ter a assinatura de motion
-  // idêntica (briefing, Seção 15).
-  useRevealScrollMotion(sectionRef, { itemSelectors: [`.${styles.projectsTeaser}`], scaleFrom: 0.96 });
+  useRevealScrollMotion(sectionRef, {
+    itemSelectors: [`.${styles.header}`, `.${styles.caseCard}`],
+    scaleFrom: 0.97,
+  });
 
   return (
-    <SectionContainer as="section" ref={sectionRef} className={styles.section}>
-      <Card className={styles.projectsTeaser}>
-        {/* `as="h2"` (Fase SEO, Seção 5 do briefing: hierarquia coerente) — esta seção é uma irmã
-         * de "O que fazemos"/"Pronto para dar o próximo passo?" (ambas `h2`), não uma subseção
-         * dela; `variant="h3"` mantém o mesmo tamanho visual compacto de sempre, só a tag semântica
-         * muda (o mesmo recurso documentado em `Heading.tsx`). */}
-        <Heading variant="h3" as="h2">
-          Projetos
-        </Heading>
-        {/* Antes: "Estamos organizando os primeiros projetos para publicar aqui, com o desafio de cada
-            cliente e a solução da Upgrade." — deixou de ser verdade quando `/projetos` ganhou os dois
-            cases reais (Etapa "Ver Projetos"); só o texto mudou, a seção continua a mesma. */}
-        <Text color="secondary">
-          Uma loja virtual de motocross e um cardápio digital com pedido online: veja o que cada negócio
-          precisava e o que a Upgrade construiu.
-        </Text>
-        <LinkButton href="/projetos" variant="secondary" size="sm">
+    <SectionContainer as="section" ref={sectionRef} className={styles.section} aria-labelledby="projetos-home-title">
+      <div className={styles.header}>
+        <div className={styles.intro}>
+          {/* `as="h2"` (Fase SEO): irmã de "O que fazemos"/"Como funciona" na hierarquia. */}
+          <Heading variant="h2" as="h2" id="projetos-home-title">
+            Projetos
+          </Heading>
+          <Text color="secondary" className={styles.lead}>
+            Uma loja virtual de motocross e um cardápio digital com pedido online: veja o que cada negócio
+            precisava e o que a Upgrade construiu.
+          </Text>
+        </div>
+        <LinkButton href="/projetos" variant="secondary" className={styles.cta}>
           Ver projetos
         </LinkButton>
-      </Card>
+      </div>
+
+      <ul className={styles.cases}>
+        {PROJECT_CASES.map((project) => (
+          <li key={project.slug} className={styles.caseCard}>
+            <Link
+              href={`/projetos#${project.slug}`}
+              className={styles.caseLink}
+              aria-label={`${project.name} — ${project.category}: ver o case em Projetos`}
+            >
+              <ProjectMedia
+                // Sempre a captura (pôster), nunca o player: dentro de um link não pode haver controles.
+                media={{ ...project.media, video: undefined }}
+                projectName={project.name}
+                accent={project.accent}
+                sizes="(min-width: 1240px) 560px, (min-width: 900px) 45vw, 92vw"
+                phoneSizes="(min-width: 900px) 128px, 96px"
+                showCaption={false}
+                className={styles.media}
+              />
+              <span className={styles.meta}>
+                <span className={styles.index} aria-hidden="true">
+                  {project.index}
+                </span>
+                <span className={styles.metaText}>
+                  <span className={styles.name}>{project.name}</span>
+                  <span className={styles.category}>{project.category}</span>
+                </span>
+                <span className={styles.arrow} aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </span>
+              <span className={styles.headline}>{project.headline}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </SectionContainer>
   );
 }

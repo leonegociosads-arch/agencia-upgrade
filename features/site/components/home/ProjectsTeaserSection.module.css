@@ -4,13 +4,163 @@
 
 @media (max-width: 640px) {
   .section {
-    padding-block: var(--ds-space-8);
+    padding-block: var(--ds-space-12);
   }
 }
 
-.projectsTeaser {
+/* ---------- Cabeçalho: título + apoio à esquerda, "Ver projetos" à direita ---------- */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ds-space-4) var(--ds-space-8);
+  margin-bottom: var(--ds-space-8);
+}
+
+.intro {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: var(--ds-space-3);
+  max-width: 56ch;
+}
+
+.lead {
+  margin: 0;
+}
+
+.cta {
+  flex: none;
+}
+
+/* ---------- Os dois cases ---------- */
+
+.cases {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--ds-space-12);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 900px) {
+  .cases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ds-space-8);
+  }
+}
+
+.caseCard {
+  min-width: 0;
+}
+
+.caseLink {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--ds-radius-lg);
+}
+
+.caseLink:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 6px;
+}
+
+/* A moldura do case já tem o próprio "sobe no hover" (`ProjectMedia.module.css`, `.stage:hover`). */
+.media {
+  margin-bottom: calc(var(--ds-space-2) * -1);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding-top: var(--ds-space-3);
+  border-top: var(--ds-border-width) solid var(--ds-color-border);
+}
+
+.index {
+  flex: none;
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-font-size-caption);
+  font-weight: var(--ds-font-weight-semibold);
+  letter-spacing: 0.08em;
+  color: var(--ds-color-accent);
+}
+
+.metaText {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ds-space-1) var(--ds-space-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.name {
+  font-family: var(--ds-font-display);
+  font-size: 1.25rem;
+  font-weight: var(--ds-font-weight-bold);
+  color: var(--ds-color-text-primary);
+}
+
+.category {
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+}
+
+.arrow {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ds-radius-full);
+  border: var(--ds-border-width) solid var(--ds-color-border-strong);
+  color: var(--ds-color-text-primary);
+  transition:
+    border-color var(--ds-duration-fast) var(--ds-easing-base),
+    background-color var(--ds-duration-fast) var(--ds-easing-base),
+    transform var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.headline {
+  font-size: var(--ds-font-size-body);
+  line-height: 1.5;
+  color: var(--ds-color-text-secondary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .caseLink:hover .arrow {
+    border-color: var(--ds-color-accent);
+    background: var(--ds-color-accent);
+    color: var(--ds-color-on-accent);
+    transform: translateX(2px);
+  }
+
+  .caseLink:hover .name {
+    color: var(--ds-color-text-primary);
+    text-decoration: underline;
+    text-decoration-color: var(--ds-color-accent);
+    text-underline-offset: 4px;
+  }
+}
+
+.caseLink:focus-visible .arrow {
+  border-color: var(--ds-color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+
+  .caseLink:hover .arrow {
+    transform: none;
+  }
 }

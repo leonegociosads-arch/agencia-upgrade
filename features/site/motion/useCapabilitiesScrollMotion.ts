@@ -5,18 +5,26 @@ import gsap from "gsap";
 import { getScrollTrigger } from "@/features/design-system/motion/scrollTrigger";
 import { useReducedMotion } from "@/features/design-system/motion/useReducedMotion";
 import { DURATION, EASE, STAGGER, DISTANCE } from "@/features/design-system/motion/motionConfig";
-import { DESKTOP_SCROLL_QUERY, MOBILE_SCROLL_QUERY, SCRUB } from "@/features/design-system/motion/scrollMotionConfig";
+import { DESKTOP_SCROLL_QUERY, MOBILE_SCROLL_QUERY } from "@/features/design-system/motion/scrollMotionConfig";
 import styles from "../components/home/CapabilitiesSection.module.css";
 
 /**
- * Motion de "O que fazemos" (briefing, Seções 6 e 12): "apresentação sequencial de serviços" é
- * exatamente um dos casos que o próprio briefing lista como justificativa boa para `pin` (Seção
- * 6). No desktop, o título fica fixo enquanto os 3 cards entram em sequência; no mobile, sem pin
- * (Seção 30: "remover pin longo") — os cards só revelam em bloco ao entrar na tela.
+ * Motion de "O que fazemos" — apresentação sequencial dos 3 serviços, a mesma intenção de antes,
+ * agora SEM `pin` (correção da auditoria de 09/11/2026, achado A5).
  *
- * A "primeira transição" (Seção 5: "a passagem Hero → próxima seção deve ser marcante... evitar
- * simples fade") acontece aqui, na entrada do `.frame`: um `clip-path` que "abre" a moldura da
- * seção, não um fade.
+ * Por que o pin saiu: o pin começava em "top top", então enquanto a seção subia até o topo da tela os
+ * cards ainda estavam invisíveis (início da timeline) — a pessoa via o título e uma tela inteira
+ * vazia, e depois ficava "presa" por mais 90% de altura de tela. E o recorte da moldura era ligado ao
+ * scroll (`scrub`): parado no meio, deixava o texto de apoio cortado ("rojeto" em 1920×1080). Pela
+ * regra do projeto ("melhora a experiência ou só existe porque conseguimos fazer?"), o pin só existia.
+ *
+ * Agora, em qualquer largura:
+ * - a moldura ainda "abre" (recorte + escala, não um fade simples — a primeira transição depois do
+ *   Hero continua marcante), mas como animação de TEMPO disparada ao entrar na tela: nunca para no
+ *   meio, então nunca há texto cortado parado;
+ * - os cards sobem em sequência quando a grade aparece (desktop com um pouco mais de deslocamento);
+ * - nada fica escondido esperando um scroll que talvez não aconteça: `once` + estado final limpo.
+ * Movimento reduzido: nada anima (os elementos já nascem no estado final).
  */
 export function useCapabilitiesScrollMotion(sectionRef: RefObject<HTMLElement | null>) {
   const reducedMotion = useReducedMotion();
@@ -28,62 +36,40 @@ export function useCapabilitiesScrollMotion(sectionRef: RefObject<HTMLElement | 
     const ScrollTrigger = getScrollTrigger();
     const query = (value: string) => gsap.utils.toArray<Element>(value, section);
     const frame = query(`.${styles.frame}`);
+    const grid = query(`.${styles.capabilities}`)[0] ?? section;
     const cards = query(`.${styles.capabilityCard}`);
 
-    // Transição de entrada (Seção 5) — clip-path + escala, nunca um fade simples. Roda nos dois
-    // breakpoints: é uma reação de chegada, não uma sequência longa que precise de matchMedia.
+    // Abertura da moldura: tocada uma vez, por tempo (não por scroll), ao a seção entrar na tela.
     const ctx = gsap.context(() => {
-      gsap.timeline({
-        scrollTrigger: { trigger: section, start: "top 92%", end: "top 60%", scrub: SCRUB.smooth },
-      }).fromTo(
+      gsap.fromTo(
         frame,
-        { clipPath: "inset(8% 6% round 28px)", scale: 0.96, opacity: 0.5 },
-        { clipPath: "inset(0% 0% round 0px)", scale: 1, opacity: 1, ease: "none" },
+        { clipPath: "inset(6% 4% round 28px)", scale: 0.97, opacity: 0.6 },
+        {
+          clipPath: "inset(0% 0% round 0px)",
+          scale: 1,
+          opacity: 1,
+          duration: DURATION.scene,
+          ease: EASE.emphasized,
+          clearProps: "clipPath,transform,opacity",
+          scrollTrigger: { trigger: section, start: "top 88%", once: true },
+        },
       );
     }, section);
 
-    // `gsap.matchMedia()` PRÓPRIO, fora do `gsap.context()` acima — nunca aninhado (ver o
-    // comentário equivalente em `useHeroScrollMotion.ts`: aninhar os dois faz o `pin` abaixo ser
-    // desfeito duas vezes ao desmontar, um `NotFoundError` real quando o segundo `revert()`
-    // encontra nós que o primeiro já restaurou).
     const mm = gsap.matchMedia();
-
-    // Desktop: título permanece fixo (pin) enquanto os cards entram em sequência (Seção 6/12).
-    mm.add(DESKTOP_SCROLL_QUERY, () => {
-      const cardsTimeline = gsap.timeline().from(cards, {
+    const revealCards = (distance: number, stagger: number) => {
+      gsap.from(cards, {
         opacity: 0,
-        y: DISTANCE.scene,
-        scale: 0.96,
+        y: distance,
         duration: DURATION.scene,
         ease: EASE.emphasized,
-        stagger: STAGGER.md * 2.5,
+        stagger,
+        clearProps: "transform,opacity",
+        scrollTrigger: { trigger: grid, start: "top 85%", once: true },
       });
-
-      // Duração do pin curta (Seção 7: "pins não podem parecer intermináveis") — só o suficiente
-      // para os 3 cards entrarem com sensação de progresso constante, nunca um scroll vazio.
-      ScrollTrigger.create({
-        trigger: section,
-        start: "top top",
-        end: "+=90%",
-        pin: true,
-        pinSpacing: true,
-        scrub: SCRUB.responsive,
-        animation: cardsTimeline,
-      });
-    });
-
-    // Mobile: sem pin — revelação em bloco, uma vez, ao entrar na tela (Seção 30).
-    mm.add(MOBILE_SCROLL_QUERY, () => {
-      gsap
-        .timeline({ scrollTrigger: { trigger: section, start: "top 80%", toggleActions: "play none none none" } })
-        .from(cards, {
-          opacity: 0,
-          y: DISTANCE.reveal,
-          duration: DURATION.normal,
-          ease: EASE.standard,
-          stagger: STAGGER.sm,
-        });
-    });
+    };
+    mm.add(DESKTOP_SCROLL_QUERY, () => revealCards(DISTANCE.scene, STAGGER.md * 1.5));
+    mm.add(MOBILE_SCROLL_QUERY, () => revealCards(DISTANCE.reveal, STAGGER.sm));
 
     return () => {
       ctx.revert();

@@ -11,3 +11,30 @@
   display: flex;
   gap: var(--ds-space-3);
 }
+
+.planB {
+  margin: 0;
+  font-size: var(--ds-font-size-body-sm);
+  color: var(--ds-color-text-secondary);
+}
+
+.planBLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  min-height: 32px;
+  color: var(--ds-color-text-primary);
+  font-weight: var(--ds-font-weight-semibold);
+  text-decoration: underline;
+  text-decoration-color: var(--ds-color-accent);
+  text-underline-offset: 3px;
+}
+
+.planBLink:focus-visible {
+  outline: 2px solid var(--ds-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.planBIcon {
+  color: var(--ds-color-accent);
+}

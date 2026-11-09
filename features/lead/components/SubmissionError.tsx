@@ -3,6 +3,8 @@
 import { useBuilder } from "@/features/builder/state/BuilderContext";
 import Alert from "@/features/design-system/components/Alert";
 import Button from "@/features/design-system/components/Button";
+import ContactIcon from "@/features/design-system/components/ContactIcon";
+import { getWhatsAppLink } from "@/lib/contact/siteContact";
 import styles from "./SubmissionError.module.css";
 
 const DEFAULT_MESSAGE = "Não conseguimos enviar agora. Seus dados continuam preenchidos.";
@@ -14,6 +16,9 @@ const DEFAULT_MESSAGE = "Não conseguimos enviar agora. Seus dados continuam pre
 export default function SubmissionError() {
   const { state, retrySubmit, backToReview } = useBuilder();
   const message = state.error?.message ?? DEFAULT_MESSAGE;
+  // Plano B (auditoria de 09/11/2026): se o envio falhar, o visitante não fica sem saída — quando o
+  // WhatsApp oficial estiver configurado, ele pode falar direto com a Upgrade. Sem número, nada aparece.
+  const whatsappLink = getWhatsAppLink();
 
   return (
     <div className={styles.wrapper}>
@@ -24,6 +29,15 @@ export default function SubmissionError() {
           Voltar
         </Button>
       </div>
+      {whatsappLink && (
+        <p className={styles.planB}>
+          Se preferir, fale direto com a Upgrade:{" "}
+          <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className={styles.planBLink}>
+            <ContactIcon kind="whatsapp" className={styles.planBIcon} />
+            Chamar no WhatsApp
+          </a>
+        </p>
+      )}
     </div>
   );
 }

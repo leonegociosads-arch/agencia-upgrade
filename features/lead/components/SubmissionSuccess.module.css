@@ -1,29 +1,98 @@
-.wrapper {
+/* Tela de sucesso — mesma linguagem da tela "Serviço adicionado" (`ServiceCompleteScene.module.css`):
+ * janela escura com barra de 3 pontinhos, check em pixel art, título em caixa-alta pesada e os
+ * mesmos botões (verde = seguir, contorno = alternativa). Só a composição do conteúdo é própria. */
+
+.scene {
+  display: flex;
+  justify-content: center;
+  padding: clamp(32px, 7vh, 88px) 16px clamp(48px, 10vh, 120px);
+}
+
+.card {
+  width: min(560px, 100%);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #03070d 0%, #00030a 100%);
+  border: 1.5px solid #39424b;
+  box-shadow:
+    inset 0 1.5px 0 rgba(220, 230, 236, 0.55),
+    0 30px 70px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  animation: successEnter var(--ds-duration-slow) var(--ds-easing-emphasized) both;
+}
+
+/* Entrada curta (escala + subida). Sob `prefers-reduced-motion` a regra global de `styles/tokens.css`
+ * zera a duração. */
+@keyframes successEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 20px;
+  background: linear-gradient(180deg, #2b353d 0%, #1e2a33 100%);
+  border-bottom: 1.5px solid #3b4851;
+}
+
+.dots {
+  display: flex;
+  gap: 9px;
+}
+
+.dots span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.dotRed {
+  background: #ff746f;
+  box-shadow: 0 0 6px rgba(255, 116, 111, 0.55);
+}
+
+.dotYellow {
+  background: #ffd431;
+  box-shadow: 0 0 6px rgba(255, 212, 49, 0.55);
+}
+
+.dotGreen {
+  background: #00fa7d;
+  box-shadow: 0 0 6px rgba(0, 250, 125, 0.6);
+}
+
+.tag {
+  font-family: var(--ds-font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fa1ab;
+}
+
+.content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--ds-space-3);
-  max-width: 480px;
-  margin: 0 auto;
-  padding: var(--ds-space-16) var(--ds-space-4);
+  padding: 36px clamp(20px, 7%, 44px) 32px;
   text-align: center;
 }
 
-/* Entrada com uma pequena escala (briefing Microinterações, Seção 23: "sucesso pode usar check,
- * fade, color shift, pequena escala") — respeita `prefers-reduced-motion` de graça (regra global
- * de `styles/tokens.css` zera a duração da animação). */
 .check {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--ds-radius-full);
-  background: var(--ds-color-accent);
-  color: var(--ds-color-on-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  font-weight: var(--ds-font-weight-bold);
-  animation: checkPop var(--ds-duration-slow) var(--ds-easing-emphasized);
+  width: 88px;
+  height: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 16px rgba(0, 247, 118, 0.35));
+  animation: checkPop var(--ds-duration-slow) var(--ds-easing-emphasized) 120ms both;
 }
 
 @keyframes checkPop {
@@ -37,21 +106,233 @@
   }
 }
 
-.list {
+.title {
+  margin: 22px 0 0;
+  font-family: var(--ds-font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.thanks {
+  margin: 10px 0 0;
+  font-family: var(--ds-font-body);
+  font-size: 1.05rem;
+  color: #c5d0d7;
+}
+
+.block {
+  width: 100%;
+  margin-top: 26px;
+}
+
+.blockLabel {
+  margin: 0 0 10px;
+  font-family: var(--ds-font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8fa1ab;
+}
+
+.services {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.service {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  border: 1px solid #2f3a43;
+  background: #0b131a;
+  font-family: var(--ds-font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #f1f5f4;
+}
+
+.serviceIcon {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  color: var(--ds-color-accent);
+}
+
+.serviceIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.next {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-1);
-  list-style: none;
-  padding: 0;
-  margin: var(--ds-space-2) 0;
-  font-weight: var(--ds-font-weight-medium);
-  color: var(--ds-color-text-primary);
+  gap: 10px;
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid #1f2a32;
+  background: rgba(255, 255, 255, 0.025);
+  text-align: left;
 }
 
-.note {
-  max-width: 40ch;
+.nextLine {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--ds-font-body);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #c5d0d7;
 }
 
-.listLabel {
-  margin-top: var(--ds-space-2);
+.nextDot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 0.6em;
+  border-radius: 50%;
+  background: var(--ds-color-accent);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 28px;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-family: var(--ds-font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--ds-duration-fast) var(--ds-easing-base),
+    box-shadow var(--ds-duration-fast) var(--ds-easing-base),
+    border-color var(--ds-duration-fast) var(--ds-easing-base);
+}
+
+.primary {
+  border: 2px solid #7dffbc;
+  background: linear-gradient(180deg, #1fff8a 0%, #00f776 55%, #00e86d 100%);
+  color: #000;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 0 18px rgba(0, 247, 118, 0.4);
+}
+
+.primary svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.secondary {
+  border: 2px solid #e3e0e0;
+  background: #000;
+  color: #fff;
+}
+
+@media (hover: hover) {
+  .primary:hover {
+    transform: scale(1.015);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      0 0 28px rgba(0, 247, 118, 0.6);
+  }
+
+  .secondary:hover {
+    border-color: #ffffff;
+  }
+}
+
+.primary:active,
+.secondary:active {
+  transform: scale(0.98);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible,
+.restart:focus-visible {
+  outline: 3px solid var(--ds-color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* Terciário, discreto: recomeçar do zero não compete com os próximos passos. */
+.restart {
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  font-family: var(--ds-font-body);
+  font-size: 0.9rem;
+  color: #8fa1ab;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.restart:hover {
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .card {
+    border-radius: 16px;
+  }
+
+  .titlebar {
+    height: 42px;
+    padding: 0 14px;
+  }
+
+  .dots span {
+    width: 11px;
+    height: 11px;
+  }
+
+  .content {
+    padding: 28px 18px 22px;
+  }
+
+  .check {
+    width: 72px;
+  }
+
+  .title {
+    font-size: clamp(1.6rem, 8vw, 2rem);
+  }
+
+  .primary,
+  .secondary {
+    min-height: 52px;
+    font-size: 0.88rem;
+  }
 }

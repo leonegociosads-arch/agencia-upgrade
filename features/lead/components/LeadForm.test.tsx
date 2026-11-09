@@ -107,7 +107,8 @@ describe("LeadForm — integração (Etapa 12)", () => {
     expect(await screen.findByText("Enviando...")).toBeTruthy();
     expect(await screen.findByText("Recebemos seu projeto.")).toBeTruthy();
     expect(screen.getByText("Obrigado, João!")).toBeTruthy();
-    expect(screen.getByText("Criar um site")).toBeTruthy();
+    // Os serviços aparecem pelo nome da categoria (o mesmo do Resumo), não pela chamada da escolha.
+    expect(screen.getByText("Site")).toBeTruthy();
   });
 
   it("duplo clique durante o envio não dispara um segundo submit (botão travado em 'Enviando...')", async () => {
@@ -231,7 +232,7 @@ describe("LeadForm e tela de sucesso — comunicação (copy)", () => {
     await screen.findByText("Recebemos seu projeto.");
 
     expect(screen.getByText(/pelos dados que você informou, em até 1 dia útil\./)).toBeTruthy();
-    const whatsapp = screen.getByRole("link", { name: "Chame a Upgrade no WhatsApp" });
+    const whatsapp = screen.getByRole("link", { name: /Continuar pelo WhatsApp/ });
     expect(whatsapp.getAttribute("href")).toContain("https://wa.me/5511912345678");
   });
 });

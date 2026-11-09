@@ -16,6 +16,10 @@ export interface ProjectMediaProps {
   accent: string;
   /** `sizes` da tela principal (a coluna da mídia muda de largura por breakpoint). */
   sizes?: string;
+  /** `sizes` da tela do celular (padrão: o tamanho usado em `/projetos`). */
+  phoneSizes?: string;
+  /** Legenda "Telas reais do site no ar" embaixo da moldura (padrão: visível). */
+  showCaption?: boolean;
   className?: string;
 }
 
@@ -32,6 +36,8 @@ export default function ProjectMedia({
   projectName,
   accent,
   sizes = "100vw",
+  phoneSizes = "(min-width: 1024px) 180px, (min-width: 640px) 160px, 112px",
+  showCaption = true,
   className,
 }: ProjectMediaProps) {
   return (
@@ -71,14 +77,16 @@ export default function ProjectMedia({
             width={media.mobile.width}
             height={media.mobile.height}
             alt={media.mobile.alt}
-            sizes="(min-width: 1024px) 180px, (min-width: 640px) 160px, 112px"
+            sizes={phoneSizes}
             className={styles.phoneImage}
           />
         </div>
       )}
-      <figcaption className={styles.caption}>
-        {media.video ? "Demonstração de navegação" : "Telas reais do site no ar"}
-      </figcaption>
+      {showCaption && (
+        <figcaption className={styles.caption}>
+          {media.video ? "Demonstração de navegação" : "Telas reais do site no ar"}
+        </figcaption>
+      )}
     </figure>
   );
 }

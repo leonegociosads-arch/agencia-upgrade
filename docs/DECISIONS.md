@@ -2169,3 +2169,26 @@ comunicação: perguntas, categorias, funil, valores salvos, payload do lead, Su
     da Fase 3, que proíbe "X de Y" na tela.
 - **CTA da tela "Serviço adicionado":** restaurada a decisão "Fase 4 - revisão": **"Finalizar meu projeto"** é o
   principal (leva ao resumo, o que "Ver resumo do projeto" fazia) e **"Adicionar outro serviço"** é o secundário.
+
+### Fase 2 — visual e UX
+
+- **Logo do Hero (A4):** só posição/escala/breakpoint. No computador e no tablet deitado (≥900px) o envelope
+  das partículas fica inteiro dentro do Hero (`right: 0`, centralizado na altura do texto, até 620px): o "U"
+  cabe inteiro e não encosta no título (medido em 1920, 1440, 1366, 1180 e 1024). No tablet em pé (641–899px)
+  a logo usa o mesmo arranjo do celular, como primeira cena acima do título, com altura própria. Física,
+  densidade e interação das partículas não mudaram; o celular continua igual.
+- **"O que fazemos" sem pin (A5):** o pin começava em "top top" e deixava uma tela inteira vazia antes dos
+  cards aparecerem; o recorte ligado ao scroll deixava texto cortado parado. Ficou a mesma ideia de
+  "apresentação em sequência", como entrada simples: a moldura ainda "abre" (recorte + escala, por tempo, uma
+  vez) e os cards sobem em sequência ao aparecer. Reduced motion: nada anima. Detalhes em
+  `docs/SCROLL-STORYTELLING.md`.
+- **Tela de sucesso (A7):** mesma linguagem do Builder (janela com 3 pontinhos + check em pixel art da tela
+  "Serviço adicionado"). Comunica: deu certo, o que foi montado, que ficou registrado, o que acontece agora
+  (prazo só se configurado). CTA: com WhatsApp → "Continuar pelo WhatsApp" + "Ver projetos"; sem WhatsApp →
+  "Ver projetos" + "Voltar ao site". "Iniciar novo projeto" virou link discreto. Os serviços aparecem pelo nome
+  da categoria (o mesmo do Resumo).
+- **Tela de erro do envio:** com WhatsApp configurado, oferece "Chamar no WhatsApp" como plano B.
+- **Projetos na Home (A1):** teaser visual com os dois cases reais, reaproveitando `ProjectMedia` e os dados
+  de `projects.ts` (capturas reais, `next/image` preguiçoso). Cada case leva a `/projetos#<case>`; CTA geral
+  "Ver projetos". Nenhum link para site de cliente. O selo "Projeto em finalização" não aparece na Home: o
+  teaser não leva ao site ao vivo, então o aviso só aparece em `/projetos`, onde o link existiria.

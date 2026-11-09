@@ -54,28 +54,24 @@ SSR, só depois de montar no navegador (`useEffect`).
 
 ## 4. Pins utilizados
 
-Só **um** — Capacidades, no desktop (`useCapabilitiesScrollMotion.ts`): o título/lead fica fixo
-enquanto os 3 cards entram em sequência (briefing, Seção 6: "apresentação sequencial de serviços"
-é literalmente um dos exemplos que o briefing lista como caso adequado para pin). Duração do pin
-curta (`end: "+=90%"` de um viewport, Seção 7: "pins não podem parecer intermináveis") — o
-suficiente para os 3 cards revelarem com stagger sem sensação de scroll vazio.
-
-Nenhum outro pin em nenhuma outra seção — Hero, Projetos e CTA final não têm nenhum caso de "uma
-mensagem permanece enquanto o conteúdo muda" que justifique um (Seção 6: "não pin todas as
-seções").
+**Nenhum** (desde a correção da auditoria de 09/11/2026). Até então havia um pin em Capacidades, no
+desktop (`end: "+=90%"`): enquanto a seção subia até o topo da tela os cards ainda estavam invisíveis, e a
+pessoa via o título e uma tela inteira vazia antes de ficar "presa" no pin; o recorte da moldura, ligado ao
+scroll, ainda deixava o texto de apoio cortado quando a rolagem parava no meio. Pela regra "melhora a
+experiência ou só existe porque conseguimos fazer?", o pin só existia. A apresentação sequencial dos 3
+serviços continua, como entrada simples ao aparecer na tela (ver seção 5).
 
 ## 5. Scrubs utilizados
 
 Nunca `scrub: true` (resposta rígida ao pixel) — sempre um número, que introduz suavização (Seção
 9: "scrub suave"), centralizado em `features/design-system/motion/scrollMotionConfig.ts`
-(`SCRUB.smooth = 0.6`, `SCRUB.responsive = 0.35`):
+(`SCRUB.smooth = 0.6`):
 
 - **Hero** (`useHeroScrollMotion.ts`): scrub no deslocamento/opacidade do conteúdo e na escala do
   grafismo, acompanhando o scroll do início ao fim do Hero.
-- **Capacidades — transição de entrada** (`.frame`, clip-path + escala): scrub, uma janela curta
-  logo antes da seção alcançar o topo.
-- **Capacidades — cards fixados** (dentro do pin): scrub mais responsivo (`SCRUB.responsive`), já
-  que aqui o usuário está deliberadamente "folheando" os 3 serviços.
+- **Capacidades** não usa mais scrub (09/11/2026): a moldura "abre" (clip-path + escala) e os cards sobem
+  em sequência como animações de tempo, tocadas uma vez ao entrar na tela (`once: true`). Assim nenhum
+  estado parado fica pela metade. `SCRUB.responsive` (usado só no pin) saiu do config.
 
 Projetos/teaser e CTA final **não** usam scrub — são revelações únicas (`toggleActions: "play none
 none none"`), não movimentos de acompanhamento (Seção 8: "não usar scrub em tudo").

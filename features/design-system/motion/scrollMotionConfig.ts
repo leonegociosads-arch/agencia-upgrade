@@ -19,8 +19,6 @@ export const MOBILE_SCROLL_QUERY = "(max-width: 640px)";
 export const SCRUB = {
   /** Movimentos de acompanhamento simples (parallax, fade de saída do Hero). */
   smooth: 0.6,
-  /** Sequências que precisam responder um pouco mais perto do scroll real (cards no pin). */
-  responsive: 0.35,
 } as const;
 
 /** Escala do grafismo do Hero ao rolar (Seção 4: "logo/símbolo muda de escala"). */
