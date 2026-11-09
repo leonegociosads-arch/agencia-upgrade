@@ -7,6 +7,7 @@ import { useFinePointer } from "../motion/pointerCapability";
 import { hasWebGL } from "./webglSupport";
 import { getSafePixelRatio } from "./pixelRatio";
 import { buildLogoParticleData } from "./buildLogoParticleData";
+import { CAMERA_MARGIN, PARTICLE_COUNT_DESKTOP, PARTICLE_COUNT_MOBILE, SAMPLE_WIDTH } from "./logoParticlesConfig";
 import { logoParticlesVertexShader, logoParticlesFragmentShader } from "./shaders/logoParticles";
 import styles from "./UpgradeLogoParticles.module.css";
 
@@ -14,16 +15,15 @@ import styles from "./UpgradeLogoParticles.module.css";
 // tela) — grande o suficiente para preservar os detalhes da forma, pequena o suficiente para o loop
 // de amostragem em `buildLogoParticleData` custar poucos milissegundos. 320 (era 220) para os
 // traços mais finos da logo (ex.: a lâmina diagonal) terem pixels suficientes para amostrar bem.
-const SAMPLE_WIDTH = 320;
+// (`SAMPLE_WIDTH`, `PARTICLE_COUNT_*` e a margem da câmera vivem em `logoParticlesConfig.ts`, mesmos
+// valores de sempre, para a prévia estática do celular desenhar exatamente a mesma nuvem.)
 // Ajuste (correção pós-entrega): densidade bem maior para a logo ficar claramente legível —
-// "aglomerado genérico" antes, não "densidade rica" — ver `docs/DECISIONS.md`. Configurável aqui.
-const PARTICLE_COUNT_DESKTOP = 6000;
+// "aglomerado genérico" antes, não "densidade rica" — ver `docs/DECISIONS.md`. 6000 no desktop.
 // Pedido do usuário: no mobile a logo passa a ocupar quase a tela inteira (era um grafismo pequeno
 // no canto) — o mesmo valor de antes (2200) ficaria visivelmente mais espaçado/vazio numa área tão
 // maior. Subiu para 3200 (ainda bem abaixo do desktop) como equilíbrio entre "logo reconhecível e
 // com boa densidade" e "o laço de atração por toque, que roda em JS por partícula a cada frame,
-// continuar leve o suficiente para celulares médios" — ver `renderFrame` mais abaixo.
-const PARTICLE_COUNT_MOBILE = 3200;
+// continuar leve o suficiente para celulares médios" — ver `renderFrame` mais abaixo. 3200 no toque.
 // Raio reduzido à metade do valor original (pedido explícito: reação mais concentrada e precisa).
 const MOUSE_INFLUENCE_RADIUS = 0.55;
 // Amplitude do micro movimento em repouso, bem menor que antes: o valor original (0.045) era maior
@@ -96,7 +96,13 @@ const PARTICLE_EASE_MOBILE = 0.096;
  * elemento pode estar se movendo (é a própria página rolando), a posição do dedo relativa à logo, e
  * se ele ainda está "dentro" dela, precisam ser recalculadas a cada evento, nunca cacheadas.
  */
-export default function UpgradeLogoParticles() {
+export interface UpgradeLogoParticlesProps {
+  /** Chamado uma vez, quando o primeiro quadro da cena já foi desenhado (usado pela Home para tirar a
+   * prévia estática do celular só depois que o efeito interativo está de fato na tela). */
+  onReady?: () => void;
+}
+
+export default function UpgradeLogoParticles({ onReady }: UpgradeLogoParticlesProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [supported] = useState(hasWebGL);
@@ -104,6 +110,11 @@ export default function UpgradeLogoParticles() {
 
   const reducedMotion = useReducedMotion();
   const isFinePointer = useFinePointer();
+  // Ref (e não dependência do efeito): trocar a função nunca recria a cena.
+  const onReadyRef = useRef(onReady);
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -225,7 +236,7 @@ export default function UpgradeLogoParticles() {
       // Câmera ortográfica: mapeia diretamente o cursor (NDC) para o mesmo espaço das posições das
       // partículas, sem precisar de raycast contra um plano — mais simples de manter (mesma ideia já
       // usada em `ProceduralAura.tsx`, aqui adaptada para o tamanho real da logo amostrada).
-      const margin = 1.25;
+      const margin = CAMERA_MARGIN;
       const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
       camera.position.z = 5;
 
@@ -344,6 +355,7 @@ export default function UpgradeLogoParticles() {
 
       let rafId = 0;
 
+      let readyNotified = false;
       function renderFrame(elapsedMs: number) {
         const elapsed = elapsedMs / 1000;
 
@@ -409,6 +421,10 @@ export default function UpgradeLogoParticles() {
 
         material.uniforms.uTime.value = elapsed;
         renderer.render(scene, camera);
+        if (!readyNotified) {
+          readyNotified = true;
+          onReadyRef.current?.();
+        }
       }
 
       if (reducedMotion) {

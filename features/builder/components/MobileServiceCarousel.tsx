@@ -28,6 +28,9 @@ interface MobileServiceCarouselProps {
 
 function noop() {}
 
+/** Carta que abre no centro do carrossel (Tráfego Pago). */
+const INITIAL_ACTIVE_INDEX = 1;
+
 /**
  * Posição/escala/profundidade de um card em função do seu ângulo (radianos) num "orbit" de 3
  * posições — pedido do usuário: "os três cards estão orbitando/trocando de posição, como um seletor
@@ -81,7 +84,7 @@ function angleFor(index: number, center: number) {
  * propriedade porque estão em elementos DIFERENTES.
  */
 export default function MobileServiceCarousel({ cards, locked }: MobileServiceCarouselProps) {
-  const [activeIndex, setActiveIndex] = useState(1); // Tráfego Pago — mesmo card central do briefing
+  const [activeIndex, setActiveIndex] = useState(INITIAL_ACTIVE_INDEX); // Tráfego Pago — mesmo card central do briefing
   const reducedMotion = useReducedMotion();
   const wrapperRefs = useRef<Array<HTMLDivElement | null>>([]);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -233,6 +236,8 @@ export default function MobileServiceCarousel({ cards, locked }: MobileServiceCa
                 dimmed={false}
                 onHoverChange={noop}
                 onSelect={() => handleCardActivate(index)}
+                // A carta que abre no centro (Tráfego, `activeIndex` inicial) é o maior conteúdo da tela.
+                highPriority={index === INITIAL_ACTIVE_INDEX}
               />
             </div>
           );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import SectionContainer from "@/features/design-system/components/SectionContainer";
 import Heading from "@/features/design-system/components/Heading";
@@ -44,21 +44,39 @@ export default function HeroSection() {
 
   // Etapa 30 (Performance, Seções 9/46 do briefing): adia a inicialização do WebGL para depois do
   // navegador ter uma folga no main thread, em vez de competir com hidratação/GSAP/Lenis pelo
-  // mesmo frame — medido via Lighthouse (mobile, CPU throttled): o H1 do Hero é o elemento de LCP
-  // real da Home, e o trabalho síncrono de `THREE.WebGLRenderer`/geometria no mount imediato
-  // atrasava a folga que o navegador precisa para pintar. `requestIdleCallback` (com fallback
-  // `setTimeout` para navegadores sem suporte, ex. Safari) e um `timeout` de segurança — nunca
-  // espera para sempre se o navegador ficar ocupado. O gradiente CSS (`.heroGraphicFallback`) já
-  // preenche o espaço reservado enquanto isso, então não há "pulo" de layout nem de conteúdo.
+  // mesmo frame. No COMPUTADOR (ponteiro fino) continua exatamente assim: `requestIdleCallback` com
+  // `timeout` de 1,5 s (ou `setTimeout` onde não existe, ex. Safari) — comportamento aprovado.
+  //
+  // No TOQUE (celular/tablet — Fase 3 da auditoria de 09/11/2026): o motor 3D (~480 KB) montava em até
+  // 1,5 s mesmo com o aparelho ainda ocupado, e era o maior trabalho de processador da Home no celular.
+  // Agora a logo em partículas aparece desde o primeiro quadro como PRÉVIA ESTÁTICA: uma imagem leve
+  // (~26 KB) da MESMA nuvem em repouso, gerada uma vez por `scripts/generate-logo-particles-preview.mjs`
+  // e servida só pela CSS (`.heroStaticPreview`, nenhum JavaScript). O efeito interativo só monta no
+  // primeiro gesto (toque, rolagem, roda do mouse ou tecla), que é justamente quando ele passa a ter
+  // função. Mesma caixa, sem pulo de layout; a prévia só some quando o primeiro quadro WebGL já está na
+  // tela.
+  const pointerKind = usePointerKind();
   const [webglReady, setWebglReady] = useState(false);
+  const [liveVisible, setLiveVisible] = useState(false);
   useEffect(() => {
-    if (typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(() => setWebglReady(true), { timeout: 1500 });
-      return () => window.cancelIdleCallback(id);
+    if (pointerKind === "unknown") return;
+    if (pointerKind === "fine") {
+      if (typeof window.requestIdleCallback === "function") {
+        const id = window.requestIdleCallback(() => setWebglReady(true), { timeout: 1500 });
+        return () => window.cancelIdleCallback(id);
+      }
+      const id = window.setTimeout(() => setWebglReady(true), 200);
+      return () => window.clearTimeout(id);
     }
-    const id = window.setTimeout(() => setWebglReady(true), 200);
-    return () => window.clearTimeout(id);
-  }, []);
+
+    const events = ["pointerdown", "touchstart", "wheel", "keydown", "scroll"] as const;
+    const start = () => {
+      events.forEach((name) => window.removeEventListener(name, start));
+      setWebglReady(true);
+    };
+    events.forEach((name) => window.addEventListener(name, start, { passive: true }));
+    return () => events.forEach((name) => window.removeEventListener(name, start));
+  }, [pointerKind]);
 
   return (
     <SectionContainer as="section" ref={sectionRef} className={styles.hero}>
@@ -89,8 +107,30 @@ export default function HeroSection() {
       <div className={styles.heroAccentGraphic} aria-hidden="true" />
       <div className={styles.heroGraphic} aria-hidden="true">
         <div className={styles.heroGraphicFallback} />
-        {webglReady && <UpgradeLogoParticles />}
+        {/* Só aparece em telas de toque (CSS); some quando o efeito vivo já desenhou o 1º quadro. */}
+        <div className={styles.heroStaticPreview} data-hidden={liveVisible || undefined} />
+        {webglReady && <UpgradeLogoParticles onReady={() => setLiveVisible(true)} />}
       </div>
     </SectionContainer>
+  );
+}
+
+// Mesmo critério de `useFinePointer` (que também decide a densidade de partículas do efeito WebGL),
+// mas com um terceiro estado: no servidor e na hidratação ainda não se sabe o tipo de ponteiro, e nada
+// é montado até saber — assim o computador nunca desenha a prévia do celular, nem por um instante.
+const FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)";
+type PointerKind = "unknown" | "fine" | "coarse";
+
+function subscribePointerKind(onChange: () => void) {
+  const mediaQuery = window.matchMedia(FINE_POINTER_QUERY);
+  mediaQuery.addEventListener("change", onChange);
+  return () => mediaQuery.removeEventListener("change", onChange);
+}
+
+function usePointerKind(): PointerKind {
+  return useSyncExternalStore<PointerKind>(
+    subscribePointerKind,
+    () => (window.matchMedia(FINE_POINTER_QUERY).matches ? "fine" : "coarse"),
+    () => "unknown",
   );
 }

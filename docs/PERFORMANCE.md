@@ -363,3 +363,37 @@ tratá-los pertence a uma fase de acessibilidade/qualidade, não a esta.
 
 Ver `docs/IMPLEMENTATION-STAGE-30.md` para o resumo técnico completo (antes/depois, arquivos
 alterados, testes, pendências para a Etapa 31).
+
+## Rodada de 09/11/2026 (correções da auditoria — Fase 3)
+
+**Como foi medido (maçã com maçã):** build de produção local (`next build --webpack` + `next start`) do commit
+do checkpoint (`checkpoint-2026-11-09-antes-correcoes-auditoria`) e do código final, os dois exportados para
+uma pasta limpa com o mesmo `.env.local`, na mesma máquina. Lighthouse 12.8.2, modo celular (simulação
+padrão) e computador (`--preset=desktop`), 3 rodadas por página; abaixo, a mediana. Os números da auditoria
+(site real, outra máquina) não são comparáveis com estes.
+
+| Página | Antes (nota · LCP · TBT · CLS) | Depois (nota · LCP · TBT · CLS) |
+|---|---|---|
+| Home – celular | 74 · 3,85 s · 505 ms · 0 | 80 · 4,06 s · 309 ms · 0 |
+| /projetos – celular | 79 · 3,91 s · 348 ms · 0 | 81 · 3,93 s · 279 ms · 0 |
+| /builder – celular | 65 · 5,49 s · 547 ms · 0 | 70 · 5,29 s · 395 ms · 0 |
+| Home – computador | 99 · 0,88 s · 11 ms · 0 | 99 · 0,88 s · 10 ms · 0 |
+| /projetos – computador | 100 · 0,80 s · 4 ms · 0,002 | 100 · 0,80 s · 4 ms · 0,002 |
+| /builder – computador | 98 · 1,10 s · 21 ms · 0,001 | 98 · 1,13 s · 12 ms · 0,001 |
+
+O que mudou:
+- **Logo em partículas no toque:** o motor 3D (~480 KB) não monta mais no carregamento do celular/tablet. Até o
+  primeiro gesto (toque, rolagem, roda, tecla) aparece uma prévia estática da MESMA nuvem em repouso, uma imagem
+  de ~26 KB gerada uma vez por `scripts/generate-logo-particles-preview.mjs` e servida pela CSS (nenhum
+  JavaScript). O efeito interativo assume por cima no primeiro gesto; a prévia some só depois do 1º quadro
+  WebGL. Computador: inalterado (`requestIdleCallback` com `timeout` de 1,5 s, efeito monta sozinho).
+- **Cartas do Builder:** nenhuma é mais `loading="lazy"`; a carta que abre no centro do carrossel do celular
+  (Tráfego) baixa com `fetchPriority="high"`.
+- **"O que fazemos" sem pin** (Fase 2) também tirou trabalho de scroll do computador.
+
+O que não melhorou e por quê: o LCP simulado do celular (~4 s na Home e em /projetos, ~5,3 s no Builder) é
+dominado pela hidratação do React/Next e pelo GSAP no início — o texto e a carta já chegam cedo (LCP observado
+sem limitação < 1 s), mas a simulação soma o processamento dos scripts. Carregar GSAP/ScrollTrigger mais tarde
+exigiria trocar o import de todos os hooks de movimento (Home e Builder); ficou como próximo passo. Testado e
+descartado: tirar o fade do título no celular (não mudou o LCP medido) e desenhar a prévia em Canvas 2D no
+aparelho (aumentou o TBT para ~750 ms; trocado pela imagem gerada uma vez).

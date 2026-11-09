@@ -76,6 +76,9 @@ interface ServiceSelectorCardProps {
   dimmed: boolean;
   onHoverChange: (hovered: boolean) => void;
   onSelect: () => void;
+  /** Carta que aparece no CENTRO do carrossel do celular ao abrir (Tráfego): é o maior conteúdo da
+   * tela, então baixa com prioridade alta (antes vinha "preguiçosa" e atrasava ~1,5 s). */
+  highPriority?: boolean;
 }
 
 /**
@@ -83,7 +86,7 @@ interface ServiceSelectorCardProps {
  * só apresentação visual — toda a interação (clique, teclado, tilt, hover) vive nesta camada React
  * por cima/ao redor dela (Seção 19: "imagem = visual, componente = interação").
  */
-export default function ServiceSelectorCard({ serviceId, label, configured, disabled, active, dimmed, onHoverChange, onSelect }: ServiceSelectorCardProps) {
+export default function ServiceSelectorCard({ serviceId, label, configured, disabled, active, dimmed, onHoverChange, onSelect, highPriority = false }: ServiceSelectorCardProps) {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const floatOuterRef = useRef<HTMLDivElement | null>(null);
   const floatTweenRef = useRef<gsap.core.Tween | null>(null);
@@ -274,7 +277,13 @@ export default function ServiceSelectorCard({ serviceId, label, configured, disa
             height={1080}
             className={styles.image}
             style={{ transform: `translateX(${CONTENT_OFFSET_PERCENT[serviceId]}%)` }}
-            priority={serviceId === "site"}
+            // As três cartas estão sempre acima da dobra: nenhuma é "preguiçosa" (Fase 3 da auditoria
+            // de 09/11/2026). "site" continua pré-carregada no <head> (é a primeira da fileira do
+            // computador, a que o servidor desenha); a carta central do carrossel do celular recebe
+            // prioridade alta. Mesmo `sizes` nas duas apresentações = mesmo arquivo, baixado uma vez.
+            {...(serviceId === "site" && !highPriority
+              ? { preload: true }
+              : { loading: "eager" as const, fetchPriority: highPriority ? ("high" as const) : undefined })}
             sizes="(max-width: 640px) 78vw, 26vw"
           />
         </div>

@@ -238,3 +238,28 @@
   background: radial-gradient(circle at 50% 45%, var(--ds-color-surface-elevated) 0%, transparent 65%);
   opacity: 0.5;
 }
+
+/* Prévia estática da logo em partículas (Fase 3 da auditoria — performance no celular). Imagem da
+ * MESMA nuvem em repouso, gerada uma vez (`scripts/generate-logo-particles-preview.mjs`), com a
+ * proporção da logo + a folga da câmera: com `contain` ela ocupa exatamente o espaço do efeito WebGL na
+ * mesma caixa. Fundo preto + `screen` = só os pontos aparecem (como a mistura aditiva do WebGL).
+ * Só em telas de toque — no computador o efeito vivo monta logo e a imagem nem é baixada. */
+.heroStaticPreview {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: url("/assets/hero/logo-particles-preview.webp") center / contain no-repeat;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  transition: opacity var(--ds-duration-slow) ease;
+}
+
+@media not all and (hover: hover) and (pointer: fine) {
+  .heroStaticPreview {
+    display: block;
+  }
+}
+
+.heroStaticPreview[data-hidden] {
+  opacity: 0;
+}

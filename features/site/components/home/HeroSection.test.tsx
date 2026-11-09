@@ -1,6 +1,15 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+// O efeito WebGL real (three) não roda no jsdom: um marcador simples mostra QUANDO ele é montado.
+vi.mock("next/dynamic", () => ({
+  default: () =>
+    function LiveParticlesMarker() {
+      return <div data-testid="live-particles" />;
+    },
+}));
+
+import { act } from "@testing-library/react";
 import HeroSection from "./HeroSection";
 
 afterEach(cleanup);
@@ -50,5 +59,24 @@ describe("HeroSection (Fase ScrollTrigger e Storytelling)", () => {
 
     expect(screen.getByText("Um upgrade real na presença digital da sua empresa.")).not.toBeNull();
     expect(() => unmount()).not.toThrow();
+  });
+
+  it("toque (celular/tablet): prévia estática leve primeiro; o efeito WebGL só monta no primeiro gesto", () => {
+    mockMatchMedia({ "(hover: hover) and (pointer: fine)": false });
+    const { container } = render(<HeroSection />);
+
+    expect(container.querySelector("[class*=heroStaticPreview]")).not.toBeNull();
+    expect(screen.queryByTestId("live-particles")).toBeNull();
+
+    act(() => {
+      window.dispatchEvent(new Event("touchstart"));
+    });
+    expect(screen.getByTestId("live-particles")).not.toBeNull();
+  });
+
+  it("computador (ponteiro fino): continua montando o efeito sozinho, sem esperar gesto", async () => {
+    mockMatchMedia({ "(hover: hover) and (pointer: fine)": true });
+    render(<HeroSection />);
+    expect(await screen.findByTestId("live-particles", undefined, { timeout: 2500 })).not.toBeNull();
   });
 });
