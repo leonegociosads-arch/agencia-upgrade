@@ -2101,8 +2101,11 @@ necessário), sempre indicando a fase em que foram tomadas.*
     mobile e seguem a regra antiga de "não usar scroll horizontal só porque parece sofisticado".
 - **Argumento central:** cada case divide os recursos em **"Na tela do cliente" (front-end)** e **"Nos
   bastidores" (back-end)**, sempre com a tradução do termo ao lado. É o que mostra, com recursos reais, por que
-  um projeto completo vale mais do que uma página simples. Tecnologias aparecem só no rodapé do case
-  ("Estruturado com"), cada uma com o papel que tem no projeto.
+  um projeto completo vale mais do que uma página simples.
+- **Sem nomes de ferramentas ou fornecedores (decisão do usuário, 08/11/2026):** o bloco "Estruturado com"
+  (Next.js, Supabase, Mercado Pago, GSAP) foi removido, e "Mercado Pago" no texto virou "plataforma de
+  pagamento". O cliente não precisa disso e a agência não entrega a própria stack de graça. Um teste em
+  `features/projects/data/projects.test.ts` impede que esses nomes voltem aos cases.
 - **Celular:** a mídia vem primeiro. Cada recurso mostra só o título, e a explicação abre em "Ver como
   funciona" (`aria-expanded`). Do tablet para cima, tudo fica visível. A página caiu de ~7.000px para
   ~5.800px de altura em 360px.

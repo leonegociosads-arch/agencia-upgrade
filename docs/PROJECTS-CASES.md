@@ -28,7 +28,7 @@ Fontes:
 | Painel com produtos, pedidos, produção e financeiro (acesso restrito) | Confirmado | Rotas `src/app/admin/*` na branch de produção; login obrigatório |
 | Pagamento conferido com o Mercado Pago antes da produção | Confirmado | `reconcileOrderPayments`/webhook reconsultam o pagamento; Kanban só recebe pedido pago |
 | Fotos em versões leves geradas automaticamente | Confirmado | HTML ao vivo de `/graficos` usa `__640.webp`; `src/server/product-image-variants.ts` |
-| Next.js, Supabase, Mercado Pago | Confirmado | `package.json` e código |
+| Stack (Next.js, Supabase, Mercado Pago) | Confirmado, **não citado na página** | `package.json` e código. A página não nomeia ferramentas nem fornecedores (decisão de 08/11/2026); o pagamento aparece como "plataforma de pagamento" |
 
 Não citado (fora da página de propósito):
 - **E-mails automáticos (Resend):** existem no código, mas a documentação marca etapas e migrations como não
@@ -52,7 +52,7 @@ Não citado (fora da página de propósito):
 | Pedido aparece na hora no painel; WhatsApp opcional | Confirmado | `docs/kai-hikari-site.md` ("aparece na hora no painel"; "resumo pelo WhatsApp é opcional") |
 | Cardápio editável pelo painel, no site em até 1 minuto | Confirmado | `revalidate = 60` em `src/app/(site)/layout.tsx` + guia de manutenção |
 | Análise/marketing só depois do consentimento | Confirmado | README (variáveis só carregam após consentimento) + `src/lib/consent/` |
-| Next.js, Supabase, GSAP | Confirmado | `package.json` |
+| Stack (Next.js, Supabase, GSAP) | Confirmado, **não citado na página** | `package.json`. A página não nomeia ferramentas (decisão de 08/11/2026) |
 
 Não citado:
 - **Nome da plataforma do painel** ("Upgrade Negócios"): é um produto à parte da Upgrade; citar ou não é decisão

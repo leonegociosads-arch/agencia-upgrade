@@ -55,17 +55,12 @@ export const PROJECT_CASES: readonly ProjectCase[] = [
       },
       {
         title: "Integração com pagamento",
-        text: "O site confere com o Mercado Pago se o pagamento foi aprovado antes de o pedido seguir para a produção.",
+        text: "O site confere com a plataforma de pagamento se o pagamento foi aprovado antes de o pedido seguir para a produção.",
       },
       {
         title: "Imagens otimizadas",
         text: "Cada foto ganha versões leves, geradas automaticamente, para o catálogo abrir rápido até no celular.",
       },
-    ],
-    technologies: [
-      { name: "Next.js", role: "a base do site, que monta as páginas no servidor para abrirem rápido e serem lidas pelo Google" },
-      { name: "Supabase", role: "banco de dados, login do painel e armazenamento das fotos" },
-      { name: "Mercado Pago", role: "processamento dos pagamentos online" },
     ],
     liveUrl: "https://www.smdesignoficial.com/",
     media: {
@@ -137,11 +132,6 @@ export const PROJECT_CASES: readonly ProjectCase[] = [
         title: "Privacidade (LGPD)",
         text: "Ferramentas de análise e de marketing só carregam depois que o visitante aceita os cookies.",
       },
-    ],
-    technologies: [
-      { name: "Next.js", role: "a base do site, que monta as páginas no servidor para abrirem rápido e serem lidas pelo Google" },
-      { name: "Supabase", role: "banco de dados do cardápio e dos pedidos, o mesmo que o painel do restaurante usa" },
-      { name: "GSAP", role: "as animações da abertura e da história da casa" },
     ],
     liveUrl: "https://kaihikari.somosupgrade.com.br/",
     media: {

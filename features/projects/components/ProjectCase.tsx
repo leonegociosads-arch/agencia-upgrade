@@ -21,17 +21,18 @@ export interface ProjectCaseProps {
  *   desktop  cabeçalho (nome, categoria, headline, resumo) | necessidade e solução
  *            mídia grande, quase na largura toda
  *            Na tela (front-end) | Nos bastidores (back-end)
- *            tecnologias · CTA
- *   mobile   mídia → cabeçalho → necessidade/solução → camadas → tecnologias → CTA
+ *            CTA
+ *   mobile   mídia → cabeçalho → necessidade/solução → camadas → CTA
  *
  * A primeira versão (mídia fixa ao lado de uma coluna de texto) foi descartada na validação
  * visual: a mídia ficava com metade da largura e o texto virava uma coluna longa demais — o
  * oposto de "projeto principal com presença". Registro em `docs/DECISIONS.md`.
  *
  * Leitura para dois públicos: o empresário entende a necessidade e o que foi construído; quem
- * conhece tecnologia encontra "Front-end"/"Back-end" e as ferramentas, sempre com a tradução ao
- * lado. "Na tela" × "Nos bastidores" é o argumento central: com recursos reais, mostra por que um
- * projeto completo vale mais do que uma página simples.
+ * conhece tecnologia encontra "Front-end"/"Back-end", sempre com a tradução ao lado. Nenhuma
+ * ferramenta ou fornecedor é nomeado (decisão de 08/11/2026). "Na tela" × "Nos bastidores" é o
+ * argumento central: com recursos reais, mostra por que um projeto completo vale mais do que uma
+ * página simples.
  */
 export default function ProjectCase({ project }: ProjectCaseProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -105,21 +106,9 @@ export default function ProjectCase({ project }: ProjectCaseProps) {
           />
         </div>
 
+        {/* Sem lista de ferramentas ("Estruturado com"), por decisão de 08/11/2026: o cliente não
+            precisa dela e a agência não expõe a própria stack. O valor fica explicado por recurso. */}
         <div className={styles.footer}>
-          <div className={styles.stack}>
-            <Text as="h3" size="label" color="secondary" className={styles.stackTitle}>
-              Estruturado com
-            </Text>
-            <ul className={styles.stackList}>
-              {project.technologies.map((tech) => (
-                <li key={tech.name}>
-                  <span className={styles.techName}>{tech.name}</span>
-                  <span className={styles.techRole}>{tech.role}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           <div className={styles.actions}>
             {/* `aria-label` (e não texto escondido): dentro do `inline-flex` do botão o navegador
                 junta os pedaços com espaço ("ao vivo : SM Design"). Começa pelo texto visível. */}

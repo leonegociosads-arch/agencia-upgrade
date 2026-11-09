@@ -22,11 +22,19 @@ describe("PROJECT_CASES (Etapa Ver Projetos)", () => {
     }
   });
 
-  it("tem conteúdo nas duas camadas e toda tecnologia vem com a explicação", () => {
+  it("tem conteúdo nas duas camadas", () => {
     for (const project of PROJECT_CASES) {
       expect(project.screen.length).toBeGreaterThan(0);
       expect(project.backstage.length).toBeGreaterThan(0);
-      for (const tech of project.technologies) expect(tech.role.trim()).not.toBe("");
+    }
+  });
+
+  it("não nomeia ferramentas nem fornecedores (decisão de 08/11/2026)", () => {
+    const TOOLS = /\b(next\.?js|supabase|gsap|vercel|hostinger|three\.?js|lenis|react|tailwind|mercado ?pago|resend|webgl)\b/i;
+    for (const project of PROJECT_CASES) {
+      const { media, ...content } = project;
+      const visibleText = JSON.stringify(content) + media.desktop.alt + (media.mobile?.alt ?? "");
+      expect(visibleText).not.toMatch(TOOLS);
     }
   });
 

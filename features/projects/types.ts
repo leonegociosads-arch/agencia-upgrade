@@ -59,12 +59,6 @@ export interface ProjectFeature {
   text: string;
 }
 
-/** Tecnologia citada + para que ela serve no projeto (nunca só o nome solto). */
-export interface ProjectTechnology {
-  name: string;
-  role: string;
-}
-
 export interface ProjectCase {
   /** Também é o `id` da seção (âncora `#sm-design`). */
   slug: string;
@@ -80,7 +74,8 @@ export interface ProjectCase {
   screen: ProjectFeature[];
   /** Back-end: o que trabalha nos bastidores. */
   backstage: ProjectFeature[];
-  technologies: ProjectTechnology[];
+  // Sem campo de tecnologias de propósito (08/11/2026): a página não nomeia ferramentas nem
+  // fornecedores. Ver `docs/DECISIONS.md`, "Ver Projetos".
   liveUrl: string;
   media: ProjectMediaConfig;
   /** Cor da marca do cliente, usada SÓ no brilho atrás da mídia (o resto é Design System Upgrade). */
